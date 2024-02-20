@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class QueryDescription : MonoBehaviour
 {
@@ -31,7 +32,13 @@ public class QueryDescription : MonoBehaviour
         string asticaAPI_endpoint = "https://vision.astica.ai/describe";
         string asticaAPI_modelVersion = "2.1_full"; // '1.0_full', '2.0_full', or '2.1_full'
 
-        string asticaAPI_input = "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png"; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png"
+        // Loads the screenshot (Unity considers it a texture) from Resources
+        Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
+        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base 64 string
+        Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
+        string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
+
+        string asticaAPI_input = "https://i.postimg.cc/Yq3m9Mcm/red.png"; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png"
         string asticaAPI_visionParams = "description"; // comma separated options; leave blank for all; note "gpt" and "gpt_detailed" are slow. // Original: "gpt,description,objects,faces";
 
         Dictionary<string, string> asticaAPI_payload = new Dictionary<string, string>
@@ -113,5 +120,29 @@ public class QueryDescription : MonoBehaviour
                 };
             }
         }
+    }
+
+}
+
+public static class ExtensionMethod
+{
+    public static Texture2D DeCompress(this Texture2D source)
+    {
+        RenderTexture renderTex = RenderTexture.GetTemporary(
+                    source.width,
+                    source.height,
+                    0,
+                    RenderTextureFormat.Default,
+                    RenderTextureReadWrite.Linear);
+
+        Graphics.Blit(source, renderTex);
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = renderTex;
+        Texture2D readableText = new Texture2D(source.width, source.height);
+        readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+        readableText.Apply();
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(renderTex);
+        return readableText;
     }
 }
