@@ -203,7 +203,7 @@ public class QueryDescription : MonoBehaviour
             oauthTokenSecret = GetOAuthTokenSecretFromResponse(requestTokenResponse);
 
             // Step 2: Redirect user to authorization URL
-            string authorizationUrl = $"https://www.flickr.com/services/oauth/authorize?oauth_token={oauthToken}";
+            string authorizationUrl = $"https://www.flickr.com/services/oauth/authorize?oauth_token={oauthToken}&perms=write";
             Application.OpenURL(authorizationUrl);
         }
         else
