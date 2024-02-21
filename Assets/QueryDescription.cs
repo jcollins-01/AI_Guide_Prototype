@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class QueryDescription : MonoBehaviour
@@ -23,22 +26,31 @@ public class QueryDescription : MonoBehaviour
             QueryAstica();
         }
     }
+    public static string GetBase64Image(byte[] imageData, string imageExtension)
+    {
+        string base64Encoded = System.Convert.ToBase64String(imageData);
+        return $"data:image/{imageExtension.Substring(1)};base64,{base64Encoded}";
+    }
 
-    static async Task QueryAstica()
+    async Task QueryAstica() // was a static method
     {
         string asticaAPI_key = "762A2AC4-411B-43B5-A4DC-49D4602B87C3CCFF077C-9401-4AE7-9EDA-8E828D671526"; // visit https://astica.org
         string asticaAPI_timeout = "35"; // seconds
 
         string asticaAPI_endpoint = "https://vision.astica.ai/describe";
-        string asticaAPI_modelVersion = "2.1_full"; // '1.0_full', '2.0_full', or '2.1_full'
+        string asticaAPI_modelVersion = "1.0_full"; // '1.0_full', '2.0_full', or (was) '2.1_full'
 
         // Loads the screenshot (Unity considers it a texture) from Resources
         Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
-        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base 64 string
+        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
         Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
         string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
 
-        string asticaAPI_input = "https://i.postimg.cc/Yq3m9Mcm/red.png"; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png"
+        // Takes the byte array of the imageData and passed it to IMGUR for upload
+        byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
+        StartCoroutine(UploadImageToImgur(imageData, OnUploadComplete));
+
+        string asticaAPI_input = imageString; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png"
         string asticaAPI_visionParams = "description"; // comma separated options; leave blank for all; note "gpt" and "gpt_detailed" are slow. // Original: "gpt,description,objects,faces";
 
         Dictionary<string, string> asticaAPI_payload = new Dictionary<string, string>
@@ -119,6 +131,61 @@ public class QueryDescription : MonoBehaviour
                     { "error", "Failed to connect to the API." }
                 };
             }
+        }
+    }
+
+    // Replace with your own Imgur client ID
+    private string clientId = "YOUR_CLIENT_ID";
+
+    // Function to upload image to Imgur
+    public IEnumerator UploadImageToImgur(byte[] imageData, System.Action<string> onComplete) //was string imagePath
+    {
+        // Read image file as byte array
+        //byte[] imageData = System.IO.File.ReadAllBytes(imagePath);
+
+        // Convert byte array to base64 string
+        string base64Image = System.Convert.ToBase64String(imageData);
+
+        // Construct JSON data for upload
+        string jsonData = "{\"image\":\"" + base64Image + "\"}";
+
+        // Upload image to Imgur using UnityWebRequest
+        using (UnityWebRequest www = new UnityWebRequest("https://api.imgur.com/3/upload", "POST"))
+        {
+            www.SetRequestHeader("Authorization", "Client-ID " + clientId);
+            www.SetRequestHeader("Content-Type", "application/json");
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new DownloadHandlerBuffer();
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Image upload successful!");
+                string responseText = www.downloadHandler.text;
+                Debug.Log("Response: " + responseText);
+                onComplete?.Invoke(responseText);
+            }
+            else
+            {
+                Debug.LogError("Error uploading image: " + www.error);
+                onComplete?.Invoke(null);
+            }
+        }
+    }
+
+    // Callback function when upload is complete
+    void OnUploadComplete(string responseText)
+    {
+        if (responseText != null)
+        {
+            // Handle the response here
+            Debug.Log("Upload complete! Response: " + responseText);
+        }
+        else
+        {
+            Debug.LogError("Upload failed!");
         }
     }
 
