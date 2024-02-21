@@ -159,7 +159,7 @@ public class QueryDescription : MonoBehaviour
     private string oauthTokenSecret;
 
     // Callback URL
-    private string callbackUrl = "https://www.getpostman.com/oauth2/callback";
+    private string callbackUrl = "https://oauth.pstmn.io/v1/callback"; // was  https://www.getpostman.com/oauth2/callback
 
     // Function to request OAuth tokens
     public IEnumerator RequestOAuthTokens()
@@ -218,7 +218,7 @@ public class QueryDescription : MonoBehaviour
         // Step 3: Get access token
         string accessTokenUrl = "https://www.flickr.com/services/oauth/access_token";
         WWWForm accessTokenForm = new WWWForm();
-        accessTokenForm.AddField("oauth_verifier", "YOUR_VERIFIER_CODE"); // Replace with the verifier code obtained from user
+        accessTokenForm.AddField("oauth_verifier", "33907b93f87e9a25"); // Replace with the verifier code obtained from official user
         UnityWebRequest accessTokenRequest = UnityWebRequest.Post(accessTokenUrl, accessTokenForm);
         yield return accessTokenRequest.SendWebRequest();
 
