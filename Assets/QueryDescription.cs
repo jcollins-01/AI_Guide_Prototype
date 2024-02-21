@@ -20,7 +20,25 @@ public class QueryDescription : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Future method: take screenshot
+        
+        // Upload image to Imgur
         if (Input.GetKeyDown("space"))
+        {
+            Debug.Log("Uploading screenshot to Imgur");
+            // Loads the screenshot (Unity considers it a texture) from Resources
+            Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
+            // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
+            Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
+            string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
+
+            // Takes the byte array of the imageData and passed it to IMGUR for upload
+            byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
+            StartCoroutine(UploadImageToImgur(imageData, OnUploadComplete));
+        }
+
+        // Query Astica on uploaded image
+        if (Input.GetKeyDown("q"))
         {
             Debug.Log("Querying Astica AI");
             QueryAstica();
@@ -40,17 +58,7 @@ public class QueryDescription : MonoBehaviour
         string asticaAPI_endpoint = "https://vision.astica.ai/describe";
         string asticaAPI_modelVersion = "1.0_full"; // '1.0_full', '2.0_full', or (was) '2.1_full'
 
-        // Loads the screenshot (Unity considers it a texture) from Resources
-        Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
-        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
-        Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
-        string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
-
-        // Takes the byte array of the imageData and passed it to IMGUR for upload
-        byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
-        StartCoroutine(UploadImageToImgur(imageData, OnUploadComplete));
-
-        string asticaAPI_input = imageString; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png"
+        string asticaAPI_input = imgurImageLink; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png", imageString (FAIL)
         string asticaAPI_visionParams = "description"; // comma separated options; leave blank for all; note "gpt" and "gpt_detailed" are slow. // Original: "gpt,description,objects,faces";
 
         Dictionary<string, string> asticaAPI_payload = new Dictionary<string, string>
@@ -134,8 +142,9 @@ public class QueryDescription : MonoBehaviour
         }
     }
 
-    // Replace with your own Imgur client ID
-    private string clientId = "YOUR_CLIENT_ID";
+    // Imgur client ID
+    private string clientId = "b9b3f9687632f5e";
+    public string imgurImageLink;
 
     // Function to upload image to Imgur
     public IEnumerator UploadImageToImgur(byte[] imageData, System.Action<string> onComplete) //was string imagePath
@@ -165,7 +174,18 @@ public class QueryDescription : MonoBehaviour
                 Debug.Log("Image upload successful!");
                 string responseText = www.downloadHandler.text;
                 Debug.Log("Response: " + responseText);
-                onComplete?.Invoke(responseText);
+
+                // Parse JSON response
+                ImgurResponse imgurResponse = JsonUtility.FromJson<ImgurResponse>(responseText);
+                if (imgurResponse != null && imgurResponse.success)
+                {
+                    string imageLink = imgurResponse.data.link;
+                    onComplete?.Invoke(imageLink);
+                }
+                else
+                {
+                    onComplete?.Invoke(null);
+                }
             }
             else
             {
@@ -176,12 +196,13 @@ public class QueryDescription : MonoBehaviour
     }
 
     // Callback function when upload is complete
-    void OnUploadComplete(string responseText)
+    void OnUploadComplete(string imageLink)
     {
-        if (responseText != null)
+        if (imageLink != null)
         {
-            // Handle the response here
-            Debug.Log("Upload complete! Response: " + responseText);
+            // Handle the image link here
+            Debug.Log("Upload successful! Image link: " + imageLink);
+            imgurImageLink = imageLink;
         }
         else
         {
@@ -212,4 +233,20 @@ public static class ExtensionMethod
         RenderTexture.ReleaseTemporary(renderTex);
         return readableText;
     }
+}
+
+// Class to represent the Imgur API response
+[System.Serializable]
+public class ImgurResponse
+{
+    public ImgurData data;
+    public bool success;
+    public int status;
+}
+
+// Class to represent the data field in the Imgur API response
+[System.Serializable]
+public class ImgurData
+{
+    public string link;
 }
