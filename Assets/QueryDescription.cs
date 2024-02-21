@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -25,7 +27,7 @@ public class QueryDescription : MonoBehaviour
         // Upload image to Imgur
         if (Input.GetKeyDown("space"))
         {
-            Debug.Log("Uploading screenshot to Imgur");
+            Debug.Log("Uploading screenshot to Flickr");
             // Loads the screenshot (Unity considers it a texture) from Resources
             Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
             // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
@@ -34,7 +36,14 @@ public class QueryDescription : MonoBehaviour
 
             // Takes the byte array of the imageData and passed it to IMGUR for upload
             byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
-            StartCoroutine(UploadImageToImgur(imageData, OnUploadComplete));
+            StartCoroutine(UploadImageToFlickr(imageData, OnUploadComplete));
+        }
+
+        // Authorize application through Flickr
+        if (Input.GetKeyDown("a"))
+        {
+            Debug.Log("Attempting to authorize application with Flickr");
+            StartCoroutine(RequestOAuthTokens());
         }
 
         // Query Astica on uploaded image
@@ -54,7 +63,7 @@ public class QueryDescription : MonoBehaviour
         string asticaAPI_modelVersion = "2.1_full"; // '1.0_full', '2.0_full', or (was) '2.1_full'
 
         //imgurImageLink
-        string asticaAPI_input = imgurImageLink; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png", imageString (FAIL), "https://live.staticflickr.com/65535/53542353338_14b2062afc_h.jpg"
+        string asticaAPI_input = flickrImageLink; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png", imageString (FAIL), "https://live.staticflickr.com/65535/53542353338_14b2062afc_h.jpg"
         string asticaAPI_visionParams = "description"; // comma separated options; leave blank for all; note "gpt" and "gpt_detailed" are slow. // Original: "gpt,description,objects,faces";
 
         Dictionary<string, string> asticaAPI_payload = new Dictionary<string, string>
@@ -138,46 +147,132 @@ public class QueryDescription : MonoBehaviour
         }
     }
 
-    // Flickr API key
-    private string apiKey = "4149eff9725358e6dd3443b3cfb48358";
-    public string imgurImageLink;
+    // string to pass final link into
+    public string flickrImageLink;
 
-    // OAuth callback link to Postman: https://www.getpostman.com/oauth2/callback
+    // Flickr API key and secret
+    private string apiKey = "4149eff9725358e6dd3443b3cfb48358";
+    private string apiSecret = "e6f3dccd2e2d87f6";
+
+    // OAuth credentials
+    private string oauthToken;
+    private string oauthTokenSecret;
+
+    // Callback URL
+    private string callbackUrl = "https://www.getpostman.com/oauth2/callback";
+
+    // Function to request OAuth tokens
+    public IEnumerator RequestOAuthTokens()
+    {
+        // Step 1: Get request token
+        string requestTokenUrl = "https://www.flickr.com/services/oauth/request_token";
+
+        // Generate OAuth parameters
+        Dictionary<string, string> oauthParams = new Dictionary<string, string>();
+        oauthParams.Add("oauth_callback", UnityWebRequest.EscapeURL(callbackUrl));
+        oauthParams.Add("oauth_consumer_key", apiKey);
+        oauthParams.Add("oauth_nonce", GenerateNonce());
+        oauthParams.Add("oauth_signature_method", "HMAC-SHA1");
+        oauthParams.Add("oauth_timestamp", GenerateTimestamp());        
+        oauthParams.Add("oauth_version", "1.0");
+
+        // Generate OAuth signature
+        string signature = GenerateSignature("GET", requestTokenUrl, oauthParams);
+
+        // Add signature to OAuth parameters
+        oauthParams.Add("oauth_signature", signature);
+
+        // Construct OAuth header
+        string oauthHeader = GenerateOAuthHeader(oauthParams);
+
+        // Send request to obtain OAuth tokens
+        UnityWebRequest www = UnityWebRequest.Get(requestTokenUrl);
+        www.SetRequestHeader("Authorization", oauthHeader);
+
+        Debug.Log(oauthHeader);
+
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("OAuth request successful!");
+            Debug.Log("Response: " + www.downloadHandler.text);
+
+            string requestTokenResponse = www.downloadHandler.text;
+            oauthToken = GetOAuthTokenFromResponse(requestTokenResponse);
+            oauthTokenSecret = GetOAuthTokenSecretFromResponse(requestTokenResponse);
+
+            // Step 2: Redirect user to authorization URL
+            string authorizationUrl = $"https://www.flickr.com/services/oauth/authorize?oauth_token={oauthToken}";
+            Application.OpenURL(authorizationUrl);
+        }
+        else
+        {
+            Debug.LogError("Failed to send OAuth request: " + www.error);
+        }
+    }
 
     // Function to upload image to Imgur
-    public IEnumerator UploadImageToImgur(byte[] imageData, System.Action<string> onComplete) //was string imagePath
+    public IEnumerator UploadImageToFlickr(byte[] imageData, System.Action<string> onComplete) //was string imagePath
     {
-        // Convert byte array to base64 string
-        string base64Image = System.Convert.ToBase64String(imageData);
+        // Step 3: Get access token
+        string accessTokenUrl = "https://www.flickr.com/services/oauth/access_token";
+        WWWForm accessTokenForm = new WWWForm();
+        accessTokenForm.AddField("oauth_verifier", "YOUR_VERIFIER_CODE"); // Replace with the verifier code obtained from user
+        UnityWebRequest accessTokenRequest = UnityWebRequest.Post(accessTokenUrl, accessTokenForm);
+        yield return accessTokenRequest.SendWebRequest();
 
-        // Construct parameters for upload
-        WWWForm form = new WWWForm();
-        form.AddField("api_key", apiKey);
-        form.AddField("photo", base64Image);
-
-        // Upload image to Flickr using UnityWebRequest
-        using (UnityWebRequest www = UnityWebRequest.Post("https://up.flickr.com/services/upload/", form))
+        if (accessTokenRequest.result == UnityWebRequest.Result.Success)
         {
-            www.chunkedTransfer = false; // Flickr doesn't support chunked transfer
+            string accessTokenResponse = accessTokenRequest.downloadHandler.text;
+            string accessToken = GetOAuthTokenFromResponse(accessTokenResponse);
+            string accessTokenSecret = GetOAuthTokenSecretFromResponse(accessTokenResponse);
 
-            yield return www.SendWebRequest();
+            // Step 4: Upload image
+            // Use accessToken and accessTokenSecret to authenticate API requests
+            // Example implementation:
+            // UploadImageToApi(imagePath, accessToken, accessTokenSecret, onComplete);
 
-            if (www.result == UnityWebRequest.Result.Success)
+            // Convert byte array to base64 string
+            string base64Image = System.Convert.ToBase64String(imageData);
+
+            // Construct parameters for upload
+            WWWForm form = new WWWForm();
+            form.AddField("api_key", apiKey);
+            form.AddField("photo", base64Image);
+            form.AddField("oauth_token", accessToken); // Add to authorize
+            form.AddField("oauth_token_secret", accessTokenSecret);
+
+            // Upload image to Flickr using UnityWebRequest
+            using (UnityWebRequest www = UnityWebRequest.Post("https://up.flickr.com/services/upload/", form))
             {
-                Debug.Log("Image upload successful!");
-                string responseText = www.downloadHandler.text;
-                Debug.Log("Response: " + responseText);
+                www.chunkedTransfer = false; // Flickr doesn't support chunked transfer
 
-                // Parse response to get photo ID or other relevant information
-                string photoId = GetPhotoIdFromResponse(responseText);
-                onComplete?.Invoke(photoId);
-            }
-            else
-            {
-                Debug.LogError("Error uploading image: " + www.error);
-                onComplete?.Invoke(null);
+                yield return www.SendWebRequest();
+
+                if (www.result == UnityWebRequest.Result.Success)
+                {
+                    Debug.Log("Image upload successful!");
+                    string responseText = www.downloadHandler.text;
+                    Debug.Log("Response: " + responseText);
+
+                    // Parse response to get photo ID or other relevant information
+                    string photoId = GetPhotoIdFromResponse(responseText);
+                    onComplete?.Invoke(photoId);
+                }
+                else
+                {
+                    Debug.LogError("Error uploading image: " + www.error);
+                    onComplete?.Invoke(null);
+                }
             }
         }
+        else
+        {
+            Debug.LogError("Failed to request access token: " + accessTokenRequest.error);
+        }
+
+        
     }
 
     // Callback function when upload is complete
@@ -192,6 +287,118 @@ public class QueryDescription : MonoBehaviour
         {
             Debug.LogError("Upload failed!");
         }
+    }
+
+    // Function to generate a random nonce
+    private string GenerateNonce()
+    {
+        return System.Guid.NewGuid().ToString("N");
+    }
+
+    // Function to generate a timestamp
+    private string GenerateTimestamp()
+    {
+        DateTime epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        TimeSpan elapsedTime = DateTime.UtcNow - epochStart;
+        long unixTimestamp = (long)elapsedTime.TotalSeconds;
+        return unixTimestamp.ToString();
+    }
+
+    // Function to generate OAuth signature
+    private string GenerateSignature(string method, string url, Dictionary<string, string> parameters)
+    {
+        // Sort parameters alphabetically by key
+        List<string> sortedParams = new List<string>(parameters.Keys);
+        sortedParams.Sort();
+
+        // Construct parameter string
+        StringBuilder parameterString = new StringBuilder();
+        foreach (string key in sortedParams)
+        {
+            parameterString.Append($"{key}={parameters[key]}&");
+        }
+        parameterString.Remove(parameterString.Length - 1, 1); // Remove trailing '&'
+
+        // Construct base string
+        string baseString = $"{method.ToUpper()}&{UnityWebRequest.EscapeURL(url)}&{UnityWebRequest.EscapeURL(parameterString.ToString())}";
+        // Loops through and catches URL encoding errors with uppercasing: uppercases first two chars after %, and first char after %###
+        baseString = UppercaseFollowingPercent(baseString);
+        //Debug.Log(baseString);
+
+        // Construct signing key
+        string signingKey = $"{UnityWebRequest.EscapeURL(apiSecret)}&";
+
+        // Compute signature using HMAC-SHA1 algorithm
+        HMACSHA1 hmac = new HMACSHA1(Encoding.ASCII.GetBytes(signingKey));
+        byte[] signatureBytes = hmac.ComputeHash(Encoding.ASCII.GetBytes(baseString));
+
+        // Convert signature to base64-encoded string
+        string signature = System.Convert.ToBase64String(signatureBytes);
+        Debug.Log(signature);
+
+        return signature;
+    }
+
+    public static string UppercaseFollowingPercent(string input)
+    {
+        StringBuilder output = new StringBuilder();
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            if (input[i] == '%' && i + 2 < input.Length && (char.IsLetter(input[i + 1]) || char.IsLetter(input[i + 2])))
+            {
+                output.Append(input[i]);
+                output.Append(char.ToUpper(input[i + 1])); // Uppercase the first letter character after '%'
+                output.Append(char.ToUpper(input[i + 2])); // Uppercase the second letter character after '%'
+                i += 2; // Skip the next two characters
+            }
+            else if (input[i] == '%' && i + 5 < input.Length && char.IsDigit(input[i + 1]) && char.IsDigit(input[i + 2]) && char.IsDigit(input[i + 3]) && char.IsLetter(input[i + 4]))
+            {
+                output.Append(input[i]);
+                output.Append(input[i + 1]); // Append the first character after '%'
+                output.Append(input[i + 2]); // Append the second character after '%'
+                output.Append(input[i + 3]); // Append the third character after '%'
+                output.Append(char.ToUpper(input[i + 4])); // Uppercase the first letter character after three numbers
+                i += 4; // Skip the next four characters
+            }
+            else
+            {
+                output.Append(input[i]);
+            }
+        }
+
+        return output.ToString();
+    }
+
+    // Function to generate OAuth header string
+    private string GenerateOAuthHeader(Dictionary<string, string> parameters)
+    {
+        StringBuilder headerBuilder = new StringBuilder("OAuth ");
+
+        foreach (KeyValuePair<string, string> pair in parameters)
+        {
+            headerBuilder.Append($"{pair.Key}=\"{pair.Value}\", ");
+        }
+
+        headerBuilder.Remove(headerBuilder.Length - 2, 2); // Remove trailing ', '
+
+        return headerBuilder.ToString();
+    }
+
+    // Function to parse OAuth token from response
+    private string GetOAuthTokenFromResponse(string response)
+    {
+        // Implement parsing logic to extract OAuth token from response
+        // For simplicity, we'll return the entire response
+        return response;
+    }
+
+    // Function to parse OAuth token secret from response
+    private string GetOAuthTokenSecretFromResponse(string response)
+    {
+        // Implement parsing logic to extract OAuth token secret from response
+        // For simplicity, we'll return the entire response
+        return response;
     }
 
     // Function to parse response and extract photo ID
