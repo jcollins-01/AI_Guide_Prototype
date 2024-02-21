@@ -44,11 +44,6 @@ public class QueryDescription : MonoBehaviour
             QueryAstica();
         }
     }
-    public static string GetBase64Image(byte[] imageData, string imageExtension)
-    {
-        string base64Encoded = System.Convert.ToBase64String(imageData);
-        return $"data:image/{imageExtension.Substring(1)};base64,{base64Encoded}";
-    }
 
     async Task QueryAstica() // was a static method
     {
@@ -56,9 +51,10 @@ public class QueryDescription : MonoBehaviour
         string asticaAPI_timeout = "35"; // seconds
 
         string asticaAPI_endpoint = "https://vision.astica.ai/describe";
-        string asticaAPI_modelVersion = "1.0_full"; // '1.0_full', '2.0_full', or (was) '2.1_full'
+        string asticaAPI_modelVersion = "2.1_full"; // '1.0_full', '2.0_full', or (was) '2.1_full'
 
-        string asticaAPI_input = imgurImageLink; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png", imageString (FAIL)
+        //imgurImageLink
+        string asticaAPI_input = imgurImageLink; // Sample tests: "https://astica.ai/example/asticaVision_sample.jpg", "https://usapple.org/wp-content/uploads/2019/10/apple-pink-lady.png", "https://i.postimg.cc/VLp2sVMn/test.png", imageString (FAIL), "https://live.staticflickr.com/65535/53542353338_14b2062afc_h.jpg"
         string asticaAPI_visionParams = "description"; // comma separated options; leave blank for all; note "gpt" and "gpt_detailed" are slow. // Original: "gpt,description,objects,faces";
 
         Dictionary<string, string> asticaAPI_payload = new Dictionary<string, string>
@@ -142,30 +138,27 @@ public class QueryDescription : MonoBehaviour
         }
     }
 
-    // Imgur client ID
-    private string clientId = "b9b3f9687632f5e";
+    // Flickr API key
+    private string apiKey = "4149eff9725358e6dd3443b3cfb48358";
     public string imgurImageLink;
+
+    // OAuth callback link to Postman: https://www.getpostman.com/oauth2/callback
 
     // Function to upload image to Imgur
     public IEnumerator UploadImageToImgur(byte[] imageData, System.Action<string> onComplete) //was string imagePath
     {
-        // Read image file as byte array
-        //byte[] imageData = System.IO.File.ReadAllBytes(imagePath);
-
         // Convert byte array to base64 string
         string base64Image = System.Convert.ToBase64String(imageData);
 
-        // Construct JSON data for upload
-        string jsonData = "{\"image\":\"" + base64Image + "\"}";
+        // Construct parameters for upload
+        WWWForm form = new WWWForm();
+        form.AddField("api_key", apiKey);
+        form.AddField("photo", base64Image);
 
-        // Upload image to Imgur using UnityWebRequest
-        using (UnityWebRequest www = new UnityWebRequest("https://api.imgur.com/3/upload", "POST"))
+        // Upload image to Flickr using UnityWebRequest
+        using (UnityWebRequest www = UnityWebRequest.Post("https://up.flickr.com/services/upload/", form))
         {
-            www.SetRequestHeader("Authorization", "Client-ID " + clientId);
-            www.SetRequestHeader("Content-Type", "application/json");
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
-            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            www.downloadHandler = new DownloadHandlerBuffer();
+            www.chunkedTransfer = false; // Flickr doesn't support chunked transfer
 
             yield return www.SendWebRequest();
 
@@ -175,17 +168,9 @@ public class QueryDescription : MonoBehaviour
                 string responseText = www.downloadHandler.text;
                 Debug.Log("Response: " + responseText);
 
-                // Parse JSON response
-                ImgurResponse imgurResponse = JsonUtility.FromJson<ImgurResponse>(responseText);
-                if (imgurResponse != null && imgurResponse.success)
-                {
-                    string imageLink = imgurResponse.data.link;
-                    onComplete?.Invoke(imageLink);
-                }
-                else
-                {
-                    onComplete?.Invoke(null);
-                }
+                // Parse response to get photo ID or other relevant information
+                string photoId = GetPhotoIdFromResponse(responseText);
+                onComplete?.Invoke(photoId);
             }
             else
             {
@@ -196,18 +181,25 @@ public class QueryDescription : MonoBehaviour
     }
 
     // Callback function when upload is complete
-    void OnUploadComplete(string imageLink)
+    void OnUploadComplete(string photoId)
     {
-        if (imageLink != null)
+        if (photoId != null)
         {
-            // Handle the image link here
-            Debug.Log("Upload successful! Image link: " + imageLink);
-            imgurImageLink = imageLink;
+            // Handle the photo ID here
+            Debug.Log("Upload successful! Photo ID: " + photoId);
         }
         else
         {
             Debug.LogError("Upload failed!");
         }
+    }
+
+    // Function to parse response and extract photo ID
+    private string GetPhotoIdFromResponse(string responseText)
+    {
+        // Implement parsing logic to extract photo ID from Flickr API response
+        // For simplicity, we'll just return the entire response text
+        return responseText;
     }
 
 }
