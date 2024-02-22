@@ -150,6 +150,11 @@ public class QueryDescription : MonoBehaviour
     // string to pass final link into
     public string flickrImageLink;
 
+    // OAuth parameters
+    public string apiUrl = "https://api.flickr.com/services/rest";
+    // Flickr API method to check permissions
+    private string method = "flickr.auth.oauth.checkToken";
+
     // Flickr API key and secret
     private string apiKey = "4149eff9725358e6dd3443b3cfb48358";
     private string apiSecret = "e6f3dccd2e2d87f6";
@@ -157,6 +162,9 @@ public class QueryDescription : MonoBehaviour
     // OAuth credentials
     private string oauthToken;
     private string oauthTokenSecret;
+    // YOU WILL ENTER THESE MANUALLY AFTER RECIEVING THEM IN POSTMAN
+    private string accessToken = "72157720909889526-3acd306bbc7ebf81";
+    private string accessTokenSecret= "4548110ad53b3f75";
 
     // Callback URL
     private string callbackUrl = "https://oauth.pstmn.io/v1/callback"; // was  https://www.getpostman.com/oauth2/callback
@@ -209,83 +217,6 @@ public class QueryDescription : MonoBehaviour
         else
         {
             Debug.LogError("Failed to send OAuth request: " + www.error);
-        }
-    }
-
-    // Function to upload image to Imgur
-    public IEnumerator UploadImageToFlickr(byte[] imageData, System.Action<string> onComplete) //was string imagePath
-    {
-        // Step 3: Get access token
-        string accessTokenUrl = "https://www.flickr.com/services/oauth/access_token";
-        WWWForm accessTokenForm = new WWWForm();
-        accessTokenForm.AddField("oauth_verifier", "33907b93f87e9a25"); // Replace with the verifier code obtained from official user
-        UnityWebRequest accessTokenRequest = UnityWebRequest.Post(accessTokenUrl, accessTokenForm);
-        yield return accessTokenRequest.SendWebRequest();
-
-        if (accessTokenRequest.result == UnityWebRequest.Result.Success)
-        {
-            string accessTokenResponse = accessTokenRequest.downloadHandler.text;
-            string accessToken = GetOAuthTokenFromResponse(accessTokenResponse);
-            string accessTokenSecret = GetOAuthTokenSecretFromResponse(accessTokenResponse);
-
-            // Step 4: Upload image
-            // Use accessToken and accessTokenSecret to authenticate API requests
-            // Example implementation:
-            // UploadImageToApi(imagePath, accessToken, accessTokenSecret, onComplete);
-
-            // Convert byte array to base64 string
-            string base64Image = System.Convert.ToBase64String(imageData);
-
-            // Construct parameters for upload
-            WWWForm form = new WWWForm();
-            form.AddField("api_key", apiKey);
-            form.AddField("photo", base64Image);
-            form.AddField("oauth_token", accessToken); // Add to authorize
-            form.AddField("oauth_token_secret", accessTokenSecret);
-
-            // Upload image to Flickr using UnityWebRequest
-            using (UnityWebRequest www = UnityWebRequest.Post("https://up.flickr.com/services/upload/", form))
-            {
-                www.chunkedTransfer = false; // Flickr doesn't support chunked transfer
-
-                yield return www.SendWebRequest();
-
-                if (www.result == UnityWebRequest.Result.Success)
-                {
-                    Debug.Log("Image upload successful!");
-                    string responseText = www.downloadHandler.text;
-                    Debug.Log("Response: " + responseText);
-
-                    // Parse response to get photo ID or other relevant information
-                    string photoId = GetPhotoIdFromResponse(responseText);
-                    onComplete?.Invoke(photoId);
-                }
-                else
-                {
-                    Debug.LogError("Error uploading image: " + www.error);
-                    onComplete?.Invoke(null);
-                }
-            }
-        }
-        else
-        {
-            Debug.LogError("Failed to request access token: " + accessTokenRequest.error);
-        }
-
-        
-    }
-
-    // Callback function when upload is complete
-    void OnUploadComplete(string photoId)
-    {
-        if (photoId != null)
-        {
-            // Handle the photo ID here
-            Debug.Log("Upload successful! Photo ID: " + photoId);
-        }
-        else
-        {
-            Debug.LogError("Upload failed!");
         }
     }
 
@@ -399,6 +330,91 @@ public class QueryDescription : MonoBehaviour
         // Implement parsing logic to extract OAuth token secret from response
         // For simplicity, we'll return the entire response
         return response;
+    }
+
+    private void ExchangeRequestTokenForAccessToken()
+    {
+        // Step 3: Get access token
+
+        /* After authorizing, you should hold onto two pieces of information:
+         * 
+         * 1. Within the Unity console, an output like this will be printed if authorization was successful.
+         * Response: oauth_callback_confirmed=true&oauth_token=72157720909852414-b03dde8edd653f6d&oauth_token_secret=12a30b0b018ded39
+         * 
+         * 2. In your browser, after the user agrees to authorize, a new pop-up should appear with a URL like this.
+         * postman://app/oauth2/callback?oauth_token=72157720909852414-b03dde8edd653f6d&oauth_verifier=ad2ef98bb185c961
+         *
+         *
+         * Copy the oauth_token, oauth_token_secret, and oauth_verifier. Input them in Postman under an Authorization call.
+         * Follow this article for advice but note: ALL VALUES SHOULD BE INPUT UNDER THE AUTHORIZATION TAB
+         * 
+         * You should receive an output like this:
+         * fullname=Kopek%20Molyg
+         * &oauth_token=72157720909889526-3acd306bbc7ebf81
+         * &oauth_token_secret=4548110ad53b3f75
+         * &user_nsid=200097626%40N05
+         * &username=kopek81002
+         *
+         * You now have the access token and token secret. Enter them manually at the top of the script. 
+         */
+    }
+
+    // Function to upload image to Imgur
+    public IEnumerator UploadImageToFlickr(byte[] imageData, System.Action<string> onComplete) //was string imagePath
+    {
+        // Step 4: Upload image
+        // Use accessToken and accessTokenSecret to authenticate API requests
+        // Example implementation:
+        // UploadImageToApi(imagePath, accessToken, accessTokenSecret, onComplete);
+
+        // Convert byte array to base64 string
+        string base64Image = System.Convert.ToBase64String(imageData);
+
+        // Construct parameters for upload
+        WWWForm form = new WWWForm();
+        form.AddField("api_key", apiKey);
+        form.AddField("photo", base64Image);
+        form.AddField("oauth_token", accessToken); // Add to authorize
+        form.AddField("oauth_token_secret", accessTokenSecret);
+        form.AddField("perms", "write");
+
+        // Upload image to Flickr using UnityWebRequest
+        using (UnityWebRequest www = UnityWebRequest.Post("https://up.flickr.com/services/upload/", form))
+        {
+            www.chunkedTransfer = false; // Flickr doesn't support chunked transfer
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Image upload successful!");
+                string responseText = www.downloadHandler.text;
+                Debug.Log("Response: " + responseText);
+
+                // Parse response to get photo ID or other relevant information
+                string photoId = GetPhotoIdFromResponse(responseText);
+                onComplete?.Invoke(photoId);
+            }
+            else
+            {
+                Debug.LogError("Error uploading image: " + www.error);
+                onComplete?.Invoke(null);
+            }
+        }
+    }
+
+    // Callback function when upload is complete
+    void OnUploadComplete(string photoId)
+    {
+        if (photoId != null)
+        {
+            // Handle the photo ID here
+            Debug.Log("Upload successful! Photo ID: " + photoId);
+        }
+        else
+        {
+            Debug.LogError("Upload failed!");
+        }
     }
 
     // Function to parse response and extract photo ID
