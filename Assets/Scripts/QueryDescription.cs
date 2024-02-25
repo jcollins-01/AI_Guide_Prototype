@@ -12,20 +12,32 @@ public class QueryDescription : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Ready to query for CV description - press space to upload an image, and q to query!");
+        Debug.Log("Ready to query for CV description - press s to take an image, r to refresh your assets, space to upload an image, then q to query!");
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Future method: take screenshot
+        // Take screenshot
+        if (Input.GetKeyDown("s"))
+        {
+            ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/capture.png");
+            Debug.Log("Screenshot captured!");
+        }
+
+        // Refresh assets - screenshot will not appear during Play Mode unless assets are refreshed
+        if (Input.GetKeyDown("r"))
+        {
+            UnityEditor.AssetDatabase.Refresh();
+            Debug.Log("Assets refreshed!");
+        }
         
         // Upload image to Imgur
         if (Input.GetKeyDown("space"))
         {
             Debug.Log("Uploading screenshot to Image Shack");
             // Loads the screenshot (Unity considers it a texture) from Resources
-            Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/red");
+            Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/capture");
             // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
             Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
             string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
