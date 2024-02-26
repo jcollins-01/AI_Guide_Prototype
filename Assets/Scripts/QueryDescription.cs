@@ -12,47 +12,62 @@ public class QueryDescription : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Ready to query for CV description - press s to take an image, r to refresh your assets, space to upload an image, then q to query!");
+        Debug.Log("Ready to query for CV description - press space to capture and upload an image for querying!");
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Take screenshot
-        if (Input.GetKeyDown("s"))
-        {
-            ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/capture.png");
-            Debug.Log("Screenshot captured!");
-        }
-
-        // Refresh assets - screenshot will not appear during Play Mode unless assets are refreshed
-        if (Input.GetKeyDown("r"))
-        {
-            UnityEditor.AssetDatabase.Refresh();
-            Debug.Log("Assets refreshed!");
-        }
-        
-        // Upload image to Imgur
+        // Capture screenshot and process it through Astica
         if (Input.GetKeyDown("space"))
         {
-            Debug.Log("Uploading screenshot to Image Shack");
-            // Loads the screenshot (Unity considers it a texture) from Resources
-            Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/capture");
-            // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
-            Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
-            string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
-
-            // Takes the byte array of the imageData and passed it to IMGUR for upload
-            byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
-            StartCoroutine(UploadImage(imageData));
+            CaptureScreenshot();
         }
+    }
 
-        // Query Astica on uploaded image
-        if (Input.GetKeyDown("q"))
+    // Keep track of asset refresh
+    private bool refreshed = false;
+  
+    void CaptureScreenshot()
+    {
+        ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/capture.png");
+        Debug.Log("Screenshot captured!");
+        refreshed = false;
+        RefreshAssets();
+    }
+
+    void RefreshAssets()
+    {
+        UnityEditor.AssetDatabase.Refresh();
+        
+        if (!refreshed) // Run this coroutine to make sure we refresh before moving on
+            StartCoroutine(WaitForRefresh());
+        else
         {
-            Debug.Log("Querying Astica AI");
-            QueryAstica();
+            Debug.Log("Assets refreshed!");
+            UploadImage();
         }
+    }
+
+    IEnumerator WaitForRefresh()
+    {
+        yield return new WaitForSeconds(2);
+        RefreshAssets();
+        refreshed = true;
+    }
+
+    void UploadImage()
+    {
+        Debug.Log("Uploading screenshot to Image Shack");
+        // Loads the screenshot (Unity considers it a texture) from Resources
+        Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/capture");
+        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
+        Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
+        string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
+
+        // Takes the byte array of the imageData and passed it to IMGUR for upload
+        byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
+        StartCoroutine(UploadImage(imageData));
     }
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api"
@@ -80,6 +95,10 @@ public class QueryDescription : MonoBehaviour
                 string imageLink = ParseXmlResponse(responseText);
                 Debug.Log("image_link: " + imageLink);
                 imageShackLink = imageLink;
+
+                // Query Astica with uploaded image
+                Debug.Log("Sent request to Query Astica");
+                //QueryAstica();
             }
             else
             {
@@ -121,6 +140,8 @@ public class QueryDescription : MonoBehaviour
 
     async Task QueryAstica() // was a static method
     {
+        Debug.Log("Querying Astica AI");
+
         string asticaAPI_key = "762A2AC4-411B-43B5-A4DC-49D4602B87C3CCFF077C-9401-4AE7-9EDA-8E828D671526"; // visit https://astica.org
         string asticaAPI_timeout = "35"; // seconds
 
