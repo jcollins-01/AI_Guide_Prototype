@@ -10,6 +10,8 @@ using UnityEngine.XR;
 
 public class QueryDescription : MonoBehaviour
 {
+    public bool VRMode = false;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -20,7 +22,8 @@ public class QueryDescription : MonoBehaviour
     void Update()
     {
         // Logic to pull and assign the XR controllers
-        getControllers();
+        if (VRMode)
+            getControllers();
 
         // Capture screenshot and process it through Astica
         if (Input.GetKeyDown("space") || (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue) && primaryButtonValue))
