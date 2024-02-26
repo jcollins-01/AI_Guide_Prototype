@@ -6,20 +6,24 @@ using System.Xml;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.XR;
 
 public class QueryDescription : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("Ready to query for CV description - press space to capture and upload an image for querying!");
+        Debug.Log("Ready to query for CV description - press space or right primary button to capture and upload an image for querying!");
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Logic to pull and assign the XR controllers
+        getControllers();
+
         // Capture screenshot and process it through Astica
-        if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown("space") || (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue) && primaryButtonValue))
         {
             CaptureScreenshot();
         }
@@ -228,6 +232,48 @@ public class QueryDescription : MonoBehaviour
                     { "status", "error" },
                     { "error", "Failed to connect to the API." }
                 };
+            }
+        }
+    }
+
+    private bool rightControllerGrabbed = false;
+    private bool leftControllerGrabbed = false;
+    private InputDevice rightXRController;
+    private InputDevice leftXRController;
+
+    // Check for and assign XR controllers
+    public void getControllers()
+    {
+        if (!rightControllerGrabbed || !leftControllerGrabbed)
+        {
+            // Makes a list for input devices + fills it with devices that match the characteristics we give in the Unity editor
+            // Narrows devices list using characteristics to just the controller we want to use
+            List<InputDevice> devices = new List<InputDevice>();
+
+            InputDeviceCharacteristics rightController = InputDeviceCharacteristics.HeldInHand & InputDeviceCharacteristics.Right;
+            InputDevices.GetDevicesWithCharacteristics(rightController, devices);
+
+            InputDeviceCharacteristics leftController = InputDeviceCharacteristics.HeldInHand & InputDeviceCharacteristics.Left;
+            InputDevices.GetDevicesWithCharacteristics(leftController, devices);
+
+            Debug.Log("Grabbing devices");
+            Debug.Log("Found devices " + devices);
+
+            if (!rightControllerGrabbed)
+                rightXRController = devices[2]; //attached to right controller
+            if (!leftControllerGrabbed)
+                leftXRController = devices[1]; // attached to left controller
+
+            if (devices[2] != null) // rightXRController
+            {
+                Debug.Log("Grabbed right controller successfully");
+                rightControllerGrabbed = true;
+            }
+
+            if (devices[1] != null) // leftXRController
+            {
+                Debug.Log("Grabbed left controller successfully");
+                leftControllerGrabbed = true;
             }
         }
     }
