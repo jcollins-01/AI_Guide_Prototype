@@ -35,7 +35,7 @@ public class QueryDescription : MonoBehaviour
     // Keep track of asset refresh
     private bool refreshed = false;
   
-    void CaptureScreenshot()
+    public void CaptureScreenshot()
     {
         ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/capture.png");
         Debug.Log("Screenshot captured!");
