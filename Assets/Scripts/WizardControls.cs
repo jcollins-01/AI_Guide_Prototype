@@ -6,13 +6,14 @@ public class WizardControls : MonoBehaviour
 {
     // Variables to hold the scripts we access as the wizard
     private QueryDescription m_QueryDescriptionScript;
-    //private AutomatedGuide m_AutomatedGuide;
+    private AutomaticGuide m_AutomatedGuideScript;
 
     // Start is called before the first frame update
     void Start()
     {
         m_QueryDescriptionScript = FindObjectOfType(typeof(QueryDescription)) as QueryDescription;
-        if (m_QueryDescriptionScript == null)
+        m_AutomatedGuideScript = FindObjectOfType(typeof(AutomaticGuide)) as AutomaticGuide;
+        if (m_QueryDescriptionScript == null || m_AutomatedGuideScript == null)
         {
             Debug.LogWarning("One or more required scripts for WizardControls has not been found - please ensure that the GameObject with WizardControls also has QueryDescription");
         }
@@ -34,6 +35,12 @@ public class WizardControls : MonoBehaviour
         {
             Debug.Log("Wizard called a CV query on the scene");
             m_QueryDescriptionScript.CaptureScreenshot();
+        }
+
+        if (Input.GetKeyDown("g"))
+        {
+            Debug.Log("Wizard called a pathfind to a target object");
+            m_AutomatedGuideScript.GuideToPosition();
         }
     }
 }

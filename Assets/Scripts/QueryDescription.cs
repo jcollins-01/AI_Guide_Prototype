@@ -11,6 +11,7 @@ using UnityEngine.XR;
 public class QueryDescription : MonoBehaviour
 {
     public bool VRMode = false;
+    public bool WizardOn = true;
     
     // Start is called before the first frame update
     void Start()
@@ -25,10 +26,14 @@ public class QueryDescription : MonoBehaviour
         if (VRMode)
             getControllers();
 
-        // Capture screenshot and process it through Astica
-        if (Input.GetKeyDown("space") || (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue) && primaryButtonValue))
+        // If we don't have a wizard, let us query from this script
+        if (!WizardOn)
         {
-            CaptureScreenshot();
+            // Capture screenshot and process it through Astica
+            if (Input.GetKeyDown("space") || (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue) && primaryButtonValue))
+            {
+                CaptureScreenshot();
+            }
         }
     }
 
