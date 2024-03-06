@@ -24,7 +24,7 @@ public class AutomaticGuide : MonoBehaviour
         
     }
 
-    // Version used for testing when assigned target object directly in Editor
+    // Version used for Wizard when assigned target object directly in Editor
     public void GuideToPosition()
     {
         if (targetObject != null)
@@ -37,12 +37,39 @@ public class AutomaticGuide : MonoBehaviour
         }
     }
 
-    // Version used for final when calling a function with an assigned target object from voice2action
+    // Version used for automated guide when calling guidance function with an assigned target object from Voice2Action
     public void GuideToPosition(Transform target)
     {
         if (target != null)
         {
             agent.SetDestination(target.position); // Set the destination of the NavMeshAgent to the position of the target's transform
+        }
+        else
+        {
+            Debug.LogWarning("Target not assigned.");
+        }
+    }
+
+    // Version used for Wizard when assigned target object directly in Editor
+    public void TeleportToPosition()
+    {
+        if (targetObject != null)
+        {
+            var targetPosition = targetObject.transform.position;
+            agent.transform.position = targetPosition + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
+        }
+        else
+        {
+            Debug.LogWarning("Target not assigned.");
+        }
+    }
+
+    // Version used for automated guide when calling guidance function with an assigned target object from Voice2Action
+    public void TeleportToPosition(Transform target)
+    {
+        if (target != null)
+        {
+            agent.transform.position = target.position + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
         }
         else
         {
