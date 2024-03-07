@@ -30,6 +30,9 @@ public class AutomaticGuide : MonoBehaviour
         if (targetObject != null)
         {
             agent.SetDestination(targetObject.transform.position); // Set the destination of the NavMeshAgent to the position of the target's transform
+            
+            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
+                agent.ResetPath(); // Clear the destination to stop further movement
         }
         else
         {
@@ -43,6 +46,9 @@ public class AutomaticGuide : MonoBehaviour
         if (target != null)
         {
             agent.SetDestination(target.position); // Set the destination of the NavMeshAgent to the position of the target's transform
+
+            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
+                agent.ResetPath(); // Clear the destination to stop further movement
         }
         else
         {
@@ -55,6 +61,7 @@ public class AutomaticGuide : MonoBehaviour
     {
         if (targetObject != null)
         {
+            agent.ResetPath(); // Reset path in case we had just set a guide destination
             var targetPosition = targetObject.transform.position;
             agent.transform.position = targetPosition + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
         }
