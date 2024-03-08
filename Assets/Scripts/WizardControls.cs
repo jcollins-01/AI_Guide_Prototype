@@ -15,7 +15,6 @@ public class WizardControls : MonoBehaviour
     {
         m_QueryDescriptionScript = FindObjectOfType(typeof(QueryDescription)) as QueryDescription;
         m_AutomatedGuideScript = FindObjectOfType(typeof(AutomaticGuide)) as AutomaticGuide;
-        m_VoiceIntentController = FindObjectOfType(typeof(VoiceIntentController)) as VoiceIntentController;
 
         if (m_QueryDescriptionScript == null || m_AutomatedGuideScript == null)
         {
@@ -27,7 +26,7 @@ public class WizardControls : MonoBehaviour
             // Description of the controls the wizard can use
             Debug.Log("Press space to call a test CV query on the scene from the guide's camera");
             // Ex. press left arrow to capture a picture to the left and query it
-            Debug.Log("Drag a target game object into the Wizard Controls editor and press g to move the guide to that target");
+            Debug.Log("Drag a target game object into the Wizard Controls editor and press g to move the guide to that target, or t to teleport");
             
         }
     }
@@ -35,25 +34,49 @@ public class WizardControls : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Call a computer vision query on the scene - THIS WILL BE REMOVED AND REPLACED WITH QUERIES FOR SPECIFIC DIRECTIONS
-        if (Input.GetKeyDown("space"))
+        // Call a computer vision query on the scene from various directions
+        if (Input.GetKeyDown("left"))
         {
-            Debug.Log("Wizard called a CV query on the scene");
-            m_QueryDescriptionScript.CaptureScreenshot();
+            Debug.Log("Wizard called a CV query for the left side of the scene");
+            m_QueryDescriptionScript.QueryLeft();
         }
 
+        if (Input.GetKeyDown("right"))
+        {
+            Debug.Log("Wizard called a CV query for the right side of the scene");
+            m_QueryDescriptionScript.QueryRight();
+        }
+
+        if (Input.GetKeyDown("up"))
+        {
+            Debug.Log("Wizard called a CV query for the front of the scene");
+            m_QueryDescriptionScript.QueryFront();
+        }
+
+        if (Input.GetKeyDown("down"))
+        {
+            Debug.Log("Wizard called a CV query for behind the user in the scene");
+            m_QueryDescriptionScript.QueryBehind();
+        }
+
+        if (Input.GetKeyDown("space"))
+        {
+            Debug.Log("Wizard called a CV query for the entire scene");
+            StartCoroutine(m_QueryDescriptionScript.QueryScene());
+        }
+
+        // Call a pathfinding algorithm to guide the user to a specific object
         if (Input.GetKeyDown("g"))
         {
             Debug.Log("Wizard called a pathfind to a target object");
             m_AutomatedGuideScript.GuideToPosition();
-            //m_AutomatedGuideScript.GuideToPosition(m_VoiceIntentController.m_GuidancePosition);
         }
 
+        // Call a position change to teleport the user to a specific object
         if (Input.GetKeyDown("t"))
         {
             Debug.Log("Wizard called a teleport to a target object");
             m_AutomatedGuideScript.TeleportToPosition();
-            //m_AutomatedGuideScript.TeleportToPosition(m_VoiceIntentController.m_TeleportPosition);
         }
     }
 }
