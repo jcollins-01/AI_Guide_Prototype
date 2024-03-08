@@ -1893,23 +1893,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_Orders.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_Orders.Array.data[2]
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
+      propertyPath: m_ClassificationGroup.m_Orders.Array.data[3]
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_Properties.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_FewShotPairs.Array.size
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_Properties.Array.data[2]
       value: guide
+      objectReference: {fileID: 0}
+    - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
+      propertyPath: m_ClassificationGroup.m_Properties.Array.data[3]
+      value: teleport
       objectReference: {fileID: 0}
     - target: {fileID: 3603067770768744843, guid: cf8415a57570d6445966058b47aabc30, type: 3}
       propertyPath: m_ClassificationGroup.m_FewShotPairs.Array.data[3].m_Input

@@ -76,7 +76,8 @@ public class AutomaticGuide : MonoBehaviour
     {
         if (target != null)
         {
-            agent.transform.position = target.position + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
+            agent.ResetPath(); // Reset path in case we had just set a guide destination
+            agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
         }
         else
         {
