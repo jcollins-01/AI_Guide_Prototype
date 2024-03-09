@@ -1,15 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Voice2Action;
 
 public class WizardControls : MonoBehaviour
 {
     // Variables to hold the scripts we access as the wizard
     private QueryDescription m_QueryDescriptionScript;
     private AutomaticGuide m_AutomatedGuideScript;
-    private VoiceIntentController m_VoiceIntentController;
-    
+
+    // String for the text to speech message when prompted by wizard
+    public string m_TextToSpeechMessage;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,7 +19,7 @@ public class WizardControls : MonoBehaviour
 
         if (m_QueryDescriptionScript == null || m_AutomatedGuideScript == null)
         {
-            Debug.LogWarning("One or more required scripts for WizardControls has not been found - please ensure that the GameObject with WizardControls also has QueryDescription");
+            Debug.LogWarning("One or more required scripts for WizardControls has not been found - please ensure that the GameObject with WizardControls also has QueryDescription and AutomaticGuide");
         }
         else
         {

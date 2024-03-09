@@ -10,28 +10,13 @@ using UnityEngine.XR;
 
 public class QueryDescription : MonoBehaviour
 {
-    public bool VRMode = false;
+    private WizardControls m_WizardControlsScript;
+    private string direction;
 
     // Start is called before the first frame update
     void Start()
     {
-        //Debug.Log("Ready to query for CV description - press space or right primary button to capture and upload an image for querying!");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        /*
-        // Logic to pull and assign the XR controllers
-        if (VRMode)
-            getControllers();
-
-        // Capture screenshot and process it through Astica
-        if (Input.GetKeyDown("space") || (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue) && primaryButtonValue))
-        {
-            CaptureScreenshot();
-        }
-        */
+        m_WizardControlsScript = FindObjectOfType(typeof(WizardControls)) as WizardControls;
     }
 
     public void QueryLeft()
@@ -39,6 +24,7 @@ public class QueryDescription : MonoBehaviour
         // Rotates the game object this script is attached to to the left
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y - 90f, transform.eulerAngles.z);
         CaptureScreenshot();
+        direction = "left";
     }
 
     public IEnumerator QueryEast()
@@ -51,6 +37,7 @@ public class QueryDescription : MonoBehaviour
         {
             yield return null; // Wait for the next frame
         }
+        direction = "east";
     }
 
     public void QueryRight()
@@ -59,6 +46,7 @@ public class QueryDescription : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y + 90f, transform.eulerAngles.z);
         // transform.rotation = Quaternion.Euler(0, 90, 0); - this version would set a TRUE RIGHT, and always turn to the initial right direction (west)
         CaptureScreenshot();
+        direction = "right";
     }
 
     public IEnumerator QueryWest()
@@ -71,6 +59,7 @@ public class QueryDescription : MonoBehaviour
         {
             yield return null; // Wait for the next frame
         }
+        direction = "west";
     }
 
     public void QueryFront()
@@ -78,6 +67,7 @@ public class QueryDescription : MonoBehaviour
         // Rotates the game object this script is attached to the front
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z);
         CaptureScreenshot();
+        direction = "front";
     }
 
     public IEnumerator QueryNorth()
@@ -90,6 +80,7 @@ public class QueryDescription : MonoBehaviour
         {
             yield return null; // Wait for the next frame
         }
+        direction = "north";
     }
 
     public void QueryBehind()
@@ -97,6 +88,7 @@ public class QueryDescription : MonoBehaviour
         // Rotates the game object this script is attached to the back 
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y + 180f, transform.eulerAngles.z);
         CaptureScreenshot();
+        direction = "rear";
     }
 
     public IEnumerator QuerySouth()
@@ -105,6 +97,7 @@ public class QueryDescription : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 180, 0);
         yield return new WaitForEndOfFrame();
         CaptureScreenshot();
+        direction = "south";
     }
 
     public IEnumerator QueryScene()
@@ -283,6 +276,8 @@ public class QueryDescription : MonoBehaviour
                 {
                     Debug.Log("=================");
                     Debug.Log("Caption: " + caption["text"]);
+                    // THIS IS WHERE I THINK TTS MESSAGE GETS PULLED FROM
+                    m_WizardControlsScript.m_TextToSpeechMessage = "To the " + direction + ", there is: " + caption["text"];
                 }
                 if (captionDetailed != null && captionDetailed.ContainsKey("text") && !string.IsNullOrEmpty(captionDetailed["text"].ToString())) // Cast to string
                 {
