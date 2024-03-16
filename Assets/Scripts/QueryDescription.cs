@@ -160,6 +160,7 @@ public class QueryDescription : MonoBehaviour
     private string imageApiKey = "468CGIVYeba088be6297f37babc219efe571c8bd";
     private string imageShackLink;
 
+    // THIS IS WHERE WE COMMENT/UNCOMMENT TO QUERY ASTICA
     IEnumerator UploadImage(byte[] imageData)
     {
         // Set up form data
@@ -185,7 +186,7 @@ public class QueryDescription : MonoBehaviour
 
                 // Query Astica with uploaded image
                 Debug.Log("Sent request to Query Astica");
-                //QueryAstica();
+                QueryAstica();
             }
             else
             {
