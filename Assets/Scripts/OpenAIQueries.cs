@@ -35,6 +35,8 @@ public class OpenAIQueries : MonoBehaviour
         "If the player seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, plus the word 'teleport' after a comma if it seems like they want to teleport to the object and 'guide' after a comma if they don't specify teleportation" +
         " - ONLY DO THIS IF YOU'RE SURE THE PLAYER WANTS TO TRAVEL TO THAT OBJECT, and provide a description of the object if you aren't sure. ";
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
+    [HideInInspector]
+    public string memoClassifications = "Keep in mind where the player has asked to move to in the scene, and describe the scene with their new locations in mind as they teleport or move to different objects.";
     //private string guideClassification = "While answering, imagine that you are a tour guide for the environment.";
 
     // OpenAI audio, text message, result variables
@@ -71,43 +73,7 @@ public class OpenAIQueries : MonoBehaviour
         client = new OpenAIClient(apiKey);
 
         // Default query to begin with
-        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications; // ADD guideClassification
-    }
-
-    public async Task<AudioClip> CallAlloyTTS()
-    {
-        // If the result was a GameObject for guidance, create a custom speech message
-        string[] words = result.Split(',');
-        if (words.Length == 2)
-        {
-            // Assign the first word to targetName and the second word to modeOfTransportation
-            string targetName = words[0].Trim();
-            modeOfTransportation = words[1].Trim();
-
-            targetForGuidance = GameObject.Find(targetName);
-            if (targetForGuidance != null)
-                result = "Alright. I am taking you to " + targetForGuidance.name;
-        }
-
-        
-        
-        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
-
-        AudioClip output = null;
-        try
-        {
-            var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
-            output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
-            guideVoice = output;
-            alloyCompleted = true;
-            Debug.Log("Created audio clip of voiced result");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("Exception in CallAlloyTTS:\n" + e);
-        }
-        targetForGuidance = null;
-        return output;
+        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications + memoClassifications; // ADD guideClassification
     }
 
     public void CaptureAudio()
@@ -179,6 +145,40 @@ public class OpenAIQueries : MonoBehaviour
         {
             Debug.LogWarning("Exception in CallCompletion:\n" + e);
         }
+        return output;
+    }
+
+    public async Task<AudioClip> CallAlloyTTS()
+    {
+        // If the result was a GameObject for guidance, create a custom speech message
+        string[] words = result.Split(',');
+        if (words.Length == 2)
+        {
+            // Assign the first word to targetName and the second word to modeOfTransportation
+            string targetName = words[0].Trim();
+            modeOfTransportation = words[1].Trim();
+
+            targetForGuidance = GameObject.Find(targetName);
+            if (targetForGuidance != null)
+                result = "Alright. I am taking you to " + targetForGuidance.name;
+        }
+
+        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
+
+        AudioClip output = null;
+        try
+        {
+            var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
+            output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
+            guideVoice = output;
+            alloyCompleted = true;
+            Debug.Log("Created audio clip of voiced result");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("Exception in CallAlloyTTS:\n" + e);
+        }
+        targetForGuidance = null;
         return output;
     }
 

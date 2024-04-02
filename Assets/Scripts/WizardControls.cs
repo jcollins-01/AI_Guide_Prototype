@@ -13,7 +13,6 @@ public class WizardControls : MonoBehaviour
     void Start()
     {
         // Find existing scripts that are necessary
-        //m_QueryDescriptionScript = FindObjectOfType(typeof(QueryDescription)) as QueryDescription;
         m_AutomatedGuideScript = FindObjectOfType(typeof(AutomaticGuide)) as AutomaticGuide;
         m_OpenAIQueriesScript = FindObjectOfType(typeof(OpenAIQueries)) as OpenAIQueries;
 
@@ -42,9 +41,9 @@ public class WizardControls : MonoBehaviour
             // Use manual text query if query has been erased in the Unity editor (no voice query)
             // ADD guideClassification
             if (m_OpenAIQueriesScript.query.Length > 0)
-                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
             else
-                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications;
+                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
             // Call the CallCompletion method with your desired userInput
             var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
         }

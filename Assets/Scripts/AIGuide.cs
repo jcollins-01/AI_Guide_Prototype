@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.XR;
 
 public class AIGuide : MonoBehaviour
@@ -25,15 +26,22 @@ public class AIGuide : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        m_AutomatedGuideScript = FindObjectOfType(typeof(AutomaticGuide)) as AutomaticGuide;
-        m_OpenAIQueriesScript = FindObjectOfType(typeof(OpenAIQueries)) as OpenAIQueries;
+        // Add necessary components to the attached GameObject
+        AudioSource audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            gameObject.AddComponent<AudioSource>();
+        NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
+        if (navMeshAgent == null)
+            gameObject.AddComponent<NavMeshAgent>();
+        gameObject.AddComponent<WizardControls>();
+
+        m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
+        m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
 
         if (m_OpenAIQueriesScript == null || m_AutomatedGuideScript == null)
             Debug.LogWarning("One or more required scripts for AIGuide has not been found - please ensure that the GameObject with AIGuide also has OpenAIQueries and AutomaticGuide");
         else
             Debug.Log("AIGuide is active!");
-
-        Debug.Log(m_OpenAIQueriesScript.queryClassifications);
     }
 
     // Update is called once per frame
@@ -72,7 +80,7 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
             // Construct the query to send to GPT-4 - ADD guideClassification
-            m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
             // Call the CallCompletion method with the user's recorded voice query
             var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
             completionCalls += 1;

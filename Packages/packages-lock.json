@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.normalvr.normcore": {
+      "version": "file:com.normalvr.normcore@2.4.2",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.editorcoroutines": "1.0.0"
+      }
+    },
     "com.openai.unity": {
       "version": "7.3.2",
       "depth": 0,
