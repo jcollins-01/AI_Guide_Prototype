@@ -278,7 +278,7 @@ public class QueryDescription : MonoBehaviour
                     Debug.Log("=================");
                     Debug.Log("Caption: " + caption["text"]);
                     // THIS IS WHERE I THINK TTS MESSAGE GETS PULLED FROM
-                    m_WizardControlsScript.m_TextToSpeechMessage = "To the " + direction + ", there is: " + caption["text"];
+                    //m_WizardControlsScript.m_TextToSpeechMessage = "To the " + direction + ", there is: " + caption["text"];
                 }
                 if (captionDetailed != null && captionDetailed.ContainsKey("text") && !string.IsNullOrEmpty(captionDetailed["text"].ToString())) // Cast to string
                 {

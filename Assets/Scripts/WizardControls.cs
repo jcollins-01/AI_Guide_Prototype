@@ -1,90 +1,94 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using OpenAI;
-using OpenAI.Models;
-using OpenAI.Chat;
-using OpenAI.Completions;
-using System.Threading.Tasks;
 
 public class WizardControls : MonoBehaviour
 {
     // Variables to hold the scripts we access as the wizard
-    private QueryDescription m_QueryDescriptionScript;
+    //private QueryDescription m_QueryDescriptionScript;
     private AutomaticGuide m_AutomatedGuideScript;
     private OpenAIQueries m_OpenAIQueriesScript;
-
-    // String for the text to speech message when prompted by wizard
-    public string m_TextToSpeechMessage;
 
     // Start is called before the first frame update
     void Start()
     {
-        // Add script to use OpenAI API
-        m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
-
         // Find existing scripts that are necessary
-        m_QueryDescriptionScript = FindObjectOfType(typeof(QueryDescription)) as QueryDescription;
+        //m_QueryDescriptionScript = FindObjectOfType(typeof(QueryDescription)) as QueryDescription;
         m_AutomatedGuideScript = FindObjectOfType(typeof(AutomaticGuide)) as AutomaticGuide;
+        m_OpenAIQueriesScript = FindObjectOfType(typeof(OpenAIQueries)) as OpenAIQueries;
 
-        if (m_QueryDescriptionScript == null || m_AutomatedGuideScript == null)
+        if (m_OpenAIQueriesScript == null || m_AutomatedGuideScript == null)
         {
-            Debug.LogWarning("One or more required scripts for WizardControls has not been found - please ensure that the GameObject with WizardControls also has QueryDescription and AutomaticGuide");
+            Debug.LogWarning("One or more required scripts for WizardControls has not been found - please ensure that the GameObject with WizardControls also has OpenAIQueries and AutomaticGuide");
         }
         else
         {
             Debug.Log("WizardControls are active - ready for the wizard to intervene at any time!");
             // Description of the controls the wizard can use
-            Debug.Log("Press space to call a test CV query on the scene from the guide's camera");
-            // Ex. press left arrow to capture a picture to the left and query it
-            Debug.Log("Drag a target game object into the Wizard Controls editor and press g to move the guide to that target, or t to teleport");
-            
+            Debug.Log("Drag a target game object into the Wizard Controls editor and press G to move the guide to that target, or T to teleport");
+            Debug.Log("Press N to query with a default message or alter user query field, then hit N. \n Press and hold M to record a new query. " +
+            "\n To use text query instead of your voice, make sure the query field is empty. \n Press C to create a voice file of the guide's output, then V to play the file after it is created.");
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Call a computer vision query on the scene from various directions
-        if (Input.GetKeyDown("left"))
+        // Check if the N key is pressed
+        if (Input.GetKeyDown(KeyCode.N))
         {
-            Debug.Log("Wizard called a CV query for the left side of the scene");
-            m_QueryDescriptionScript.QueryLeft();
+            Debug.Log("Wizard called for a new query to be sent to GPT");
+            // Grab the newest userQuery / query values if they have changed
+            // Use manual text query if query has been erased in the Unity editor (no voice query)
+            // ADD guideClassification
+            if (m_OpenAIQueriesScript.query.Length > 0)
+                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            else
+                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications;
+            // Call the CallCompletion method with your desired userInput
+            var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
         }
 
-        if (Input.GetKeyDown("right"))
+        if (Input.GetKey(KeyCode.M))
         {
-            Debug.Log("Wizard called a CV query for the right side of the scene");
-            m_QueryDescriptionScript.QueryRight();
+            Debug.Log("Wizard started recording a new voice query");
+            // If the user is holding down M, start recording the audio
+            m_OpenAIQueriesScript.CaptureAudio();
         }
 
-        if (Input.GetKeyDown("up"))
+        if (Input.GetKeyUp(KeyCode.M))
         {
-            Debug.Log("Wizard called a CV query for the front of the scene");
-            m_QueryDescriptionScript.QueryFront();
+            // If the user lifts finger off M key, assume their query is completed
+            m_OpenAIQueriesScript.recordingInProgress = false;
+            // Call the Whisper API to transcribe the recorded speech to text
+            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
         }
 
-        if (Input.GetKeyDown("down"))
+        if (Input.GetKeyDown(KeyCode.C))
         {
-            Debug.Log("Wizard called a CV query for behind the user in the scene");
-            m_QueryDescriptionScript.QueryBehind();
+            Debug.Log("Wizard called to create a new audio clip of guide output");
+            // Create the audio clip of whatever whatever output has been stored in the result variable
+            var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
         }
 
-        /*if (Input.GetKeyDown("space"))
+        if (Input.GetKeyDown(KeyCode.V))
         {
-            Debug.Log("Wizard called a CV query for the entire scene");
-            StartCoroutine(m_QueryDescriptionScript.QueryScene());
-        }*/
+            Debug.Log("Wizard called to play the audio clip of guide output");
+            // Voice the most recent audio clip created for the guide's output
+            m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
+            if (!m_OpenAIQueriesScript.audioSource.isPlaying)
+                m_OpenAIQueriesScript.audioSource.Play();
+        }
 
         // Call a pathfinding algorithm to guide the user to a specific object
-        if (Input.GetKeyDown("g"))
+        if (Input.GetKeyDown(KeyCode.G))
         {
             Debug.Log("Wizard called a pathfind to a target object");
             m_AutomatedGuideScript.GuideToPosition();
         }
 
         // Call a position change to teleport the user to a specific object
-        if (Input.GetKeyDown("t"))
+        if (Input.GetKeyDown(KeyCode.T))
         {
             Debug.Log("Wizard called a teleport to a target object");
             m_AutomatedGuideScript.TeleportToPosition();
@@ -92,77 +96,3 @@ public class WizardControls : MonoBehaviour
     }
 }
 
-public class OpenAIQueries : MonoBehaviour
-{
-    public static OpenAIClient client { get; set; }
-
-    // OpenAI API key
-    public string apiKey;
-
-    // Strings to hold the different pieces of the query message
-    public string userQuery = "What's going on in here?";
-    private string playerClassification = "Imagine that the player is the yellow pill-shaped object in the lower left corner of this image. ";
-    private string objectClassifications = "The upright, yellow cube is named Tall Building. The upright, green cube is named Short Building. The red cylinder to the right of Tall Building is named Red Car Back. The green cylinder next to Tall Building is named Green Car. The long, yellow cube laying on its side is named Sideways Building. The red cyilnder in front of Sideways Building is named Red Car Front. The green, flattened oval in the back is named Landmark. ";
-    private string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. If the player seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to - ONLY DO THIS IF YOU'RE SURE THE PLAYER WANTS TO TRAVEL TO THAT OBJECT, and provide a description of the object if you aren't sure.";
-
-    // Full message for OpenAI and OpenAI result
-    private string text;
-    public string result;
-
-    private void Start()
-    {
-        Debug.Log("OpenAI is ready to be queried");
-
-        // Create an instance of the OpenAI client
-        client = new OpenAIClient(apiKey);
-
-        // Default query to begin with
-        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications;
-
-        Debug.Log("Current query is: " + userQuery);
-        Debug.Log("Press space to query with this message or alter user query field, then hit space");
-    }
-
-    public void Update()
-    {
-        // Check if the space bar is pressed
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // Grab the newest userQuery value if it has changed
-            text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications;
-            // Call the CallCompletion method with your desired userInput
-            var result = CallCompletion(text);
-        }
-    }
-
-    public async Task<string> CallCompletion(string userInput)
-    {
-        // Create the content for the message
-        List<Content> content = new List<Content>
-        {
-            new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png")
-        };
-
-        // Create the message to send to the API
-        var chatPrompts = new List<Message>
-        {
-            new(Role.User, content),
-        };
-
-        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-vision-preview", maxTokens: 300);
-        string output = "N/A";
-        try
-        {
-            var chatResponse = await client.ChatEndpoint.GetCompletionAsync(chatRequest);
-            output = chatResponse.FirstChoice.ToString();
-            Debug.Log("Response from GPT-4: " + output);
-            result = output;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("Exception in CallCompletion:\n" + e);
-        }
-        return output;
-    }
-}

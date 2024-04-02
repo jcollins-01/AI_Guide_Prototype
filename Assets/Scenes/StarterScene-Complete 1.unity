@@ -649,7 +649,7 @@ GameObject:
   - component: {fileID: 657530483}
   - component: {fileID: 657530482}
   m_Layer: 0
-  m_Name: Car_Back
+  m_Name: Sideways Building
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -923,6 +923,14 @@ PrefabInstance:
     - target: {fileID: 2334932504904357797, guid: d957570dfbecb7a4d8d554e78f80218c, type: 3}
       propertyPath: m_Layer
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3111504479601631458, guid: d957570dfbecb7a4d8d554e78f80218c, type: 3}
+      propertyPath: m_Size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3111504479601631458, guid: d957570dfbecb7a4d8d554e78f80218c, type: 3}
+      propertyPath: m_Value
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3117963478319695475, guid: d957570dfbecb7a4d8d554e78f80218c, type: 3}
       propertyPath: m_Layer
@@ -2687,7 +2695,9 @@ GameObject:
   - component: {fileID: 1788308904}
   - component: {fileID: 1788308903}
   - component: {fileID: 1788308902}
-  - component: {fileID: 1788308905}
+  - component: {fileID: 1788308906}
+  - component: {fileID: 1788308909}
+  - component: {fileID: 1788308908}
   m_Layer: 3
   m_Name: XR Origin (XR Rig)
   m_TagString: Untagged
@@ -2785,7 +2795,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1788308897}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f0e1b0d35c0179c48a08a1b2b876f1bb, type: 3}
   m_Name: 
@@ -2802,20 +2812,157 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d60d6294bbbf2404a81aa8f8bd719058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_TextToSpeechMessage: 
---- !u!114 &1788308905
+--- !u!82 &1788308906
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788308897}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &1788308908
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1788308897}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2cbda4eb8ea38b24e954fa2a4a74b3b9, type: 3}
+  m_Script: {fileID: 11500000, guid: dbd3ed48413249a46a02cc11b8b8e584, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  apiKey: 
+--- !u!114 &1788308909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1788308897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 588449c9b5fa66542b35b5e16fe533dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  apiKey:
+  userQuery: What's going on in here?
+  playerClassification: 'Imagine that the player is the yellow pill-shaped object
+    in the lower left corner of this image. '
+  objectClassifications: 'The upright, yellow cube is named Tall Building. The upright,
+    green cube is named Short Building. The red cylinder to the right of Tall Building
+    is named Red Car Back. The green cylinder next to Tall Building is named Green
+    Car. The long, yellow cube laying on its side is named Sideways Building. The
+    red cylinder in front of Sideways Building is named Red Car Front. The green,
+    flattened oval in the back is named Landmark. '
+  queryClassifications: 'If the player seems like they want to describe the entire
+    scene, then describe the scene as though you are helping the player understand
+    the game they are in. If the player seems like they want to describe a particular
+    object in the scene, describe the object in the image they are referring to.
+    If the player seems like they want to go to a particular object in the scene,
+    tell me only the name of the object in the image they would be referring to,
+    plus the word ''teleport'' after a comma if it seems like they want to teleport
+    to the object and ''guide'' after a comma if they don''t specify teleportation
+    - ONLY DO THIS IF YOU''RE SURE THE PLAYER WANTS TO TRAVEL TO THAT OBJECT, and
+    provide a description of the object if you aren''t sure. '
+  text: 
+  targetForGuidance: {fileID: 0}
+  modeOfTransportation: 
+  query: 
+  result: 
+  audioSource: {fileID: 0}
+  guideVoice: {fileID: 0}
+  recordingInProgress: 0
+  whisperCompleted: 0
+  completionCompleted: 0
+  alloyCompleted: 0
 --- !u!1 &1789796890
 GameObject:
   m_ObjectHideFlags: 0
