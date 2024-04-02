@@ -13,8 +13,10 @@ public class AIGuide : MonoBehaviour
     // Variables for assigning XR input
     private bool rightControllerGrabbed = false;
     private bool leftControllerGrabbed = false;
-    private InputDevice rightXRController;
-    private InputDevice leftXRController;
+    [HideInInspector]
+    public InputDevice rightXRController;
+    [HideInInspector]
+    public InputDevice leftXRController;
 
     // Variables for monitoring
     private bool m_audioCaptured = false;
