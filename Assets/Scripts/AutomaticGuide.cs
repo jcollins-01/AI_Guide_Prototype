@@ -59,7 +59,7 @@ public class AutomaticGuide : MonoBehaviour
         Transform target = targetObject.transform; 
         if (target != null)
         {
-            Debug.Log("We have a target passed = " + target.name);
+            // Debug.Log("We have a target passed = " + target.name);
             agent.isStopped = false;
             agent.SetDestination(target.position); // Set the destination of the NavMeshAgent to the position of the target's transform
 
@@ -78,11 +78,11 @@ public class AutomaticGuide : MonoBehaviour
         Transform target = targetObject.transform;
         if (target != null)
         {
-            Debug.Log("We have a target passed = " + target.position);
+            // Debug.Log("We have a target passed = " + target.position);
             //agent.ResetPath(); // Reset path in case we had just set a guide destination
             agent.isStopped = true;
             agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
-            Debug.Log("Moved to = " + agent.transform.position);
+            // Debug.Log("Moved to = " + agent.transform.position);
         }
         else
         {

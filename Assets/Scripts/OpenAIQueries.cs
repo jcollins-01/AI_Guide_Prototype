@@ -12,6 +12,9 @@ public class OpenAIQueries : MonoBehaviour
     // OpenAI API key
     [HideInInspector]
     public string apiKey;
+    // Config file to hold api keys, credentials
+    [HideInInspector]
+    private const string configFileName = "config";
 
     // Strings to hold the different pieces of the query message
     public string userQuery = "What's going on in here?";
@@ -60,6 +63,7 @@ public class OpenAIQueries : MonoBehaviour
     private void Start()
     {
         audioSource = (AudioSource)FindObjectOfType(typeof(AudioSource));
+        LoadConfig();
 
         Debug.Log("OpenAI is ready to be queried.");
 
@@ -176,5 +180,25 @@ public class OpenAIQueries : MonoBehaviour
             Debug.LogWarning("Exception in CallCompletion:\n" + e);
         }
         return output;
+    }
+
+    private void LoadConfig()
+    {
+        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
+        if (configAsset != null)
+        {
+            // Parse the JSON data from config.json and assign apiKey values accordingly
+            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
+            apiKey = configData.APIKey;
+        }
+        else
+        {
+            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+        }
+    }
+
+    private class ConfigData
+    {
+        public string APIKey;
     }
 }
