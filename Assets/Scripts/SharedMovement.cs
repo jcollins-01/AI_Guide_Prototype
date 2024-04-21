@@ -24,13 +24,13 @@ public class SharedMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Assigns the guide as the Game Object with the name "Guide"
+        theGuide = GameObject.Find("Guide");
+
         // Grabs AIGuide script from the Game Object assigned as guide and pulls input device refs
         m_AIGuideScript = theGuide.GetComponent<AIGuide>();
         rightXRController = m_AIGuideScript.rightXRController;
         leftXRController = m_AIGuideScript.leftXRController;
-
-        // Assigns the guide as the Game Object in the scene with the AIGuide script
-        theGuide = m_AIGuideScript.gameObject;
     }
 
     // Update is called once per frame
@@ -40,15 +40,19 @@ public class SharedMovement : MonoBehaviour
         // The following statements set up the needed components and determine who the main player (participant) is
         if (thePlayer == null)
         {
-            // Gets a list of all players who've joined the scene
-            var foundPlayers = FindObjectsOfType<Normal.Realtime.RealtimeView>();
+            // Gets a list of all realtimeViews in the scene
+            var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
+            List<GameObject> foundPlayers = new List<GameObject>();
 
-            // If there is more than one player, the first player who joined is considered our participant (the one who uses the guide)
-            // Otherwise, the only player who joined is the participant
-            if (foundPlayers.Length > 1)
-                thePlayer = foundPlayers[0].realtimeView.gameObject;
-            else
-                thePlayer = GetComponent<Normal.Realtime.RealtimeView>().gameObject;
+            // Checks which ones are root objects, which would make them players
+            foreach (Normal.Realtime.RealtimeView realtimeView in foundViews)
+            {
+                if (IsRootObject(realtimeView.gameObject))
+                    foundPlayers.Add(realtimeView.gameObject);
+            }
+
+            // The first player who joined the scene is marked as the participant
+            thePlayer = foundPlayers[0];
 
             // Destroy the necessary physical components - UNCLEAR WHY THIS IS NEEDED
             //Destroy(theGuide.GetComponent<SharedMovement>());
@@ -97,6 +101,13 @@ public class SharedMovement : MonoBehaviour
         }
         else
             StopCoroutine(Teleport());
+    }
+
+    // Function to check if an object is the root of its hierarchy
+    bool IsRootObject(GameObject obj)
+    {
+        // Check if the object has no parent
+        return obj.transform.parent == null;
     }
 
     public void OnTriggerEnter(Collider other)

@@ -36,7 +36,7 @@ public class OpenAIQueries : MonoBehaviour
         " - ONLY DO THIS IF YOU'RE SURE THE PLAYER WANTS TO TRAVEL TO THAT OBJECT, and provide a description of the object if you aren't sure. ";
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
-    public string memoClassifications = "Keep in mind where the player has asked to move to in the scene, and describe the scene with their new locations in mind as they teleport or move to different objects.";
+    public string memoClassifications = "Limit your reply to 300 words or less.";
     //private string guideClassification = "While answering, imagine that you are a tour guide for the environment.";
 
     // OpenAI audio, text message, result variables
