@@ -50,7 +50,7 @@ public class SharedMovement : MonoBehaviour
             else
                 thePlayer = GetComponent<Normal.Realtime.RealtimeView>().gameObject;
 
-            // Destroy the necessary physical components - UNCLEAR WHY THIS IS NEEDED
+            // Destroy the necessary physical components - this was needed to make sure participant/guide couldn't grab?
             //Destroy(theGuide.GetComponent<SharedMovement>());
 
             // Grabs the necessary physics components for Shared Movement
@@ -73,6 +73,21 @@ public class SharedMovement : MonoBehaviour
             guideCollider.radius = 0.5f;
             guideCollider.height = 0.5f;
             guideCollider.center = new Vector3(0f, 1f, 0f);
+        }
+
+        // Finds the game object named Guide in the hierarchy and assigns it
+        if (theGuide ==  null)
+        {
+            theGuide = GameObject.Find("Guide");
+
+            // If the avatar joining is NOT the player, destroy the Guide object
+            // This will need to be adjusted/tested with other clients joining the scene + making sure the participant is selected properly
+            // Might need to have a shared name component attached to each one
+            /*if (!thePlayer.GetComponent<Normal.Realtime.RealtimeView>().isOwnedLocallyInHierarchy)
+            {
+                Destroy(theGuide);
+            }*/
+
         }
 
         // Sends haptic feedback to the controller being used for "grabbing" the guide

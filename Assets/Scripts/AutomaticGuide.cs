@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public class AutomaticGuide : MonoBehaviour
 {
-    public GameObject targetObject; // The target game object to move towards
+    public GameObject m_targetObject; // The target game object to move towards
     private NavMeshAgent agent; // Reference to the NavMeshAgent component
 
     // Start is called before the first frame update
@@ -21,9 +21,9 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for Wizard when assigned target object directly in Editor
     public void GuideToPosition()
     {
-        if (targetObject != null)
+        if (m_targetObject != null)
         {
-            agent.SetDestination(targetObject.transform.position); // Set the destination of the NavMeshAgent to the position of the target's transform
+            agent.SetDestination(m_targetObject.transform.position); // Set the destination of the NavMeshAgent to the position of the target's transform
             
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
                 agent.ResetPath(); // Clear the destination to stop further movement
@@ -37,10 +37,10 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for Wizard when assigned target object directly in Editor
     public void TeleportToPosition()
     {
-        if (targetObject != null)
+        if (m_targetObject != null)
         {
             agent.ResetPath(); // Reset path in case we had just set a guide destination
-            var targetPosition = targetObject.transform.position;
+            var targetPosition = m_targetObject.transform.position;
             agent.transform.position = targetPosition + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
         }
         else
@@ -52,6 +52,7 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void GuideToPosition(GameObject targetObject)
     {
+        m_targetObject = targetObject;
         Transform target = targetObject.transform; 
         if (target != null)
         {
@@ -71,6 +72,7 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void TeleportToPosition(GameObject targetObject)
     {
+        m_targetObject = targetObject;
         Transform target = targetObject.transform;
         if (target != null)
         {

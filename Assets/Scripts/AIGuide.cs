@@ -109,7 +109,7 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            Debug.Log("Has a target to move to");
+            Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
             else
