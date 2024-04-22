@@ -24,6 +24,7 @@ public class AIGuide : MonoBehaviour
     private int completionCalls = 0;
     private int alloyCalls = 0;
     private int voiceCalls = 0;
+    private bool firstQuery = true;
 
     // Start is called before the first frame update
     void Start()
@@ -82,7 +83,17 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
             // Construct the query to send to GPT-4 - ADD guideClassification
-            m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+            // If this is the first query, send all classifcations - after that, the guide should remember the scene and player context
+            if (firstQuery)
+            {
+                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+                firstQuery = false;
+            }
+            else
+            {
+                m_OpenAIQueriesScript.text = "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+            }
+
             // Call the CallCompletion method with the user's recorded voice query
             var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
             completionCalls += 1;
