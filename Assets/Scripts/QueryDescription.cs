@@ -124,7 +124,9 @@ public class QueryDescription : MonoBehaviour
 
     void RefreshAssets()
     {
-        UnityEditor.AssetDatabase.Refresh();
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh(); // This function is only available in the editor; can't be used in builds to the headset
+#endif
 
         if (!refreshed) // Run this coroutine to make sure we refresh before moving on
             StartCoroutine(WaitForRefresh());

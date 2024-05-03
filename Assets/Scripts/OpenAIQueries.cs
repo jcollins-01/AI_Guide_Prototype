@@ -1,5 +1,6 @@
 using OpenAI;
 using OpenAI.Chat;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject targetForGuidance;
     //[HideInInspector]
     public string modeOfTransportation;
+    private Texture2D capturedScreenshot;
 
     public string query;
     public string result;
@@ -78,7 +80,8 @@ public class OpenAIQueries : MonoBehaviour
         text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications + memoClassifications; // ADD guideClassification
 
         // Begin capturing screenshots every 30 secs to keep guide updated on scene
-        InvokeRepeating("CaptureScreenshot", 0f, 30f);
+        //InvokeRepeating("CaptureScreenshot", 0f, 30f);
+        CaptureScreenshot();
     }
 
     public void CaptureAudio()
@@ -127,7 +130,7 @@ public class OpenAIQueries : MonoBehaviour
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png"
+            new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
 
         // Create the message to send to the API
@@ -214,7 +217,7 @@ public class OpenAIQueries : MonoBehaviour
 
     public void CaptureScreenshot()
     {
-        ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/capture.png");
+        ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/viewpointCapture.png");
         Debug.Log("Screenshot captured!");
         refreshed = false;
         RefreshAssets();
@@ -222,8 +225,9 @@ public class OpenAIQueries : MonoBehaviour
 
     void RefreshAssets()
     {
-        UnityEditor.AssetDatabase.Refresh();
-
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh(); // This function is only available in the editor; can't be used in builds to the headset
+#endif
         if (!refreshed) // Run this coroutine to make sure we refresh before moving on
             StartCoroutine(WaitForRefresh());
         else
@@ -244,14 +248,14 @@ public class OpenAIQueries : MonoBehaviour
     {
         Debug.Log("Uploading screenshot to Image Shack");
         // Loads the screenshot (Unity considers it a texture) from Resources
-        Texture2D capturedScreenshot = Resources.Load<Texture2D>("Screenshots/capture");
+        capturedScreenshot = Resources.Load<Texture2D>("Screenshots/viewpointCapture");
         // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
         Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
         string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
 
         // Takes the byte array of the imageData and passed it to IMGUR for upload
         byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
-        StartCoroutine(UploadImage(imageData));
+        //StartCoroutine(UploadImage(imageData));
     }
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api"
