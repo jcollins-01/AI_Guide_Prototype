@@ -81,7 +81,7 @@ public class OpenAIQueries : MonoBehaviour
 
         // Begin capturing screenshots every 30 secs to keep guide updated on scene
         //InvokeRepeating("CaptureScreenshot", 0f, 30f);
-        CaptureScreenshot();
+        //CaptureScreenshot();
     }
 
     public void CaptureAudio()
@@ -95,6 +95,8 @@ public class OpenAIQueries : MonoBehaviour
         if (!recordingInProgress)
         {
             recordingInProgress = true;
+            audioSource.mute = false;
+            audioSource.loop = false;
             audioSource.clip = Microphone.Start(Microphone.devices[0], false, 10, 44100);
             Debug.Log("Recording audio");
         }
