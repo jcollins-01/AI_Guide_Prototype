@@ -9,6 +9,7 @@ public class SharedMovement : MonoBehaviour
 {
     // Variables to hold scripts and Game Objects we need access to
     private AIGuide m_AIGuideScript;
+    private VRHandling m_VRHandlingScript;
     public GameObject thePlayer;
     public GameObject theGuide;
     private XROrigin playerRig;
@@ -29,8 +30,8 @@ public class SharedMovement : MonoBehaviour
 
         // Grabs AIGuide script from the Game Object assigned as guide and pulls input device refs
         m_AIGuideScript = theGuide.GetComponent<AIGuide>();
-        rightXRController = m_AIGuideScript.rightXRController;
-        leftXRController = m_AIGuideScript.leftXRController;
+        rightXRController = m_VRHandlingScript.rightXRController;
+        leftXRController = m_VRHandlingScript.leftXRController;
     }
 
     // Update is called once per frame
