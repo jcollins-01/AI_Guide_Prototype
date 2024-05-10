@@ -22,11 +22,11 @@ public class WizardControls : MonoBehaviour
         }
         else
         {
-            Debug.Log("WizardControls are active - ready for the wizard to intervene at any time!");
+            //Debug.Log("WizardControls are active - ready for the wizard to intervene at any time!");
             // Description of the controls the wizard can use
-            Debug.Log("Drag a target game object into the Wizard Controls editor and press G to move the guide to that target, or T to teleport");
-            Debug.Log("Press N to query with a default message or alter user query field, then hit N. \n Press and hold M to record a new query. " +
-            "\n To use text query instead of your voice, make sure the query field is empty. \n Press C to create a voice file of the guide's output, then V to play the file after it is created.");
+            //Debug.Log("Drag a target game object into the Wizard Controls editor and press G to move the guide to that target, or T to teleport");
+            //Debug.Log("Press N to query with a default message or alter user query field, then hit N. \n Press and hold M to record a new query. " +
+            //"\n To use text query instead of your voice, make sure the query field is empty. \n Press C to create a voice file of the guide's output, then V to play the file after it is created.");
         }
     }
 

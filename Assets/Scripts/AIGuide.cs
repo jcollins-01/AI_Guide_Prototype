@@ -17,6 +17,7 @@ public class AIGuide : MonoBehaviour
     private int alloyCalls = 0;
     private int voiceCalls = 0;
     private bool firstQuery = true;
+    private bool buttonPressed = false;
 
     // Start is called before the first frame update
     void Start()
@@ -43,8 +44,8 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // If PC user presses and holds space or the right primary button on an XR controller
-        if (Input.GetKey(KeyCode.Space) || m_VRHandlingScript.isButtonPressed)
+        // If PC user presses and holds space
+        if (Input.GetKey(KeyCode.Space))
         {
             m_OpenAIQueriesScript.CaptureAudio();
 
@@ -55,14 +56,36 @@ public class AIGuide : MonoBehaviour
             voiceCalls = 0;
         }
 
-        // If the user lifts finger off space or primary button, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space) || !m_VRHandlingScript.isButtonPressed) && whisperCalls == 0)
+        // If VR user presses right primary button on an XR controller
+        if (m_VRHandlingScript.isButtonPressed)
         {
-            Debug.Log("Sending captured audio to Whisper");
+            m_OpenAIQueriesScript.CaptureAudio();
+
+            // Reset call counters so they can each be called once more
+            whisperCalls = 0;
+            completionCalls = 0;
+            alloyCalls = 0;
+            voiceCalls = 0;
+            buttonPressed = true;
+        }
+
+        // If PC user lifts finger off space, assume their query is completed
+        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)
+        {
             m_OpenAIQueriesScript.recordingInProgress = false;
             // Call the Whisper API to transcribe the recorded speech to text
             var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
             whisperCalls += 1;
+        }
+
+        // If VR user lifts finger off primary button, assume their query is completed
+        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true)
+        {
+            m_OpenAIQueriesScript.recordingInProgress = false;
+            // Call the Whisper API to transcribe the recorded speech to text
+            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
+            whisperCalls += 1;
+            buttonPressed = false;
         }
 
         // Checking for completion of speech transcription
