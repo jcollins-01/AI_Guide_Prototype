@@ -25,8 +25,60 @@ public class SharedMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Assigns the guide as the Game Object with the name "Guide"
-        theGuide = GameObject.Find("Guide");
+        // Creates the CameraSystem for the guide to keep track of Player's Movement with
+        gameObject.AddComponent<CameraSystem>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // Puts assignment of roles in one line that can be commented out
+        AssignRoles();
+
+        // If we have controllers assigned, we can send haptic impulses and try shared movement
+        if (rightXRController != null && leftXRController != null)
+        {
+            // Sends haptic feedback to the controller being used for "grabbing" the guide
+            if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
+            {
+                if (gripValue > 0.1f)
+                {
+                    StartCoroutine(Teleport());
+                    rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                }
+            }
+            else
+                StopCoroutine(Teleport());
+
+            if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
+            {
+                if (gripValue2 > 0.1f)
+                {
+                    StartCoroutine(Teleport());
+                    leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                }
+            }
+            else
+                StopCoroutine(Teleport());
+        }
+    }
+
+    void AssignRoles()
+    {
+        // If the player joins the scene before the guide, make sure to check for guide components until all are assigned
+        if (theGuide == null)
+            AssignGuide();
+
+        // The player should be null since they need to be instantiated in the multiplayer scene at runtime
+        if (thePlayer == null)
+            AssignPlayer();
+    }
+
+    // Finds necessary components from Guide scripts + assigns Guide game object
+    void AssignGuide()
+    {
+        // Assigns the guide as the parent Game Object of the Game Object with the AIGuide script
+        theGuide = FindObjectOfType<AIGuide>().transform.parent.gameObject;
 
         // Grabs AIGuide script from the Game Object assigned as guide and pulls input device refs
         m_AIGuideScript = theGuide.GetComponent<AIGuide>();
@@ -34,89 +86,46 @@ public class SharedMovement : MonoBehaviour
         leftXRController = m_VRHandlingScript.leftXRController;
     }
 
-    // Update is called once per frame
-    void Update()
+    // Sets up the needed components and determines who the main player (participant) is
+    void AssignPlayer()
     {
-        // The player should be null since they need to be instantiated in the multiplayer scene at runtime
-        // The following statements set up the needed components and determine who the main player (participant) is
-        if (thePlayer == null)
+        // Gets a list of all realtimeViews in the scene
+        var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
+        List<GameObject> foundPlayers = new List<GameObject>();
+
+        // Checks which ones are root objects, which would make them players
+        foreach (Normal.Realtime.RealtimeView realtimeView in foundViews)
         {
-            // Gets a list of all realtimeViews in the scene
-            var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
-            List<GameObject> foundPlayers = new List<GameObject>();
-
-            // Checks which ones are root objects, which would make them players
-            foreach (Normal.Realtime.RealtimeView realtimeView in foundViews)
-            {
-                if (IsRootObject(realtimeView.gameObject))
-                    foundPlayers.Add(realtimeView.gameObject);
-            }
-
-            // The first player who joined the scene is marked as the participant
-            thePlayer = foundPlayers[0];
-
-            // Destroy the necessary physical components - this was needed to make sure participant/guide couldn't grab?
-            //Destroy(theGuide.GetComponent<SharedMovement>());
-
-            // Grabs the necessary physics components for Shared Movement
-            Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
-            CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
-            Rigidbody guideRigidbody = theGuide.GetComponent<Rigidbody>();
-            CapsuleCollider guideCollider = theGuide.GetComponent<CapsuleCollider>();
-
-            // Sets the values appropriately for each component to perform Shared Movement
-            // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
-            playerRigidbody.useGravity = false;
-            playerRigidbody.isKinematic = true;
-            playerCollider.radius = 0.5f;
-            playerCollider.height = 0.5f;
-            playerCollider.center = new Vector3(0f, 1f, 0f);
-            // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
-            guideRigidbody.useGravity = false;
-            guideRigidbody.isKinematic = true;
-            guideCollider.isTrigger = true;
-            guideCollider.radius = 0.5f;
-            guideCollider.height = 0.5f;
-            guideCollider.center = new Vector3(0f, 1f, 0f);
+            if (IsRootObject(realtimeView.gameObject))
+                foundPlayers.Add(realtimeView.gameObject);
         }
 
-        // Finds the game object named Guide in the hierarchy and assigns it
-        if (theGuide ==  null)
-        {
-            theGuide = GameObject.Find("Guide");
+        // The first player who joined the scene is marked as the participant
+        thePlayer = foundPlayers[0];
 
-            // If the avatar joining is NOT the player, destroy the Guide object
-            // This will need to be adjusted/tested with other clients joining the scene + making sure the participant is selected properly
-            // Might need to have a shared name component attached to each one
-            /*if (!thePlayer.GetComponent<Normal.Realtime.RealtimeView>().isOwnedLocallyInHierarchy)
-            {
-                Destroy(theGuide);
-            }*/
+        // Destroy the necessary physical components - this was needed to make sure participant/guide couldn't grab?
+        //Destroy(theGuide.GetComponent<SharedMovement>());
 
-        }
+        // Grabs the necessary physics components for Shared Movement
+        Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
+        CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
+        Rigidbody guideRigidbody = theGuide.GetComponent<Rigidbody>();
+        CapsuleCollider guideCollider = theGuide.GetComponent<CapsuleCollider>();
 
-        // Sends haptic feedback to the controller being used for "grabbing" the guide
-        if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
-        {
-            if (gripValue > 0.1f)
-            {
-                StartCoroutine(Teleport());
-                rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
-            }
-        }
-        else
-            StopCoroutine(Teleport());
-
-        if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
-        {
-            if (gripValue2 > 0.1f)
-            {
-                StartCoroutine(Teleport());
-                leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
-            }
-        }
-        else
-            StopCoroutine(Teleport());
+        // Sets the values appropriately for each component to perform Shared Movement
+        // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
+        playerRigidbody.useGravity = false;
+        playerRigidbody.isKinematic = true;
+        playerCollider.radius = 0.5f;
+        playerCollider.height = 0.5f;
+        playerCollider.center = new Vector3(0f, 1f, 0f);
+        // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
+        guideRigidbody.useGravity = false;
+        guideRigidbody.isKinematic = true;
+        guideCollider.isTrigger = true;
+        guideCollider.radius = 0.5f;
+        guideCollider.height = 0.5f;
+        guideCollider.center = new Vector3(0f, 1f, 0f);
     }
 
     // Function to check if an object is the root of its hierarchy
