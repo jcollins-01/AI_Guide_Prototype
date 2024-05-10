@@ -71,7 +71,7 @@ public class OpenAIQueries : MonoBehaviour
         audioSource = (AudioSource)FindObjectOfType(typeof(AudioSource));
         LoadConfig();
 
-        Debug.Log("OpenAI is ready to be queried.");
+        //Debug.Log("OpenAI is ready to be queried.");
 
         // Create an instance of the OpenAI client
         client = new OpenAIClient(apiKey);

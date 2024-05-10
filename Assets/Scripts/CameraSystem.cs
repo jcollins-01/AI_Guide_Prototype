@@ -51,7 +51,7 @@ public class CameraSystem : MonoBehaviour
         CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");
         CaptureSpecificCamera(birdEyeCamera, "/Resources/Screenshots/birdEyeCapture.png");
 
-        Debug.Log("Screenshots captured!");
+        //Debug.Log("Screenshots captured!");
         refreshed = false;
         RefreshAssets();
     }
@@ -87,7 +87,7 @@ public class CameraSystem : MonoBehaviour
             StartCoroutine(WaitForRefresh());
         else
         {
-            Debug.Log("Assets refreshed!");
+            //Debug.Log("Assets refreshed!");
             string viewpointPath = Application.dataPath + "/Resources/Screenshots/viewpointCapture.png";
             string birdEyePath = Application.dataPath + "/Resources/Screenshots/birdEyeCapture.png";
 
@@ -106,17 +106,16 @@ public class CameraSystem : MonoBehaviour
 
 public class ImageUploader : MonoBehaviour
 {
-    public string uploadUrl = "https://postimages.org/json/rr";
+    //https://postimages.org/json/rr
+    public string uploadUrl = "https://postimg.cc/json";
 
     public void UploadImage(string imageFilePath)
     {
-        Debug.Log(imageFilePath);
         StartCoroutine(UploadImageCoroutine(imageFilePath));
     }
 
     IEnumerator UploadImageCoroutine(string imageFilePath)
     {
-        Debug.Log("Coroutine started for image upload");
         if (string.IsNullOrEmpty(imageFilePath))
         {
             Debug.LogError("Image file path is not specified.");
@@ -129,7 +128,6 @@ public class ImageUploader : MonoBehaviour
         // Create a UnityWebRequest to upload the image
         using (UnityWebRequest www = new UnityWebRequest(uploadUrl, "POST"))
         {
-            Debug.Log("Making post request");
             // Set the content type to "multipart/form-data"
             www.SetRequestHeader("Content-Type", "multipart/form-data");
 
