@@ -5,15 +5,18 @@ using UnityEngine;
 public class CameraSystem : MonoBehaviour
 {
     // Variables to set camera parameters
-    private int captureWidth = 1920;
-    private int captureHeight = 1080;
+    //private int captureWidth = 1920;
+    //private int captureHeight = 1080;
     private float birdHeight = 15f;
     private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
 
-    // Camera variables for AIGuide script to access
+    // Public camera variables for AIGuide script to access
     public Camera birdEyeCamera;
     public Camera viewpointCamera;
     public string screenshotFileName = "birdEyeCapture.png";
+
+    // Variables for monitoring
+    private bool refreshed = false;
 
     // Start is called before the first frame update
     void Start()
@@ -29,11 +32,68 @@ public class CameraSystem : MonoBehaviour
         birdHeight = birdHeight + transform.position.y;
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z);
         birdEyeCamera.transform.eulerAngles = birdRotation;
+
+        // Begin capturing screenshots every 10 secs to keep guide updated on scene
+        InvokeRepeating("CaptureScreenshot", 0f, 10f);
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    public void CaptureScreenshot()
+    {
+        // Captures screenshots from both cameras in system
+        CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");
+        CaptureSpecificCamera(birdEyeCamera, "/Resources/Screenshots/birdEyeCapture.png");
+
+        Debug.Log("Screenshots captured!");
+        refreshed = false;
+        RefreshAssets();
+    }
+
+    void CaptureSpecificCamera(Camera camera, string path)
+    {
+        // Creates a RenderTexture so we can render the Camera's output
+        RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        camera.targetTexture = renderTexture;
+        camera.Render();
+
+        // Creates a new Texture2D and reads the RenderTexture into it
+        Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        RenderTexture.active = renderTexture;
+        texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        texture.Apply();
+
+        // Saves the texture as an image and cleans up
+        byte[] bytes = texture.EncodeToPNG();
+        System.IO.File.WriteAllBytes(Application.dataPath + path, bytes);
+        camera.targetTexture = null;
+        RenderTexture.active = null;
+        Destroy(renderTexture);
+        Destroy(texture);
+    }
+
+    void RefreshAssets()
+    {
+#if UNITY_EDITOR
+        UnityEditor.AssetDatabase.Refresh(); // This function is only available in the editor; can't be used in builds to the headset
+#endif
+        if (!refreshed) // Run this coroutine to make sure we refresh before moving on
+            StartCoroutine(WaitForRefresh());
+        else
+        {
+            Debug.Log("Assets refreshed!");
+            //UploadImage();
+        }
+    }
+
+    IEnumerator WaitForRefresh()
+    {
+        yield return new WaitForSeconds(2);
+        RefreshAssets();
+        refreshed = true;
     }
 }

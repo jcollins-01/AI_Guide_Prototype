@@ -77,11 +77,7 @@ public class OpenAIQueries : MonoBehaviour
         client = new OpenAIClient(apiKey);
 
         // Default query to begin with
-        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications + memoClassifications; // ADD guideClassification
-
-        // Begin capturing screenshots every 30 secs to keep guide updated on scene
-        //InvokeRepeating("CaptureScreenshot", 0f, 30f);
-        //CaptureScreenshot();
+        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications + memoClassifications; // ADD guideClassification 
     }
 
     public void CaptureAudio()
@@ -214,37 +210,9 @@ public class OpenAIQueries : MonoBehaviour
 
     // BELOW ARE ALL METHODS FOR UPLOADING IMAGES
 
-    // Keep track of asset refresh
-    private bool refreshed = false;
+    
 
-    public void CaptureScreenshot()
-    {
-        ScreenCapture.CaptureScreenshot(Application.dataPath + "/Resources/Screenshots/viewpointCapture.png");
-        Debug.Log("Screenshot captured!");
-        refreshed = false;
-        RefreshAssets();
-    }
-
-    void RefreshAssets()
-    {
-#if UNITY_EDITOR
-        UnityEditor.AssetDatabase.Refresh(); // This function is only available in the editor; can't be used in builds to the headset
-#endif
-        if (!refreshed) // Run this coroutine to make sure we refresh before moving on
-            StartCoroutine(WaitForRefresh());
-        else
-        {
-            Debug.Log("Assets refreshed!");
-            UploadImage();
-        }
-    }
-
-    IEnumerator WaitForRefresh()
-    {
-        yield return new WaitForSeconds(2);
-        RefreshAssets();
-        refreshed = true;
-    }
+    
 
     void UploadImage()
     {
