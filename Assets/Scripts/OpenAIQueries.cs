@@ -10,8 +10,8 @@ using UnityEngine.Networking;
 
 public class OpenAIQueries : MonoBehaviour
 {
+    // OpenAI variables
     public static OpenAIClient client { get; set; }
-
     // OpenAI API key
     [HideInInspector]
     public string apiKey;
@@ -19,9 +19,11 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     private const string configFileName = "config";
 
+    // Variables to hold scripts we need access to
+    private CameraSystem m_CameraSystemScript;
+
     // Strings to hold the different pieces of the query message
     public string userQuery = "What's going on in here?";
-
     [HideInInspector]
     public string playerClassification = "Imagine that the player is the yellow pill-shaped object in the lower left corner of this image. ";
     [HideInInspector]
@@ -68,16 +70,14 @@ public class OpenAIQueries : MonoBehaviour
 
     private void Start()
     {
-        audioSource = (AudioSource)FindObjectOfType(typeof(AudioSource));
+        // Find and load appropriate resources
+        m_CameraSystemScript = FindObjectOfType<CameraSystem>();
+        audioSource = FindObjectOfType<AudioSource>();
         LoadConfig();
-
         //Debug.Log("OpenAI is ready to be queried.");
 
         // Create an instance of the OpenAI client
         client = new OpenAIClient(apiKey);
-
-        // Default query to begin with
-        text = playerClassification + objectClassifications + "Imagine the player said this: " + userQuery + ". " + queryClassifications + memoClassifications; // ADD guideClassification 
     }
 
     public void CaptureAudio()
@@ -129,6 +129,7 @@ public class OpenAIQueries : MonoBehaviour
         {
             new Content(ContentType.Text, userInput),
             new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
+            //new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink)
         };
 
         // Create the message to send to the API
@@ -207,144 +208,4 @@ public class OpenAIQueries : MonoBehaviour
     {
         public string APIKey;
     }
-
-    // BELOW ARE ALL METHODS FOR UPLOADING IMAGES
-
-    
-
-    
-
-    void UploadImage()
-    {
-        Debug.Log("Uploading screenshot to Image Shack");
-        // Loads the screenshot (Unity considers it a texture) from Resources
-        capturedScreenshot = Resources.Load<Texture2D>("Screenshots/viewpointCapture");
-        // Decompresses the screenshot texture to work with encoding, encodes texture to a byte array in PNG format, then converts that array to a base64 string
-        Texture2D preppedScreenshot = capturedScreenshot.DeCompress();
-        string imageString = System.Convert.ToBase64String(ImageConversion.EncodeToPNG(preppedScreenshot));
-
-        // Takes the byte array of the imageData and passed it to IMGUR for upload
-        byte[] imageData = ImageConversion.EncodeToPNG(preppedScreenshot);
-        //StartCoroutine(UploadImage(imageData));
-    }
-
-    // Image Shack API Key, requested from "https://imageshack.com/contact/api"
-    private string imageApiKey = "468CGIVYeba088be6297f37babc219efe571c8bd";
-    public string m_imageShackLink; // Used to pass the hosted image to queries
-
-    IEnumerator UploadImage(byte[] imageData)
-    {
-        // Set up form data
-        WWWForm form = new WWWForm();
-        form.AddField("key", imageApiKey);
-        form.AddBinaryData("fileupload", imageData, "image.png", "image/png"); // was "image.jpg", "image/jpeg"
-
-        // Send the POST request
-        using (UnityWebRequest www = UnityWebRequest.Post("https://post.imageshack.us/upload_api.php", form))
-        {
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                // Parse the response
-                string responseText = www.downloadHandler.text;
-                Debug.Log("Upload successful!");
-                Debug.Log("Response: " + responseText);
-                string imageLink = ParseXmlResponse(responseText);
-                Debug.Log("image_link: " + imageLink);
-                m_imageShackLink = imageLink;
-            }
-            else
-            {
-                Debug.LogError("Upload failed: " + www.error);
-            }
-        }
-    }
-
-    // Parse XML response and extract xmlns data
-    string ParseXmlResponse(string xmlResponse)
-    {
-        // Create XML document and load the XML string
-        XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.LoadXml(xmlResponse);
-
-        // Create an XmlNamespaceManager for resolving namespaces
-        XmlNamespaceManager nsManager = new XmlNamespaceManager(xmlDoc.NameTable);
-        nsManager.AddNamespace("ns", "http://ns.imageshack.us/imginfo/8/");
-
-        // Placeholder for link to return
-        string imageLink = "";
-
-        // Get the image_link element using the namespace manager
-        XmlNode imageLinkNode = xmlDoc.SelectSingleNode("//ns:links/ns:image_link", nsManager);
-
-        // Check if imageLinkNode is not null
-        if (imageLinkNode != null)
-        {
-            // Get the value of the image_link element
-            imageLink = imageLinkNode.InnerText;
-        }
-        else
-        {
-            Debug.LogError("image_link not found in the XML.");
-        }
-
-        return imageLink;
-    }
 }
-
-// Class to check out for uploading to PostImages instead of ImageShack
-//https://github.com/ShareX/ShareX/issues/472
-/*
-public class ImageUploader : MonoBehaviour
-{
-    public string imageFilePath; // Path to the image file on your device
-    public string uploadUrl = "https://postimages.org/json/rr";
-
-    public void UploadImage()
-    {
-        StartCoroutine(UploadImageCoroutine());
-    }
-
-    IEnumerator UploadImageCoroutine()
-    {
-        if (string.IsNullOrEmpty(imageFilePath))
-        {
-            Debug.LogError("Image file path is not specified.");
-            yield break;
-        }
-
-        // Load the image bytes
-        byte[] imageBytes = System.IO.File.ReadAllBytes(imageFilePath);
-
-        // Create a UnityWebRequest to upload the image
-        using (UnityWebRequest www = new UnityWebRequest(uploadUrl, "POST"))
-        {
-            // Set the content type to "multipart/form-data"
-            www.SetRequestHeader("Content-Type", "multipart/form-data");
-
-            // Create a multipart form data
-            WWWForm form = new WWWForm();
-            form.AddBinaryData("file", imageBytes, "image.png", "image/png");
-
-            // Set the form data to the UnityWebRequest
-            www.uploadHandler = new UploadHandlerRaw(form.data);
-            www.uploadHandler.contentType = "multipart/form-data";
-
-            // Send the request
-            yield return www.SendWebRequest();
-
-            // Check for errors
-            if (www.isNetworkError || www.isHttpError)
-            {
-                Debug.LogError("Error uploading image: " + www.error);
-            }
-            else
-            {
-                // Image uploaded successfully
-                Debug.Log("Image uploaded successfully. Response: " + www.downloadHandler.text);
-            }
-        }
-    }
-}
-*/

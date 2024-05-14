@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -37,12 +38,6 @@ public class CameraSystem : MonoBehaviour
         // Begin capturing screenshots every 10 secs to keep guide updated on scene
         //InvokeRepeating("CaptureScreenshot", 0f, 10f);
         CaptureScreenshot();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     public void CaptureScreenshot()
@@ -88,11 +83,7 @@ public class CameraSystem : MonoBehaviour
         else
         {
             //Debug.Log("Assets refreshed!");
-            string viewpointPath = Application.dataPath + "/Resources/Screenshots/viewpointCapture.png";
-            string birdEyePath = Application.dataPath + "/Resources/Screenshots/birdEyeCapture.png";
-
-            ImageUploader image = gameObject.AddComponent<ImageUploader>();
-            image.UploadImage(viewpointPath);
+            UploadImage();
         }
     }
 
@@ -102,56 +93,96 @@ public class CameraSystem : MonoBehaviour
         RefreshAssets();
         refreshed = true;
     }
-}
 
-public class ImageUploader : MonoBehaviour
-{
-    //https://postimages.org/json/rr
-    public string uploadUrl = "https://postimg.cc/json";
-
-    public void UploadImage(string imageFilePath)
+    void UploadImage()
     {
-        StartCoroutine(UploadImageCoroutine(imageFilePath));
+        Debug.Log("Uploading screenshot to Image Shack");
+        // Loads the screenshots (Unity considers it a texture) from Resources
+        Texture2D viewCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/viewpointCapture");
+        Texture2D birdCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/birdEyeCapture");
+        // Decompresses the textures to work with encoding, encodes textures to byte arrays in PNG format, then converts those arrays to base64 strings
+        Texture2D viewPreppedScreenshot = viewCapturedScreenshot.DeCompress();
+        Texture2D birdPreppedScreenshot = birdCapturedScreenshot.DeCompress();
+
+        // Takes the byte arrays of the imageData and passes it to IMGUR for upload
+        byte[] viewImageData = ImageConversion.EncodeToPNG(viewPreppedScreenshot);
+        byte[] birdImageData = ImageConversion.EncodeToPNG(birdPreppedScreenshot);
+        string viewType = "view";
+        string birdType = "bird";
+        StartCoroutine(UploadImage(viewImageData, viewType));
+        StartCoroutine(UploadImage(birdImageData, birdType));
     }
 
-    IEnumerator UploadImageCoroutine(string imageFilePath)
+    // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
+    private string imageApiKey = "05EJKLOX11034eaba590919c3462657545aa467d";
+
+    [HideInInspector]
+    public string viewpointImageLink;
+    [HideInInspector]
+    public string birdsEyeImageLink;
+
+    IEnumerator UploadImage(byte[] imageData, string type)
     {
-        if (string.IsNullOrEmpty(imageFilePath))
+        // Set up form data
+        WWWForm form = new WWWForm();
+        form.AddField("key", imageApiKey);
+        form.AddBinaryData("fileupload", imageData, "image.png", "image/png"); // was "image.jpg", "image/jpeg"
+
+        // Send the POST request
+        using (UnityWebRequest www = UnityWebRequest.Post("https://post.imageshack.us/upload_api.php", form))
         {
-            Debug.LogError("Image file path is not specified.");
-            yield break;
-        }
-
-        // Load the image bytes
-        byte[] imageBytes = System.IO.File.ReadAllBytes(imageFilePath);
-
-        // Create a UnityWebRequest to upload the image
-        using (UnityWebRequest www = new UnityWebRequest(uploadUrl, "POST"))
-        {
-            // Set the content type to "multipart/form-data"
-            www.SetRequestHeader("Content-Type", "multipart/form-data");
-
-            // Create a multipart form data
-            WWWForm form = new WWWForm();
-            form.AddBinaryData("file", imageBytes, "image.png", "image/png");
-
-            // Set the form data to the UnityWebRequest
-            www.uploadHandler = new UploadHandlerRaw(form.data);
-            www.uploadHandler.contentType = "multipart/form-data";
-
-            // Send the request
             yield return www.SendWebRequest();
 
-            // Check for errors
-            if (www.isNetworkError || www.isHttpError)
+            if (www.result == UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Error uploading image: " + www.error);
+                // Parse the response
+                string responseText = www.downloadHandler.text;
+                // Debug.Log("Upload successful!");
+                // Debug.Log("Response: " + responseText);
+                if (type == "view")
+                {
+                    viewpointImageLink = ParseXmlResponse(responseText);
+                    Debug.Log("view_image_link: " + viewpointImageLink);
+                }
+                else
+                {
+                    birdsEyeImageLink = ParseXmlResponse(responseText);
+                    Debug.Log("bird_image_link: " + birdsEyeImageLink);
+                }
             }
             else
             {
-                // Image uploaded successfully
-                Debug.Log("Image uploaded successfully. Response: " + www.downloadHandler.text);
+                Debug.LogError("Upload failed: " + www.error);
             }
         }
+    }
+
+    // Parse XML response and extract xmlns data
+    string ParseXmlResponse(string xmlResponse)
+    {
+        // Create XML document and load the XML string
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(xmlResponse);
+
+        // Create an XmlNamespaceManager for resolving namespaces
+        XmlNamespaceManager nsManager = new XmlNamespaceManager(xmlDoc.NameTable);
+        nsManager.AddNamespace("ns", "http://ns.imageshack.us/imginfo/8/");
+
+        // Placeholder for link to return
+        string imageLink = "";
+
+        // Get the image_link element using the namespace manager
+        XmlNode imageLinkNode = xmlDoc.SelectSingleNode("//ns:links/ns:image_link", nsManager);
+
+        // Check if imageLinkNode is not null
+        if (imageLinkNode != null)
+        {
+            // Get the value of the image_link element
+            imageLink = imageLinkNode.InnerText;
+        }
+        else
+            Debug.LogError("image_link not found in the XML.");
+
+        return imageLink;
     }
 }
