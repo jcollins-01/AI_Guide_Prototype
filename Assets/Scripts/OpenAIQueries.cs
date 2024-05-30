@@ -25,14 +25,14 @@ public class OpenAIQueries : MonoBehaviour
     // Strings to hold the different pieces of the query message
     public string userQuery = "What's going on in here?";
     [HideInInspector]
-    public string playerClassification = "Imagine that the player is the yellow pill-shaped object in the lower left corner of this image. ";
+    public string playerClassification = "Imagine that the player is the humanoid avatar wearing an orange shirt in the lower left corner of this image. ";
+    [HideInInspector]
+    public string photoClassification = "One of these photos is the bird's eye view of the enter scene that the player is standing in. The other photo is the player's current perspective and what they are currently looking at in the scene.";
     [HideInInspector]
     public string objectClassifications = "The upright, yellow cube is named Tall Building. " +
         "The upright, green cube is named Short Building. " +
-        "The red cylinder to the right of Tall Building is named Red Car Back. " +
-        "The green cylinder next to Tall Building is named Green Car. " +
         "The long, yellow cube laying on its side is named Sideways Building. " +
-        "The red cylinder in front of Sideways Building is named Red Car Front. " +
+        "The red cylinder in front of Sideways Building is named Red Car. " +
         "The green, flattened oval in the back is named Landmark. ";
     [HideInInspector]
     public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
@@ -71,13 +71,24 @@ public class OpenAIQueries : MonoBehaviour
     private void Start()
     {
         // Find and load appropriate resources
-        m_CameraSystemScript = FindObjectOfType<CameraSystem>();
         audioSource = FindObjectOfType<AudioSource>();
         LoadConfig();
         //Debug.Log("OpenAI is ready to be queried.");
 
         // Create an instance of the OpenAI client
         client = new OpenAIClient(apiKey);
+    }
+
+    private void Update()
+    {
+        // Calls until the camera system script is assigned
+        getCameraSystem();
+    }
+
+    private void getCameraSystem()
+    {
+        if (m_CameraSystemScript == null)
+            m_CameraSystemScript = FindObjectOfType<CameraSystem>();
     }
 
     public void CaptureAudio()
@@ -124,12 +135,14 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task<string> CallCompletion(string userInput)
     {
+        Debug.Log(m_CameraSystemScript.birdsEyeImageLink + " and " + m_CameraSystemScript.viewpointImageLink);
         // Create the content for the message
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
-            //new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink)
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
+            //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
 
         // Create the message to send to the API
@@ -137,6 +150,8 @@ public class OpenAIQueries : MonoBehaviour
         {
             new(Role.User, content),
         };
+
+        Debug.Log("Combined content for query to GPT-4");
 
         var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-vision-preview", maxTokens: 300);
         string output = "N/A";
