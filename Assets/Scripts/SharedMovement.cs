@@ -24,6 +24,7 @@ public class SharedMovement : MonoBehaviour
 
     // Variables to share player actions with other scripts
     public bool playerGrabbingGuide = false;
+    public CapsuleCollider guideCollider;
 
     // Start is called before the first frame update
     void Start()
@@ -122,7 +123,7 @@ public class SharedMovement : MonoBehaviour
         Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
         CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
         Rigidbody guideRigidbody = theGuide.GetComponent<Rigidbody>();
-        CapsuleCollider guideCollider = theGuide.GetComponent<CapsuleCollider>();
+        guideCollider = theGuide.GetComponent<CapsuleCollider>();
 
         // Sets the values appropriately for each component to perform Shared Movement
         // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider

@@ -142,6 +142,7 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
             Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
+            m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
             // Turn off guide follow so that the guide begins to lead the player
@@ -157,6 +158,7 @@ public class AIGuide : MonoBehaviour
         else
         {
             m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+            m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
         }
 
         // Checking if a target GameObject was selected to be modified
