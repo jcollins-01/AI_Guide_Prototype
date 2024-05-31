@@ -179,7 +179,7 @@ public class OpenAIQueries : MonoBehaviour
 
             targetForGuidance = GameObject.Find(targetName);
             if (targetForGuidance != null)
-                result = "Alright. I am taking you to " + targetForGuidance.name;
+                result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
         }
 
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);

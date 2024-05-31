@@ -10,6 +10,8 @@ public class AIGuide : MonoBehaviour
     private AutomaticGuide m_AutomatedGuideScript;
     private OpenAIQueries m_OpenAIQueriesScript;
     private VRHandling m_VRHandlingScript;
+    private SharedMovement m_SharedMovementScript;
+    private GuideFollow m_GuideFollowScript;
 
     // Variables for monitoring
     private int whisperCalls = 0;
@@ -18,6 +20,9 @@ public class AIGuide : MonoBehaviour
     private int voiceCalls = 0;
     private bool firstQuery = true;
     private bool buttonPressed = false;
+
+    // Variables for testing -- TO BE REMOVED LATER
+    public bool playerGrab = true;
 
     // Start is called before the first frame update
     void Start()
@@ -30,8 +35,8 @@ public class AIGuide : MonoBehaviour
         if (navMeshAgent == null)
             gameObject.AddComponent<NavMeshAgent>();
         //gameObject.AddComponent<WizardControls>();
-        gameObject.AddComponent<GuideFollow>();
 
+        m_GuideFollowScript = gameObject.AddComponent<GuideFollow>();
         m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
         m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
         m_VRHandlingScript = gameObject.AddComponent(typeof(VRHandling)) as VRHandling;
@@ -45,6 +50,10 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Calls until the shared movement script is assigned (when we have a player and a guide)
+        // Needed for access to the player's interactions with the guide
+        getSharedMovement();
+
         // If PC user presses and holds space
         if (Input.GetKey(KeyCode.Space))
         {
@@ -131,10 +140,25 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
             Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
-            if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
-                m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+
+            // If the player is grabbing the guide, call for the movement functions as appropriate
+            // Turn off guide follow until player lets go so that the guide begins to lead the player
+            if (m_SharedMovementScript.playerGrabbingGuide || playerGrab == true)
+            {
+                m_GuideFollowScript.enabled = false;
+                if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
+                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                else
+                    m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
+            }
             else
-                m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                m_GuideFollowScript.enabled = true;
         }
+    }
+
+    private void getSharedMovement()
+    {
+        if (m_SharedMovementScript == null)
+            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
     }
 }

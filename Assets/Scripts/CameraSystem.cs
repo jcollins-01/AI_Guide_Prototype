@@ -37,7 +37,7 @@ public class CameraSystem : MonoBehaviour
 
         // Begin capturing screenshots every 10 secs to keep guide updated on scene
         //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-        //CaptureScreenshot();
+        CaptureScreenshot();
     }
 
     public void CaptureScreenshot()

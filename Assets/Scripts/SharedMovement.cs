@@ -22,6 +22,9 @@ public class SharedMovement : MonoBehaviour
     private InputDevice rightXRController;
     private InputDevice leftXRController;
 
+    // Variables to share player actions with other scripts
+    public bool playerGrabbingGuide = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -45,10 +48,15 @@ public class SharedMovement : MonoBehaviour
                 {
                     StartCoroutine(Teleport());
                     rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                    playerGrabbingGuide = true;
                 }
             }
             else
+            {
                 StopCoroutine(Teleport());
+                playerGrabbingGuide = false;
+            }
+                
 
             if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
             {
@@ -56,10 +64,14 @@ public class SharedMovement : MonoBehaviour
                 {
                     StartCoroutine(Teleport());
                     leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                    playerGrabbingGuide = true;
                 }
             }
             else
+            {
                 StopCoroutine(Teleport());
+                playerGrabbingGuide = false;
+            }  
         }
     }
 
