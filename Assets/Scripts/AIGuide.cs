@@ -142,7 +142,7 @@ public class AIGuide : MonoBehaviour
             Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
-            // Turn off guide follow until player lets go so that the guide begins to lead the player
+            // Turn off guide follow so that the guide begins to lead the player
             if (m_SharedMovementScript.playerGrabbingGuide || playerGrab == true)
             {
                 m_GuideFollowScript.enabled = false;
@@ -151,8 +151,10 @@ public class AIGuide : MonoBehaviour
                 else
                     m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
             }
-            else
-                m_GuideFollowScript.enabled = true;
+        }
+        else
+        {
+            m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
         }
     }
 
