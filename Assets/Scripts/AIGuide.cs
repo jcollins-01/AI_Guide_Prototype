@@ -29,7 +29,8 @@ public class AIGuide : MonoBehaviour
         NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
         if (navMeshAgent == null)
             gameObject.AddComponent<NavMeshAgent>();
-        gameObject.AddComponent<WizardControls>();
+        //gameObject.AddComponent<WizardControls>();
+        gameObject.AddComponent<GuideFollow>();
 
         m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
         m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;

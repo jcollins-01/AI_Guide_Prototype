@@ -37,7 +37,7 @@ public class CameraSystem : MonoBehaviour
 
         // Begin capturing screenshots every 10 secs to keep guide updated on scene
         //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-        CaptureScreenshot();
+        //CaptureScreenshot();
     }
 
     public void CaptureScreenshot()
@@ -142,12 +142,12 @@ public class CameraSystem : MonoBehaviour
                 if (type == "view")
                 {
                     viewpointImageLink = ParseXmlResponse(responseText);
-                    Debug.Log("view_image_link: " + viewpointImageLink);
+                    //Debug.Log("view_image_link: " + viewpointImageLink);
                 }
                 else
                 {
                     birdsEyeImageLink = ParseXmlResponse(responseText);
-                    Debug.Log("bird_image_link: " + birdsEyeImageLink);
+                    //Debug.Log("bird_image_link: " + birdsEyeImageLink);
                 }
             }
             else

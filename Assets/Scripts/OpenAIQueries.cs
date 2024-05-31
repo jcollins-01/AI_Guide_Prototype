@@ -35,10 +35,10 @@ public class OpenAIQueries : MonoBehaviour
         "The red cylinder in front of Sideways Building is named Red Car. " +
         "The green, flattened oval in the back is named Landmark. ";
     [HideInInspector]
-    public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
-        "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-        "If the player seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, plus the word 'teleport' after a comma if it seems like they want to teleport to the object and 'guide' after a comma if they don't specify teleportation" +
-        " - ONLY DO THIS IF YOU'RE SURE THE PLAYER WANTS TO TRAVEL TO THAT OBJECT, and provide a description of the object if you aren't sure. ";
+    public string queryClassifications = "Answer the player to the best of your ability. " +
+        "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to," +
+        "plus the word 'teleport' after a comma if it seems like they want to teleport to the object" +
+        "and 'guide' after a comma if they don't specify teleportation";
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
     public string memoClassifications = "Limit your reply to 300 words or less.";
@@ -135,7 +135,6 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task<string> CallCompletion(string userInput)
     {
-        Debug.Log(m_CameraSystemScript.birdsEyeImageLink + " and " + m_CameraSystemScript.viewpointImageLink);
         // Create the content for the message
         List<Content> content = new List<Content>
         {
@@ -150,8 +149,6 @@ public class OpenAIQueries : MonoBehaviour
         {
             new(Role.User, content),
         };
-
-        Debug.Log("Combined content for query to GPT-4");
 
         var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-vision-preview", maxTokens: 300);
         string output = "N/A";
