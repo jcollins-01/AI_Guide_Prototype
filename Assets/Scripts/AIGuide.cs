@@ -12,6 +12,7 @@ public class AIGuide : MonoBehaviour
     private VRHandling m_VRHandlingScript;
     private SharedMovement m_SharedMovementScript;
     private GuideFollow m_GuideFollowScript;
+    private AutomaticModification m_AutomaticModificationScript;
 
     // Variables for monitoring
     private int whisperCalls = 0;
@@ -37,6 +38,7 @@ public class AIGuide : MonoBehaviour
         //gameObject.AddComponent<WizardControls>();
 
         m_GuideFollowScript = gameObject.AddComponent<GuideFollow>();
+        m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
         m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
         m_VRHandlingScript = gameObject.AddComponent(typeof(VRHandling)) as VRHandling;
@@ -155,6 +157,15 @@ public class AIGuide : MonoBehaviour
         else
         {
             m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+        }
+
+        // Checking if a target GameObject was selected to be modified
+        if (m_OpenAIQueriesScript.targetForModification != null)
+        {
+            // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
+            Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
+            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
+            m_OpenAIQueriesScript.targetForModification = null;
         }
     }
 

@@ -36,9 +36,11 @@ public class OpenAIQueries : MonoBehaviour
         "The green, flattened oval in the back is named Landmark. ";
     [HideInInspector]
     public string queryClassifications = "Answer the player to the best of your ability. " +
-        "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to," +
-        "plus the word 'teleport' after a comma if it seems like they want to teleport to the object" +
-        "and 'guide' after a comma if they don't specify teleportation";
+        "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
+        "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
+        "and 'guide' after a comma if they don't specify teleportation. " +
+        "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
+        "plus the word 'modify' after a comma.";
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
     public string memoClassifications = "Limit your reply to 300 words or less.";
@@ -51,6 +53,10 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject targetForGuidance;
     //[HideInInspector]
     public string modeOfTransportation;
+    [HideInInspector]
+    public GameObject targetForModification;
+    //[HideInInspector]
+    public string modeOfModification;
     private Texture2D capturedScreenshot;
 
     public string query;
@@ -173,13 +179,26 @@ public class OpenAIQueries : MonoBehaviour
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
-            // Assign the first word to targetName and the second word to modeOfTransportation
-            string targetName = words[0].Trim();
-            modeOfTransportation = words[1].Trim();
+            if (words[1] == "guide" || words[1] == "teleport")
+            {
+                // Assign the first word to targetName and the second word to modeOfTransportation
+                string targetName = words[0].Trim();
+                modeOfTransportation = words[1].Trim();
 
-            targetForGuidance = GameObject.Find(targetName);
-            if (targetForGuidance != null)
-                result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+                targetForGuidance = GameObject.Find(targetName);
+                if (targetForGuidance != null)
+                    result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+            }
+            else // they are trying to modify
+            {
+                // Assign the first word to targetName and the second word to modification
+                string targetName = words[0].Trim();
+                modeOfModification = words[1].Trim();
+
+                targetForModification = GameObject.Find(targetName);
+                if (targetForModification != null)
+                    result = "Alright. I will add an audio beacon to " + targetForModification.name;
+            }
         }
 
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
