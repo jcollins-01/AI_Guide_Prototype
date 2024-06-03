@@ -9,7 +9,7 @@ public class SharedMovement : MonoBehaviour
 {
     // Variables to hold scripts and Game Objects we need access to
     private AIGuide m_AIGuideScript;
-    private VRHandling m_VRHandlingScript;
+    public VRHandling m_VRHandlingScript;
     public GameObject thePlayer;
     public GameObject theGuide;
     private XROrigin playerRig;
@@ -29,8 +29,16 @@ public class SharedMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // Assigns the player's XR Origin
+        playerRig = FindObjectOfType<XROrigin>();
+
         // Creates the CameraSystem for the guide to keep track of Player's Movement with
         gameObject.AddComponent<CameraSystem>();
+
+        // Ignore collisions between Player and XR Rig
+        Physics.IgnoreLayerCollision(3, 6, true);
+        CharacterController control = FindObjectOfType<CharacterController>();
+        control.detectCollisions = true;
     }
 
     // Update is called once per frame
@@ -41,11 +49,14 @@ public class SharedMovement : MonoBehaviour
         AssignRoles();
 
         // If we have controllers assigned, we can send haptic impulses and try shared movement
-        if (rightXRController != null && leftXRController != null)
+        if (m_VRHandlingScript != null)
         {
+            //Debug.Log(enteredTrigger);
+
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
+                Debug.Log("Grabbing guide");
                 if (gripValue > 0.1f)
                 {
                     StartCoroutine(Teleport());
@@ -55,6 +66,7 @@ public class SharedMovement : MonoBehaviour
             }
             else
             {
+                Debug.Log("NOT grabbing guide");
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
             }
@@ -94,6 +106,9 @@ public class SharedMovement : MonoBehaviour
         // Assigns the guide as the parent Game Object of the Game Object with the AIGuide script
         theGuide = FindObjectOfType<AIGuide>().transform.parent.gameObject;
 
+        // Finds the VR Handling script on the Guide game object
+        m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
+
         // Grabs AIGuide script from the Game Object assigned as guide and pulls input device refs
         m_AIGuideScript = theGuide.GetComponent<AIGuide>();
         rightXRController = m_VRHandlingScript.rightXRController;
@@ -123,8 +138,10 @@ public class SharedMovement : MonoBehaviour
         // Grabs the necessary physics components for Shared Movement
         Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
         CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
-        Rigidbody guideRigidbody = theGuide.GetComponent<Rigidbody>();
-        guideCollider = theGuide.GetComponent<CapsuleCollider>();
+        Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
+        guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
+
+        Debug.Log(guideCollider.gameObject.name);
 
         // Sets the values appropriately for each component to perform Shared Movement
         // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
@@ -137,7 +154,7 @@ public class SharedMovement : MonoBehaviour
         guideRigidbody.useGravity = false;
         guideRigidbody.isKinematic = true;
         guideCollider.isTrigger = true;
-        guideCollider.radius = 0.5f;
+        guideCollider.radius = 1.5f;
         guideCollider.height = 0.5f;
         guideCollider.center = new Vector3(0f, 1f, 0f);
     }
@@ -147,6 +164,12 @@ public class SharedMovement : MonoBehaviour
     {
         // Check if the object has no parent
         return obj.transform.parent == null;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        string name = collision.gameObject.name;
+        Debug.Log("Colliding with " + name);
     }
 
     public void OnTriggerEnter(Collider other)

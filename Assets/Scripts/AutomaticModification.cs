@@ -26,6 +26,8 @@ public class AutomaticModification : MonoBehaviour
             AudioSource audioSource = targetObject.AddComponent<AudioSource>();
             audioSource.clip = beaconClip;
             audioSource.loop = true;
+            audioSource.spatialBlend = 1;
+            //audioSource.maxDistance = 10;
             audioSource.Play();
             DestroyAfterTime(audioSource);
             numAudioSources++;

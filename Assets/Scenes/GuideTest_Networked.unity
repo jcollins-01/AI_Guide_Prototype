@@ -1926,7 +1926,7 @@ GameObject:
   - component: {fileID: 5957904286536499926}
   - component: {fileID: 7539098341519437441}
   - component: {fileID: 4007864804143861841}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -2046,7 +2046,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6921195025079757300}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Head Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2215,7 +2215,7 @@ GameObject:
   - component: {fileID: 3424213053187056617}
   - component: {fileID: 7629671048441267187}
   - component: {fileID: 7554341097560905956}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: LeftHand Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2234,7 +2234,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6803edce0201f574f923fd9d10e5b30a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_InteractionManager: {fileID: 0}
+  m_InteractionManager: {fileID: 731602687}
   m_InteractionLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -2361,7 +2361,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5786141416689440171}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: LeftHand Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2406,9 +2406,9 @@ MonoBehaviour:
   m_ModelSelectTransition: 
   m_ModelDeSelectTransition: 
   m_ControllerNode: 5
-  m_SelectUsage: 3
-  m_ActivateUsage: 2
-  m_UIPressUsage: 2
+  m_SelectUsage: 2
+  m_ActivateUsage: 6
+  m_UIPressUsage: 6
   m_AxisToPressThreshold: 0.1
   m_RotateAnchorLeft: 16
   m_RotateAnchorRight: 17
@@ -2430,7 +2430,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftTarget: {fileID: 7554341097560905956}
   rightTarget: {fileID: 3030265468979507413}
-  teleportRayTrigger: 3
+  teleportRayTrigger: 2
   activationThreshold: 0.2
 --- !u!114 &3424213053187056617
 MonoBehaviour:
@@ -2724,6 +2724,14 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6536084598283323413, guid: ecc1e52e1b687b2449e0f1e09ecdf4ce, type: 3}
+      propertyPath: m_Radius
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8437371553571294055, guid: ecc1e52e1b687b2449e0f1e09ecdf4ce, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8771638120447446225, guid: ecc1e52e1b687b2449e0f1e09ecdf4ce, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.2838813
@@ -2782,7 +2790,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6803edce0201f574f923fd9d10e5b30a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_InteractionManager: {fileID: 0}
+  m_InteractionManager: {fileID: 731602687}
   m_InteractionLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -2916,7 +2924,9 @@ GameObject:
   - component: {fileID: 4412478692852396873}
   - component: {fileID: 7499811818819337959}
   - component: {fileID: 3281081717620070587}
-  m_Layer: 3
+  - component: {fileID: 7499811818819337961}
+  - component: {fileID: 7499811818819337960}
+  m_Layer: 6
   m_Name: XR Origin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3041,7 +3051,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9179929587139189197}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: Camera Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3119,7 +3129,7 @@ GameObject:
   - component: {fileID: 1727284855125943228}
   - component: {fileID: 6843742017843984991}
   - component: {fileID: 3030265468979507413}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: RightHand Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3250,7 +3260,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3621981467535291326, guid: ddc38db09f9124241b4b4e9b2b9831eb, type: 3}
       propertyPath: m_Layer
-      value: 3
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3320,7 +3330,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3621981467535291326, guid: 6c2509c76b281144cb0099fc45f17a09, type: 3}
       propertyPath: m_Layer
-      value: 3
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3390,6 +3400,47 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_System: {fileID: 5265755435242076649}
   m_DelayTime: 0
+--- !u!114 &7499811818819337960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950086389194246744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af6bf904e410ee8479f9093d8830d1f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_LocomotionProvider: {fileID: 380355455751996934}
+  m_MinHeight: 0
+  m_MaxHeight: Infinity
+--- !u!143 &7499811818819337961
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950086389194246744}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0
@@ -3435,9 +3486,9 @@ MonoBehaviour:
   m_ModelSelectTransition: 
   m_ModelDeSelectTransition: 
   m_ControllerNode: 4
-  m_SelectUsage: 3
-  m_ActivateUsage: 2
-  m_UIPressUsage: 2
+  m_SelectUsage: 2
+  m_ActivateUsage: 6
+  m_UIPressUsage: 6
   m_AxisToPressThreshold: 0.1
   m_RotateAnchorLeft: 16
   m_RotateAnchorRight: 17
@@ -3483,7 +3534,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7516463958272253097}
-  m_Layer: 3
+  m_Layer: 6
   m_Name: RightHand Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}

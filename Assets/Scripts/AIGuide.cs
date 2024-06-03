@@ -160,7 +160,7 @@ public class AIGuide : MonoBehaviour
         else
         {
             m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-            m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+            //m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
         }
 
         // Checking if a target GameObject was selected to be modified

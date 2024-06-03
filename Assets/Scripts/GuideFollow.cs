@@ -10,7 +10,7 @@ public class GuideFollow : MonoBehaviour
     private RealtimeTransform realtimeTransform;
 
     // Variables to control guide's following movements
-    private float followDistance = 1.0f;
+    private float followDistance = 1.5f;
     private float followSpeed = 5.0f;
 
     // Monitoring bools
