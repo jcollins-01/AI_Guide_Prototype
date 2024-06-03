@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.XR;
 
 public class CameraSystem : MonoBehaviour
 {
     // Variables to set camera parameters
-    //private int captureWidth = 1920;
-    //private int captureHeight = 1080;
     private float birdHeight = 15f;
     private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
 
@@ -19,25 +18,30 @@ public class CameraSystem : MonoBehaviour
 
     // Variables for monitoring
     private bool refreshed = false;
+    private bool calledCamerasToStart = false;
 
     // Start is called before the first frame update
     void Start()
     {
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+    }
 
-        // Creates a Game Object to hold a new camera for a bird's eye view
-        GameObject newCamera = new GameObject("Bird's Eye Camera");
-        birdEyeCamera = newCamera.AddComponent<Camera>();
+    private void Update()
+    {
+        // If there is a guide in the scene, pull the bird eye camera from it, then begin sending screenshots
+        if (GetComponent<SharedMovement>().theGuide != null && !calledCamerasToStart)
+        {
+            birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
 
-        // Camera has specified height it goes above the player to get bird's eye view + rotation to look down at the scene
-        birdHeight = birdHeight + transform.position.y;
-        birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z);
-        birdEyeCamera.transform.eulerAngles = birdRotation;
-
-        // Begin capturing screenshots every 10 secs to keep guide updated on scene
-        //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-        CaptureScreenshot();
+            if (!calledCamerasToStart)
+            {
+                // Begin capturing screenshots every 10 secs to keep guide updated on scene
+                //InvokeRepeating("CaptureScreenshot", 0f, 10f);
+                CaptureScreenshot();
+                calledCamerasToStart = true;
+            }
+        }
     }
 
     public void CaptureScreenshot()

@@ -22,8 +22,11 @@ public class AIGuide : MonoBehaviour
     private bool firstQuery = true;
     private bool buttonPressed = false;
 
+    // Variables to share with other scripts
+    public Camera birdEyeCamera;
+
     // Variables for testing -- TO BE REMOVED LATER
-    public bool playerGrab = true;
+    public bool playerGrab = false;
 
     // Start is called before the first frame update
     void Start()
@@ -37,16 +40,15 @@ public class AIGuide : MonoBehaviour
             gameObject.AddComponent<NavMeshAgent>();
         //gameObject.AddComponent<WizardControls>();
 
+        createBirdEyeCamera();
+
         m_GuideFollowScript = gameObject.AddComponent<GuideFollow>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
         m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
         m_VRHandlingScript = gameObject.AddComponent(typeof(VRHandling)) as VRHandling;
 
-        if (m_OpenAIQueriesScript == null || m_AutomatedGuideScript == null)
-            Debug.LogWarning("One or more required scripts for AIGuide has not been found - please ensure that the GameObject with AIGuide also has OpenAIQueries and AutomaticGuide");
-        else
-            Debug.Log("AIGuide is active!");
+        Debug.Log("AIGuide is active!");
     }
 
     // Update is called once per frame
@@ -175,5 +177,18 @@ public class AIGuide : MonoBehaviour
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+    }
+
+    private void createBirdEyeCamera()
+    {
+        float birdHeight = 15f;
+        Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+        GameObject newCamera = new GameObject("Bird's Eye Camera");
+        birdEyeCamera = newCamera.AddComponent<Camera>();
+
+        // Camera has specified height it goes above the guide to get bird's eye view + rotation to look down at the scene
+        birdHeight = birdHeight + transform.position.y;
+        birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z);
+        birdEyeCamera.transform.eulerAngles = birdRotation;
     }
 }

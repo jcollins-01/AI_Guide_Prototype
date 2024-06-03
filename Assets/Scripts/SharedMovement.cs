@@ -37,6 +37,7 @@ public class SharedMovement : MonoBehaviour
     void Update()
     {
         // Puts assignment of roles in one line that can be commented out
+        // Maybe put this under an if that is only called if there is more than one realtime component in scene, more than one player
         AssignRoles();
 
         // If we have controllers assigned, we can send haptic impulses and try shared movement
