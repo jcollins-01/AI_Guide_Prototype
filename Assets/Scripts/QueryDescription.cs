@@ -25,6 +25,7 @@ public class QueryDescription : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y - 90f, transform.eulerAngles.z);
         CaptureScreenshot();
         direction = "left";
+        Debug.Log("Captured " + direction);
     }
 
     public IEnumerator QueryEast()
@@ -38,6 +39,7 @@ public class QueryDescription : MonoBehaviour
             yield return null; // Wait for the next frame
         }
         direction = "east";
+        Debug.Log("Captured " + direction);
     }
 
     public void QueryRight()
@@ -47,6 +49,7 @@ public class QueryDescription : MonoBehaviour
         // transform.rotation = Quaternion.Euler(0, 90, 0); - this version would set a TRUE RIGHT, and always turn to the initial right direction (west)
         CaptureScreenshot();
         direction = "right";
+        Debug.Log("Captured " + direction);
     }
 
     public IEnumerator QueryWest()
@@ -60,6 +63,7 @@ public class QueryDescription : MonoBehaviour
             yield return null; // Wait for the next frame
         }
         direction = "west";
+        Debug.Log("Captured " + direction);
     }
 
     public void QueryFront()
@@ -68,6 +72,7 @@ public class QueryDescription : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, transform.eulerAngles.z);
         CaptureScreenshot();
         direction = "front";
+        Debug.Log("Captured " + direction);
     }
 
     public IEnumerator QueryNorth()
@@ -81,6 +86,7 @@ public class QueryDescription : MonoBehaviour
             yield return null; // Wait for the next frame
         }
         direction = "north";
+        Debug.Log("Captured " + direction);
     }
 
     public void QueryBehind()
@@ -89,6 +95,7 @@ public class QueryDescription : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y + 180f, transform.eulerAngles.z);
         CaptureScreenshot();
         direction = "rear";
+        Debug.Log("Captured " + direction);
     }
 
     public IEnumerator QuerySouth()
@@ -98,6 +105,7 @@ public class QueryDescription : MonoBehaviour
         yield return new WaitForEndOfFrame();
         CaptureScreenshot();
         direction = "south";
+        Debug.Log("Captured " + direction);
     }
 
     public IEnumerator QueryScene()
@@ -188,7 +196,7 @@ public class QueryDescription : MonoBehaviour
 
                 // Query Astica with uploaded image
                 Debug.Log("Sent request to Query Astica");
-                QueryAstica();
+                //QueryAstica();
             }
             else
             {

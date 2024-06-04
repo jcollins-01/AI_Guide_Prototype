@@ -146,12 +146,12 @@ public class CameraSystem : MonoBehaviour
                 if (type == "view")
                 {
                     viewpointImageLink = ParseXmlResponse(responseText);
-                    //Debug.Log("view_image_link: " + viewpointImageLink);
+                    Debug.Log("view_image_link: " + viewpointImageLink);
                 }
                 else
                 {
                     birdsEyeImageLink = ParseXmlResponse(responseText);
-                    //Debug.Log("bird_image_link: " + birdsEyeImageLink);
+                    Debug.Log("bird_image_link: " + birdsEyeImageLink);
                 }
             }
             else

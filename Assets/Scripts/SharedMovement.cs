@@ -66,7 +66,7 @@ public class SharedMovement : MonoBehaviour
             }
             else
             {
-                Debug.Log("NOT grabbing guide");
+                //Debug.Log("NOT grabbing guide");
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
             }

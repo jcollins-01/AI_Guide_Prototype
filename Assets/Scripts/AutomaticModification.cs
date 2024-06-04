@@ -7,7 +7,7 @@ public class AutomaticModification : MonoBehaviour
     public GameObject m_targetObject; // The target game object to modify
     public AudioClip beaconClip;
     private float lifespan = 10f; // Time in seconds before the audioSource is destroyed
-    private int numAudioSources = 0;
+    //private int numAudioSources = 0;
 
     // Update is called once per frame
     void Start()
@@ -21,7 +21,8 @@ public class AutomaticModification : MonoBehaviour
     public void AddAudioBeacon(GameObject targetObject)
     {
         m_targetObject = targetObject;
-        if (targetObject != null && numAudioSources == 0)
+        //Debug.Log(targetObject + ", with audio sources: " + numAudioSources);
+        if (targetObject != null)
         {
             AudioSource audioSource = targetObject.AddComponent<AudioSource>();
             audioSource.clip = beaconClip;
@@ -30,7 +31,7 @@ public class AutomaticModification : MonoBehaviour
             //audioSource.maxDistance = 10;
             audioSource.Play();
             DestroyAfterTime(audioSource);
-            numAudioSources++;
+            //numAudioSources++;
         }
         else
         {
@@ -41,7 +42,8 @@ public class AutomaticModification : MonoBehaviour
     // Calls for the modification audio beacon to be destroyed
     private void DestroyAfterTime(AudioSource audioSource)
     {
+        Debug.Log("Destroying audio source");
         Destroy(audioSource, lifespan);
-        numAudioSources = 0;
+        //numAudioSources = 0;
     }
 }

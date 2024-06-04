@@ -19,7 +19,7 @@ public class AIGuide : MonoBehaviour
     private int completionCalls = 0;
     private int alloyCalls = 0;
     private int voiceCalls = 0;
-    private bool firstQuery = true;
+    //private bool firstQuery = true;
     private bool buttonPressed = false;
 
     // Variables to share with other scripts
@@ -106,8 +106,10 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
             // Construct the query to send to GPT-4 - ADD guideClassification
-            // If this is the first query, send all classifcations - after that, the guide should remember the player, photo, and scene contexts
-            if (firstQuery)
+            m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+
+            // [DEPRECATED] If this is the first query, send all classifcations - after that, the guide should remember the player, photo, and scene contexts
+            /*if (firstQuery)
             {
                 m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.photoClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
                 firstQuery = false;
@@ -115,7 +117,7 @@ public class AIGuide : MonoBehaviour
             else
             {
                 m_OpenAIQueriesScript.text = "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
-            }
+            }*/
 
             // Call the CallCompletion method with the user's recorded voice query
             var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
@@ -159,8 +161,11 @@ public class AIGuide : MonoBehaviour
         }
         else
         {
-            m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-            //m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+            if (m_SharedMovementScript != null)
+            {
+                m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+            }
         }
 
         // Checking if a target GameObject was selected to be modified

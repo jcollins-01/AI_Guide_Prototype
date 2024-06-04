@@ -24,10 +24,10 @@ public class OpenAIQueries : MonoBehaviour
 
     // Strings to hold the different pieces of the query message
     public string userQuery = "What's going on in here?";
+    //[HideInInspector] 
+    //public string playerClassification = "Imagine that the player is the humanoid avatar wearing an orange shirt in the lower left corner of this image. ";
     [HideInInspector]
-    public string playerClassification = "Imagine that the player is the humanoid avatar wearing an orange shirt in the lower left corner of this image. ";
-    [HideInInspector]
-    public string photoClassification = "One of these photos is the bird's eye view of the enter scene that the player is standing in. The other photo is the player's current perspective and what they are currently looking at in the scene.";
+    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. The other photo is the player's current perspective and what they are currently looking at in the scene.";
     [HideInInspector]
     public string objectClassifications = "The upright, yellow cube is named Tall Building. " +
         "The upright, green cube is named Short Building. " +
@@ -39,9 +39,13 @@ public class OpenAIQueries : MonoBehaviour
         "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
         "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
         "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
-        "and 'guide' after a comma if they don't specify teleportation. ONLY GIVE ME THE NAME OF THE GAME OBJECT. " +
+        "and 'guide' after a comma if they don't specify teleportation." +
+        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
+        "Only do this is you're sure they want to go somewhere - describe the scene for the player if you are unsure what they want." +
         "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
-        "plus the word 'modify' after a comma.";
+        "plus the word 'modify' after a comma." +
+        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
+        "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
     public string memoClassifications = "Limit your reply to 300 words or less.";
@@ -218,6 +222,7 @@ public class OpenAIQueries : MonoBehaviour
             Debug.LogWarning("Exception in CallAlloyTTS:\n" + e);
         }
         targetForGuidance = null;
+        targetForModification = null;
         return output;
     }
 
