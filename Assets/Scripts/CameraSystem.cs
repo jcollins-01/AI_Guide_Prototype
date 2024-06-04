@@ -8,8 +8,8 @@ using UnityEngine.XR;
 public class CameraSystem : MonoBehaviour
 {
     // Variables to set camera parameters
-    private float birdHeight = 15f;
-    private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+    //private float birdHeight = 15f;
+    //private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
 
     // Public camera variables for AIGuide script to access
     public Camera birdEyeCamera;
@@ -146,12 +146,12 @@ public class CameraSystem : MonoBehaviour
                 if (type == "view")
                 {
                     viewpointImageLink = ParseXmlResponse(responseText);
-                    Debug.Log("view_image_link: " + viewpointImageLink);
+                    //Debug.Log("view_image_link: " + viewpointImageLink);
                 }
                 else
                 {
                     birdsEyeImageLink = ParseXmlResponse(responseText);
-                    Debug.Log("bird_image_link: " + birdsEyeImageLink);
+                    //Debug.Log("bird_image_link: " + birdsEyeImageLink);
                 }
             }
             else

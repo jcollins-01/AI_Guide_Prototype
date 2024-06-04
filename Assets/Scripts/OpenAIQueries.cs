@@ -41,7 +41,6 @@ public class OpenAIQueries : MonoBehaviour
         "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
         "and 'guide' after a comma if they don't specify teleportation." +
         "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
-        "Only do this is you're sure they want to go somewhere - describe the scene for the player if you are unsure what they want." +
         "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
         "plus the word 'modify' after a comma." +
         "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
@@ -115,6 +114,7 @@ public class OpenAIQueries : MonoBehaviour
             recordingInProgress = true;
             audioSource.mute = false;
             audioSource.loop = false;
+            audioSource.spatialBlend = 1;
             audioSource.clip = Microphone.Start(Microphone.devices[0], false, 10, 44100);
             Debug.Log("Recording audio");
         }
@@ -184,8 +184,11 @@ public class OpenAIQueries : MonoBehaviour
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
-            if (words[1] == "guide" || words[1] == "teleport")
+            string secondWord = words[1].Trim();
+            Debug.Log(words[1]);
+            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
             {
+                Debug.Log("Reached guidance mode");
                 // Assign the first word to targetName and the second word to modeOfTransportation
                 string targetName = words[0].Trim();
                 modeOfTransportation = words[1].Trim();
@@ -196,6 +199,7 @@ public class OpenAIQueries : MonoBehaviour
             }
             else // they are trying to modify
             {
+                Debug.Log("Reached modification mode");
                 // Assign the first word to targetName and the second word to modification
                 string targetName = words[0].Trim();
                 modeOfModification = words[1].Trim();
@@ -204,6 +208,12 @@ public class OpenAIQueries : MonoBehaviour
                 if (targetForModification != null)
                     result = "Alright. I will add an audio beacon to " + targetForModification.name;
             }
+
+            if (secondWord == "guide")
+                Debug.Log("Equaled guide with ==");
+
+            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase))
+                Debug.Log("Equaled guide with Equals and case-insensitive");
         }
 
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
