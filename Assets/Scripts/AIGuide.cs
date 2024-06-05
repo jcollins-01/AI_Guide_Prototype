@@ -25,9 +25,6 @@ public class AIGuide : MonoBehaviour
     // Variables to share with other scripts
     public Camera birdEyeCamera;
 
-    // Variables for testing -- TO BE REMOVED LATER
-    public bool playerGrab = false;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -145,18 +142,24 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
+            //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
             // Turn off guide follow so that the guide begins to lead the player
-            if (m_SharedMovementScript.playerGrabbingGuide || playerGrab == true)
+            if (m_SharedMovementScript.playerGrabbingGuide)
             {
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
+                {
+                    Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                } 
                 else
+                {
+                    Debug.Log("The mode of transit is teleport");
                     m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                }
             }
         }
         else

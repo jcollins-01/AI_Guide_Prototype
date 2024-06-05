@@ -56,7 +56,6 @@ public class SharedMovement : MonoBehaviour
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
-                Debug.Log("Grabbing guide");
                 if (gripValue > 0.1f)
                 {
                     StartCoroutine(Teleport());
@@ -103,8 +102,8 @@ public class SharedMovement : MonoBehaviour
     // Finds necessary components from Guide scripts + assigns Guide game object
     void AssignGuide()
     {
-        // Assigns the guide as the parent Game Object of the Game Object with the AIGuide script
-        theGuide = FindObjectOfType<AIGuide>().transform.parent.gameObject;
+        // Assigns the guide as the Game Object with the AIGuide script
+        theGuide = FindObjectOfType<AIGuide>().transform.gameObject;
 
         // Finds the VR Handling script on the Guide game object
         m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
@@ -140,8 +139,6 @@ public class SharedMovement : MonoBehaviour
         CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
         Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
         guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
-
-        Debug.Log(guideCollider.gameObject.name);
 
         // Sets the values appropriately for each component to perform Shared Movement
         // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
