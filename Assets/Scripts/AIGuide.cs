@@ -142,7 +142,7 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
+            // Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
@@ -152,13 +152,31 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    Debug.Log("The mode of transit is guide");
+                    //Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    // If they reach the target, make it stop grabbing and stop moving
+                    if (!m_AutomatedGuideScript.targetActive)
+                    {
+                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                        AudioSource audioSource = GetComponent<AudioSource>();
+                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.Play();
+                    }
                 } 
                 else
                 {
-                    Debug.Log("The mode of transit is teleport");
+                    //Debug.Log("The mode of transit is teleport");
                     m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    // If they reach the target, make it stop grabbing and stop moving
+                    if (!m_AutomatedGuideScript.targetActive)
+                    {
+                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                        AudioSource audioSource = GetComponent<AudioSource>();
+                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.Play();
+                    }
                 }
             }
         }
@@ -168,6 +186,7 @@ public class AIGuide : MonoBehaviour
             {
                 m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                 m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
             }
         }
 

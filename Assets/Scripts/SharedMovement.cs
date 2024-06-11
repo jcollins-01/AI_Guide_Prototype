@@ -51,8 +51,6 @@ public class SharedMovement : MonoBehaviour
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
-            //Debug.Log(enteredTrigger);
-
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {

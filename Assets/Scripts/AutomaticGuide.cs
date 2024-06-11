@@ -9,6 +9,7 @@ public class AutomaticGuide : MonoBehaviour
     private NavMeshAgent agent; // Reference to the NavMeshAgent component
     public bool targetActive = false; // A bool to keep track of if there is a target / when it's been reached
     private OpenAIQueries m_OpenAIQueriesScript;
+    private int trackTimes = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -61,18 +62,18 @@ public class AutomaticGuide : MonoBehaviour
         {
             // Debug.Log("We have a target passed = " + target.name);
             targetActive = true;
+            // Set the destination of the NavMeshAgent to the position of the target's transform
             agent.isStopped = false;
-            agent.SetDestination(target.position); // Set the destination of the NavMeshAgent to the position of the target's transform
+            agent.SetDestination(target.position); 
 
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
             {
                 agent.ResetPath(); // Clear the destination to stop further movement
                 targetActive = false;
-                Debug.Log("Target reached " + targetActive);
                 // Switch the targetForGuidance to null so guide will begin following player again
                 m_OpenAIQueriesScript.targetForGuidance = null;
             }
-            Debug.Log("The target is active: " + targetActive);
+            // Debug.Log("The target is active: " + targetActive);
         }
         else
         {
@@ -94,6 +95,8 @@ public class AutomaticGuide : MonoBehaviour
             agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
             // Debug.Log("Moved to = " + agent.transform.position);
             targetActive = false;
+            // Switch the targetForGuidance to null so guide will begin following player again
+            m_OpenAIQueriesScript.targetForGuidance = null;
         }
         else
         {
