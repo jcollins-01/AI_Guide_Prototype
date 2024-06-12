@@ -6,8 +6,8 @@ using UnityEngine.XR;
 public class VRHandling : MonoBehaviour
 {
     // Variables for assigning XR input
-    private bool rightControllerGrabbed = false;
-    private bool leftControllerGrabbed = false;
+    public bool rightControllerGrabbed = false;
+    public bool leftControllerGrabbed = false;
     [HideInInspector]
     public InputDevice rightXRController;
     [HideInInspector]
@@ -77,12 +77,15 @@ public class VRHandling : MonoBehaviour
                 {
                     Debug.Log("Grabbed right controller successfully");
                     rightControllerGrabbed = true;
+                    //Debug.Log("The right controller is " + rightXRController.characteristics);
+                    
                 }
 
                 if (devices[1] != null) // leftXRController
                 {
                     Debug.Log("Grabbed left controller successfully");
                     leftControllerGrabbed = true;
+                    //Debug.Log("The left controller is " + leftXRController.characteristics);
                 }
             }
         }

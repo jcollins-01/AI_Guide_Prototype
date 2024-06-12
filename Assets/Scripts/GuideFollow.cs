@@ -2,6 +2,7 @@ using Normal.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class GuideFollow : MonoBehaviour
 {
@@ -16,6 +17,12 @@ public class GuideFollow : MonoBehaviour
     // Monitoring bools
     private bool sharedMovementFound = false;
 
+    private void Start()
+    {
+        NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
+        if (navMeshAgent == null)
+            gameObject.AddComponent<NavMeshAgent>();
+    }
     // Update is called once per frame
     void Update()
     {
@@ -52,7 +59,8 @@ public class GuideFollow : MonoBehaviour
 
     private void requestOwnershipForGuide()
     {
-        realtimeTransform = GetComponent<RealtimeTransform>();
+        realtimeTransform = m_SharedMovementScript.theGuide.GetComponent<RealtimeTransform>();
+        //realtimeTransform = GetComponent<RealtimeTransform>();
 
         // Request ownership of the RealtimeTransform component for the local client producing the guide
         if (realtimeTransform != null)

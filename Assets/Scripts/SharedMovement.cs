@@ -7,9 +7,11 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class SharedMovement : MonoBehaviour
 {
+    // Variable to control whether this player can use guide or not'
+    private bool guideOn = true;
+    
     // Variables to hold scripts and Game Objects we need access to
-    private AIGuide m_AIGuideScript;
-    public VRHandling m_VRHandlingScript;
+    private VRHandling m_VRHandlingScript;
     public GameObject thePlayer;
     public GameObject theGuide;
     private XROrigin playerRig;
@@ -21,6 +23,7 @@ public class SharedMovement : MonoBehaviour
     // Variables to access XR Controllers
     private InputDevice rightXRController;
     private InputDevice leftXRController;
+    private bool controllersGrabbed = false;
 
     // Variables to share player actions with other scripts
     public bool playerGrabbingGuide = false;
@@ -29,11 +32,22 @@ public class SharedMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Assigns the player's XR Origin
-        playerRig = FindObjectOfType<XROrigin>();
+        // Assigns the player's XR Origin from a list of all realtimeViews in the scene
+        var foundRigs = FindObjectsOfType<XROrigin>();
 
-        // Creates the CameraSystem for the guide to keep track of Player's Movement with
-        gameObject.AddComponent<CameraSystem>();
+        // Checks which ones are root objects, which would make them players
+        foreach (XROrigin rig in foundRigs)
+        {
+            // Assign playerRig to the only rig on the XR Rig layer (layer for player's rig)
+            if (rig.gameObject.layer == 6)
+                playerRig = rig;
+        }
+        Debug.Log("the player rig is " + playerRig);
+
+        // Creates the CameraSystem for the guide to keep track of Player's Movement if guideOn is true
+        if (guideOn)
+            gameObject.AddComponent<CameraSystem>();
+            
 
         // Ignore collisions between Player and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
@@ -44,13 +58,14 @@ public class SharedMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Puts assignment of roles in one line that can be commented out
-        // Maybe put this under an if that is only called if there is more than one realtime component in scene, more than one player
-        AssignRoles();
+        // Assigns roles if guideOn is true
+        if (guideOn)
+            AssignRoles();
 
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
+            // Debug.Log("Trigger is " + enteredTrigger);
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
@@ -63,11 +78,10 @@ public class SharedMovement : MonoBehaviour
             }
             else
             {
-                //Debug.Log("NOT grabbing guide");
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
             }
-                
+
 
             if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
             {
@@ -82,7 +96,7 @@ public class SharedMovement : MonoBehaviour
             {
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
-            }  
+            } 
         }
     }
 
@@ -95,6 +109,9 @@ public class SharedMovement : MonoBehaviour
         // The player should be null since they need to be instantiated in the multiplayer scene at runtime
         if (thePlayer == null)
             AssignPlayer();
+
+        if (controllersGrabbed == false)
+            AssignHandling();
     }
 
     // Finds necessary components from Guide scripts + assigns Guide game object
@@ -104,12 +121,21 @@ public class SharedMovement : MonoBehaviour
         theGuide = FindObjectOfType<AIGuide>().transform.gameObject;
 
         // Finds the VR Handling script on the Guide game object
-        m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
+        //m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
+        m_VRHandlingScript = FindObjectOfType<VRHandling>();
 
-        // Grabs AIGuide script from the Game Object assigned as guide and pulls input device refs
-        m_AIGuideScript = theGuide.GetComponent<AIGuide>();
-        rightXRController = m_VRHandlingScript.rightXRController;
-        leftXRController = m_VRHandlingScript.leftXRController;
+        // Grabs the necessary physics components for Shared Movement
+        Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
+        guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
+
+        // Sets the values appropriately for each component to perform Shared Movement
+        // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
+        guideRigidbody.useGravity = false;
+        guideRigidbody.isKinematic = true;
+        guideCollider.isTrigger = true;
+        guideCollider.radius = 1.5f;
+        guideCollider.height = 0.5f;
+        guideCollider.center = new Vector3(0f, 1f, 0f);
     }
 
     // Sets up the needed components and determines who the main player (participant) is
@@ -126,17 +152,16 @@ public class SharedMovement : MonoBehaviour
                 foundPlayers.Add(realtimeView.gameObject);
         }
 
-        // The first player who joined the scene is marked as the participant
-        thePlayer = foundPlayers[0];
-
-        // Destroy the necessary physical components - this was needed to make sure participant/guide couldn't grab?
-        //Destroy(theGuide.GetComponent<SharedMovement>());
+        foreach (GameObject currentPlayer in foundPlayers)
+        {
+            // If the found player has a SharedMovement component (is not a guide) and is using the guide set them as the main player
+            if (currentPlayer.GetComponent<SharedMovement>() && currentPlayer.GetComponent<SharedMovement>().guideOn == true)
+                thePlayer = currentPlayer;
+        }
 
         // Grabs the necessary physics components for Shared Movement
         Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
         CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
-        Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
-        guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
 
         // Sets the values appropriately for each component to perform Shared Movement
         // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
@@ -145,13 +170,21 @@ public class SharedMovement : MonoBehaviour
         playerCollider.radius = 0.5f;
         playerCollider.height = 0.5f;
         playerCollider.center = new Vector3(0f, 1f, 0f);
-        // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
-        guideRigidbody.useGravity = false;
-        guideRigidbody.isKinematic = true;
-        guideCollider.isTrigger = true;
-        guideCollider.radius = 1.5f;
-        guideCollider.height = 0.5f;
-        guideCollider.center = new Vector3(0f, 1f, 0f);
+    }
+
+    void AssignHandling()
+    {
+        // If we have the VR Handling script, and both controllers have been grabbed
+        if (m_VRHandlingScript != null)
+        {
+            if (m_VRHandlingScript.rightControllerGrabbed && m_VRHandlingScript.leftControllerGrabbed)
+            {
+                // Pulls input device refs
+                rightXRController = m_VRHandlingScript.rightXRController;
+                leftXRController = m_VRHandlingScript.leftXRController;
+                controllersGrabbed = true;
+            }
+        }
     }
 
     // Function to check if an object is the root of its hierarchy
@@ -170,7 +203,7 @@ public class SharedMovement : MonoBehaviour
     public void OnTriggerEnter(Collider other)
     {
         enteredTrigger = true;
-        Debug.Log("Collision detected");
+        // Debug.Log("Collision detected");
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on
         // If not, turn collisions off - the guide falls in this second category where we want to ignore collisions while we're grabbing it

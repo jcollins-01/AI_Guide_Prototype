@@ -9,13 +9,13 @@ public class AutomaticGuide : MonoBehaviour
     private NavMeshAgent agent; // Reference to the NavMeshAgent component
     public bool targetActive = false; // A bool to keep track of if there is a target / when it's been reached
     private OpenAIQueries m_OpenAIQueriesScript;
-    private int trackTimes = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         m_OpenAIQueriesScript = FindObjectOfType<OpenAIQueries>();
-        agent = GetComponent<NavMeshAgent>(); // Get the NavMeshAgent component attached to the same game object
+        //agent = GetComponent<NavMeshAgent>(); // Get the NavMeshAgent component attached to the same game object
+        agent = FindObjectOfType<NavMeshAgent>();
         if (agent == null)
         {
             Debug.LogError("NavMeshAgent component not found on this game object.");

@@ -10,8 +10,8 @@ public class AIGuide : MonoBehaviour
     private AutomaticGuide m_AutomatedGuideScript;
     private OpenAIQueries m_OpenAIQueriesScript;
     private VRHandling m_VRHandlingScript;
-    private SharedMovement m_SharedMovementScript;
-    private GuideFollow m_GuideFollowScript;
+    public SharedMovement m_SharedMovementScript;
+    public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
 
     // Variables for monitoring
@@ -32,18 +32,19 @@ public class AIGuide : MonoBehaviour
         AudioSource audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             gameObject.AddComponent<AudioSource>();
-        NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
-        if (navMeshAgent == null)
-            gameObject.AddComponent<NavMeshAgent>();
-        //gameObject.AddComponent<WizardControls>();
+        //NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
+        //if (navMeshAgent == null)
+            //gameObject.AddComponent<NavMeshAgent>();
+
+        m_GuideFollowScript = FindObjectOfType<GuideFollow>();
 
         createBirdEyeCamera();
 
-        m_GuideFollowScript = gameObject.AddComponent<GuideFollow>();
+        //m_GuideFollowScript = gameObject.GetComponent<GuideFollow>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
-        m_AutomatedGuideScript = gameObject.AddComponent(typeof(AutomaticGuide)) as AutomaticGuide;
-        m_OpenAIQueriesScript = gameObject.AddComponent(typeof(OpenAIQueries)) as OpenAIQueries;
-        m_VRHandlingScript = gameObject.AddComponent(typeof(VRHandling)) as VRHandling;
+        m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
+        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
+        m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
 
         Debug.Log("AIGuide is active!");
     }
@@ -142,7 +143,7 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            // Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
+            //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
@@ -152,7 +153,7 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    //Debug.Log("The mode of transit is guide");
+                    // Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
