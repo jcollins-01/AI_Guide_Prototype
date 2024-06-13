@@ -7,7 +7,7 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class SharedMovement : MonoBehaviour
 {
-    // Variable to control whether this player can use guide or not'
+    // Variable to control whether this player can use guide or not
     private bool guideOn = true;
     
     // Variables to hold scripts and Game Objects we need access to

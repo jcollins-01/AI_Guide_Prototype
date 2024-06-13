@@ -21,6 +21,7 @@ public class OpenAIQueries : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private CameraSystem m_CameraSystemScript;
+    public GuideAudioSync m_GuideAudioSync;
 
     // Strings to hold the different pieces of the query message
     public string userQuery = "What's going on in here?";
@@ -92,8 +93,9 @@ public class OpenAIQueries : MonoBehaviour
 
     private void Update()
     {
-        // Calls until the camera system script is assigned
+        // Calls until the camera system and audio sync scripts are assigned
         getCameraSystem();
+        getAudioSync();
     }
 
     private void getCameraSystem()
@@ -176,6 +178,9 @@ public class OpenAIQueries : MonoBehaviour
         {
             Debug.LogWarning("Exception in CallCompletion:\n" + e);
         }
+        // Sends the text over the network to sync guide's audio - WE'LL DO AN IF-CHECK HERE FOR INVISIBLE GUIDE
+        SetNewResult(result);
+
         return output;
     }
 
@@ -242,6 +247,21 @@ public class OpenAIQueries : MonoBehaviour
         {
             Debug.LogError("Config file not found in Resources folder: " + configFileName);
         }
+    }
+
+    private void getAudioSync()
+    {
+        if (m_GuideAudioSync == null)
+            m_GuideAudioSync = FindObjectOfType<GuideAudioSync>();
+    }
+
+    public void SetNewResult(string result)
+    {
+        Debug.Log("Reached SetNewResult");
+        if (m_GuideAudioSync != null)
+            m_GuideAudioSync.SetResult(result);
+        else
+            Debug.LogError("GuideAudioSync is not initialized.");
     }
 
     private class ConfigData

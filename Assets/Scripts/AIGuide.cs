@@ -14,7 +14,7 @@ public class AIGuide : MonoBehaviour
     public SharedMovement m_SharedMovementScript;
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
-    private GuideAudioSync m_guideAudioSync;
+    public GuideAudioSync m_guideAudioSync;
 
     // Variables for monitoring
     private int whisperCalls = 0;
@@ -27,20 +27,17 @@ public class AIGuide : MonoBehaviour
     // Variables to share with other scripts
     public Camera birdEyeCamera;
 
+    // Variables for wizard components
+    public string result;
+
     // Start is called before the first frame update
     void Start()
     {
-        // Add necessary components to the attached GameObject
+        // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>();
-        m_guideAudioSync = GetComponent<GuideAudioSync>();
-
-        if (m_guideAudioSync == null)
-            Debug.LogError("GuideAudioSync missing from this GameObject");
-
         createBirdEyeCamera();
-        //gameObject.AddComponent<RealtimeView>();
-        gameObject.AddComponent<GuideAudioSync>();
 
+        // Add necessary components to the attached GameObject
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
@@ -64,13 +61,14 @@ public class AIGuide : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.A))
         {
-            Debug.Log("Sent a result");
-            SetNewResult("This is test speech - can you hear me?");
+            Debug.Log("Sent a result from the Wizard");
+            SetNewResult(result);
         }
-        
-        // Calls until the shared movement script is assigned (when we have a player and a guide)
-        // Needed for access to the player's interactions with the guide
+
+        // Calls until the appropriate scripts are assigned (when we have a player and a guide)
+        // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();
+        getAudioSync();
 
         // If PC user presses and holds space
         if (Input.GetKey(KeyCode.Space))
@@ -221,6 +219,12 @@ public class AIGuide : MonoBehaviour
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+    }
+
+    private void getAudioSync()
+    {
+        if (m_guideAudioSync == null)
+            m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 
     private void createBirdEyeCamera()
