@@ -195,8 +195,18 @@ public class OpenAIQueries : MonoBehaviour
         {
             Debug.LogWarning("Exception in CallCompletion:\n" + e);
         }
-        // Sends the text over the network to sync guide's audio - WE'LL DO AN IF-CHECK HERE FOR INVISIBLE GUIDE
-        SetNewResult(result);
+        // Sends the text over the network to sync guide's audio if the role is not 6 (invisible guide)
+        // To prevent duplicate sound, mute the local audio source when sending to network, unmute for invisible
+        if (m_AIGuideScript.role != 6)
+        {
+            GetComponent<AudioSource>().mute = true;
+            SetNewResult(result);
+        }
+        else
+        {
+            GetComponent<AudioSource>().mute = false;
+        }
+            
 
         return output;
     }
