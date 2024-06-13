@@ -1,3 +1,4 @@
+using Normal.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,18 +30,12 @@ public class AIGuide : MonoBehaviour
     void Start()
     {
         // Add necessary components to the attached GameObject
-        AudioSource audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-            gameObject.AddComponent<AudioSource>();
-        //NavMeshAgent navMeshAgent = GetComponent<NavMeshAgent>();
-        //if (navMeshAgent == null)
-            //gameObject.AddComponent<NavMeshAgent>();
-
         m_GuideFollowScript = FindObjectOfType<GuideFollow>();
 
         createBirdEyeCamera();
+        //gameObject.AddComponent<RealtimeView>();
+        gameObject.AddComponent<GuideAudioSync>();
 
-        //m_GuideFollowScript = gameObject.GetComponent<GuideFollow>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
@@ -52,6 +47,14 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKey(KeyCode.A))
+        {
+            // Sync the new audio clip over the multiplayer network
+            GuideController guideController = FindObjectOfType<GuideController>();
+            guideController.SetNewAudioClip(Resources.Load<AudioClip>("subway_chime"));
+            Debug.Log("Sent subway chime to network");
+        }
+        
         // Calls until the shared movement script is assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide
         getSharedMovement();
@@ -138,6 +141,11 @@ public class AIGuide : MonoBehaviour
             if (!m_OpenAIQueriesScript.audioSource.isPlaying)
                 m_OpenAIQueriesScript.audioSource.Play();
             voiceCalls += 1;
+
+            // Sync the new audio clip over the multiplayer network
+            GuideController guideController = FindObjectOfType<GuideController>();
+            guideController.SetNewAudioClip(m_OpenAIQueriesScript.guideVoice);
+            Debug.Log("Played clip locally and sent it to network");
         }
 
         // Checking if a target GameObject was selected to be moved to

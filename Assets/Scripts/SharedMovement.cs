@@ -42,12 +42,10 @@ public class SharedMovement : MonoBehaviour
             if (rig.gameObject.layer == 6)
                 playerRig = rig;
         }
-        Debug.Log("the player rig is " + playerRig);
 
         // Creates the CameraSystem for the guide to keep track of Player's Movement if guideOn is true
         if (guideOn)
             gameObject.AddComponent<CameraSystem>();
-            
 
         // Ignore collisions between Player and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);

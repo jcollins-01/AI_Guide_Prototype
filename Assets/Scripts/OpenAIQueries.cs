@@ -209,6 +209,10 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
 
+        ///GuideController guideController = FindObjectOfType<GuideController>();
+        //guideController.SetNewAudioClip(Resources.Load<AudioClip>("subway_chime")); // result
+        //Debug.Log("Sent text result to network");
+
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
 
         AudioClip output = null;

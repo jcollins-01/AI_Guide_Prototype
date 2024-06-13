@@ -34,17 +34,21 @@ public class GuideFollow : MonoBehaviour
 
         if (sharedMovementFound)
         {
-            if (m_SharedMovementScript.thePlayer != null)
+            AIGuide guide = FindObjectOfType<AIGuide>();
+            if (guide != null)
             {
-                // Calculate the target position based on the player's position and follow distance
-                Vector3 directionToPlayer = (m_SharedMovementScript.thePlayer.transform.position - transform.position).normalized;
-                Vector3 targetPosition = m_SharedMovementScript.thePlayer.transform.position - directionToPlayer * followDistance;
+                if (m_SharedMovementScript.thePlayer != null)
+                {
+                    // Calculate the target position based on the player's position and follow distance
+                    Vector3 directionToPlayer = (m_SharedMovementScript.thePlayer.transform.position - transform.position).normalized;
+                    Vector3 targetPosition = m_SharedMovementScript.thePlayer.transform.position - directionToPlayer * followDistance;
 
-                // Move towards the target position
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, followSpeed * Time.deltaTime);
+                    // Move towards the target position
+                    transform.position = Vector3.MoveTowards(transform.position, targetPosition, followSpeed * Time.deltaTime);
 
-                // Make the guide look at the player while moving
-                transform.LookAt(m_SharedMovementScript.thePlayer.transform);
+                    // Make the guide look at the player while moving
+                    transform.LookAt(m_SharedMovementScript.thePlayer.transform);
+                }
             }
         }
     }
@@ -59,11 +63,15 @@ public class GuideFollow : MonoBehaviour
 
     private void requestOwnershipForGuide()
     {
-        realtimeTransform = m_SharedMovementScript.theGuide.GetComponent<RealtimeTransform>();
-        //realtimeTransform = GetComponent<RealtimeTransform>();
+        AIGuide guide = FindObjectOfType<AIGuide>();
+        if (guide != null)
+        {
+            realtimeTransform = m_SharedMovementScript.theGuide.GetComponent<RealtimeTransform>();
+            //realtimeTransform = GetComponent<RealtimeTransform>();
 
-        // Request ownership of the RealtimeTransform component for the local client producing the guide
-        if (realtimeTransform != null)
-            realtimeTransform.RequestOwnership();
+            // Request ownership of the RealtimeTransform component for the local client producing the guide
+            if (realtimeTransform != null)
+                realtimeTransform.RequestOwnership();
+        }
     }
 }
