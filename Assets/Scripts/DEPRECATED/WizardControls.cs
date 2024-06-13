@@ -42,8 +42,8 @@ public class WizardControls : MonoBehaviour
             // ADD guideClassification
             if (m_OpenAIQueriesScript.query.Length > 0)
                 m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
-            else
-                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+            //else
+                //m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
             // Call the CallCompletion method with your desired userInput
             var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
         }

@@ -21,12 +21,19 @@ public class OpenAIQueries : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private CameraSystem m_CameraSystemScript;
-    public GuideAudioSync m_GuideAudioSync;
+    private GuideAudioSync m_GuideAudioSync;
+    private AIGuide m_AIGuideScript;
 
-    // Strings to hold the different pieces of the query message
-    public string userQuery = "What's going on in here?";
-    //[HideInInspector] 
-    //public string playerClassification = "Imagine that the player is the humanoid avatar wearing an orange shirt in the lower left corner of this image. ";
+    // Open AI query variables (query varies)
+    public List<string> roles = new List<string>
+    {
+        "warm, friendly, but still professional tour guide",
+        "formal and assertive assistant, who talks like a robot",
+        "computer-like, succinct assistant, who gives the straight facts",
+        "very friendly, excited companion, who is eager to please who you're talking to",
+        "wise, old-fashioned, slightly Shakespearean-sounding mentor",
+        "gentle, sweet, soft-spoken assistant who gives very brief statements, as though slipping in words to someone without trying to interrupt what they're doing"
+    };
     [HideInInspector]
     public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. The other photo is the player's current perspective and what they are currently looking at in the scene.";
     [HideInInspector]
@@ -50,7 +57,6 @@ public class OpenAIQueries : MonoBehaviour
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
     public string memoClassifications = "Limit your reply to 300 words or less.";
-    //private string guideClassification = "While answering, imagine that you are a tour guide for the environment.";
 
     // OpenAI audio, text message, result variables
     [HideInInspector]
@@ -67,6 +73,7 @@ public class OpenAIQueries : MonoBehaviour
 
     public string query;
     public string result;
+    public string role;
     public AudioSource audioSource;
     public AudioClip guideVoice;
 
@@ -83,6 +90,7 @@ public class OpenAIQueries : MonoBehaviour
     private void Start()
     {
         // Find and load appropriate resources
+        m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = FindObjectOfType<AudioSource>();
         LoadConfig();
         //Debug.Log("OpenAI is ready to be queried.");
@@ -96,6 +104,15 @@ public class OpenAIQueries : MonoBehaviour
         // Calls until the camera system and audio sync scripts are assigned
         getCameraSystem();
         getAudioSync();
+
+        // Calls continously to check for a role change
+        getGuideRole();
+    }
+
+    private void getGuideRole()
+    {
+        // The role becomes the string value contained at the index we sent over from AIGuide
+        role = roles[m_AIGuideScript.role-1];
     }
 
     private void getCameraSystem()
