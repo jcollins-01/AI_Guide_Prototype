@@ -1162,6 +1162,7 @@ GameObject:
   - component: {fileID: 204913376098325688}
   - component: {fileID: 7023472372937295635}
   - component: {fileID: 8909618232153423243}
+  - component: {fileID: 7698415900411840624}
   m_Layer: 0
   m_Name: Guide Avatar
   m_TagString: Untagged
@@ -1227,6 +1228,8 @@ MonoBehaviour:
     component: {fileID: 0}
   - componentID: 9
     component: {fileID: 0}
+  - componentID: 10
+    component: {fileID: 7698415900411840624}
   _childViews:
   - componentID: 1
     component: {fileID: 1579297652131165552}
@@ -1267,6 +1270,18 @@ MonoBehaviour:
   _head: {fileID: 7115122709914992560}
   _leftHand: {fileID: 6381806755499438117}
   _rightHand: {fileID: 5695111117293143860}
+--- !u!114 &7698415900411840624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2408046841447391164}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4caab915be45544e97eb9d6447f2d82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2492263349837278860
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,10 +1,13 @@
 using Normal.Realtime;
 using System.Collections;
 using UnityEngine;
+using System.Threading.Tasks;
+using OpenAI;
 
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
     private AudioSource _audioSource;
+    private string apiKey;
 
     private void Awake()
     {
@@ -16,54 +19,66 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     protected override void OnRealtimeModelReplaced(GuideAudioSyncModel previousModel, GuideAudioSyncModel currentModel)
     {
         if (previousModel != null)
-            previousModel.audioClipDataDidChange -= AudioClipDataDidChange;
+            previousModel.resultDidChange -= ResultDidChange;
 
         if (currentModel != null)
         {
             if (currentModel.isFreshModel)
-                currentModel.audioClipData = null;
-            currentModel.audioClipDataDidChange += AudioClipDataDidChange;
+                currentModel.result = null; // Ensure initial state for result
+            currentModel.resultDidChange += ResultDidChange;
         }
     }
 
-    private void AudioClipDataDidChange(GuideAudioSyncModel model, byte[] audioClipData)
+    private async void ResultDidChange(GuideAudioSyncModel model, string result)
     {
-        Debug.Log("Detected that the audio clip data did change!");
-        if (audioClipData != null)
+        Debug.Log("Detected that the result did change: " + result);
+
+        if (!string.IsNullOrEmpty(result))
         {
-            Debug.Log("Should be playing audio clip");
-            AudioClip clip = AudioClipFromByteArray(audioClipData);
-            _audioSource.clip = clip;
-            _audioSource.Play();
+            Debug.Log("Should be converting result to speech");
+            AudioClip guideVoice = await ConvertResultToSpeech(result);
+            if (guideVoice != null)
+            {
+                _audioSource.clip = guideVoice;
+                _audioSource.Play();
+                Debug.Log("Played audio clip from guide voice");
+            }
+            else
+            {
+                Debug.LogWarning("Failed to convert result to speech.");
+            }
         }
     }
 
-    public void SetAudioClip(AudioClip clip)
+    private async Task<AudioClip> ConvertResultToSpeech(string result)
     {
-        Debug.Log("Reached SetAudioClip in GuideAudioSync");
-        byte[] audioClipData = AudioClipToByteArray(clip);
+        Debug.Log("Reached ConvertResultToSpeech");
+        var client = new OpenAIClient(apiKey); // Replace with your OpenAI API key
+
+        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
+        AudioClip output = null;
+
+        try
+        {
+            var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
+            output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
+            Debug.Log("Created audio clip of voiced result");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("Exception in ConvertResultToSpeech:\n" + e);
+        }
+
+        return output;
+    }
+
+    public void SetResult(string result)
+    {
+        Debug.Log("Reached SetResult in GuideAudioSync");
         if (model != null)
-            model.audioClipData = audioClipData;
+            model.result = result;
         else
             Debug.LogError("Model is not initialized.");
-    }
-
-    private byte[] AudioClipToByteArray(AudioClip clip)
-    {
-        float[] samples = new float[clip.samples * clip.channels];
-        clip.GetData(samples, 0);
-        byte[] byteArray = new byte[samples.Length * sizeof(float)];
-        System.Buffer.BlockCopy(samples, 0, byteArray, 0, byteArray.Length);
-        return byteArray;
-    }
-
-    private AudioClip AudioClipFromByteArray(byte[] byteArray)
-    {
-        float[] samples = new float[byteArray.Length / sizeof(float)];
-        System.Buffer.BlockCopy(byteArray, 0, samples, 0, byteArray.Length);
-        AudioClip clip = AudioClip.Create("GuideVoice", samples.Length, 1, 44100, false);
-        clip.SetData(samples, 0);
-        return clip;
     }
 
     // Start is called before the first frame update
@@ -75,6 +90,13 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     // Update is called once per frame
     void Update()
     {
-        
+        if (apiKey == null)
+            GetAPIKey();
+    }
+
+    void GetAPIKey()
+    {
+        OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
+        apiKey = aIQueries.apiKey;
     }
 }
