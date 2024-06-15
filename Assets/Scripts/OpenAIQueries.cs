@@ -241,7 +241,20 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
 
-        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
+        // Initialize speech request with default voice (Alloy)
+        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy); // Human
+
+        // Change speech request to new voices if the role calls for it
+        if (m_AIGuideScript.role == 2)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Echo); // Robot
+        else if (m_AIGuideScript.role == 3)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Onyx); // Mechanical cane
+        else if (m_AIGuideScript.role == 4)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Shimmer); // Dog
+        else if (m_AIGuideScript.role == 5)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Fable); // Mythical bird
+        else if (m_AIGuideScript.role == 6)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Nova); // Invisible
 
         AudioClip output = null;
         try

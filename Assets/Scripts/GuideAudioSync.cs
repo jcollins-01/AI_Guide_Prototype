@@ -31,11 +31,10 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private async void ResultDidChange(GuideAudioSyncModel model, string result)
     {
-        Debug.Log("Detected that the result did change: " + result);
+        //Debug.Log("Detected that the result did change: " + result);
 
         if (!string.IsNullOrEmpty(result))
         {
-            Debug.Log("Should be converting result to speech");
             AudioClip guideVoice = await ConvertResultToSpeech(result);
             if (guideVoice != null)
             {
@@ -52,7 +51,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private async Task<AudioClip> ConvertResultToSpeech(string result)
     {
-        Debug.Log("Reached ConvertResultToSpeech");
+        //Debug.Log("Reached ConvertResultToSpeech");
         var client = new OpenAIClient(apiKey); // Replace with your OpenAI API key
 
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
@@ -74,7 +73,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     public void SetResult(string result)
     {
-        Debug.Log("Reached SetResult in GuideAudioSync");
+        //Debug.Log("Reached SetResult in GuideAudioSync");
         if (model != null)
             model.result = result;
         else

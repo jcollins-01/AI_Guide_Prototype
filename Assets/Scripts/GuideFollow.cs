@@ -137,10 +137,11 @@ public class GuideFollow : MonoBehaviour
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
         else
+        {
+            theGuide = m_SharedMovementScript.theGuide;
+            thePlayer = m_SharedMovementScript.thePlayer;
             sharedMovementFound = true;
-
-        theGuide = m_SharedMovementScript.theGuide;
-        thePlayer = m_SharedMovementScript.thePlayer;
+        }
     }
 
     private void getAIGuide()

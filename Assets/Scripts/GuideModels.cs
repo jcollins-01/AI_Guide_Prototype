@@ -42,7 +42,8 @@ public class GuideModels : MonoBehaviour
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
 
-        theGuide = m_SharedMovementScript.theGuide;
+        if (m_SharedMovementScript != null)
+            theGuide = m_SharedMovementScript.theGuide;
     }
 
     private void getAIGuide()
