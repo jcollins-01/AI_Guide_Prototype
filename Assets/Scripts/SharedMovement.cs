@@ -7,9 +7,6 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class SharedMovement : MonoBehaviour
 {
-    // Variable to control whether this player can use guide or not
-    private bool guideOn = true;
-    
     // Variables to hold scripts and Game Objects we need access to
     private VRHandling m_VRHandlingScript;
     public GameObject thePlayer;
@@ -43,9 +40,8 @@ public class SharedMovement : MonoBehaviour
                 playerRig = rig;
         }
 
-        // Creates the CameraSystem for the guide to keep track of Player's Movement if guideOn is true
-        if (guideOn)
-            gameObject.AddComponent<CameraSystem>();
+        // Creates the CameraSystem for the guide to keep track of Player's Movement
+        gameObject.AddComponent<CameraSystem>(); //guideOn
 
         // Ignore collisions between Player and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
@@ -56,9 +52,8 @@ public class SharedMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Assigns roles if guideOn is true
-        if (guideOn)
-            AssignRoles();
+        // Assigns roles to guide and player
+        AssignRoles(); //guideOn
 
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
@@ -153,7 +148,7 @@ public class SharedMovement : MonoBehaviour
         foreach (GameObject currentPlayer in foundPlayers)
         {
             // If the found player has a SharedMovement component (is not a guide) and is using the guide set them as the main player
-            if (currentPlayer.GetComponent<SharedMovement>() && currentPlayer.GetComponent<SharedMovement>().guideOn == true)
+            if (currentPlayer.GetComponent<SharedMovement>()) //&& currentPlayer.GetComponent<SharedMovement>().guideOn == true
                 thePlayer = currentPlayer;
         }
 
