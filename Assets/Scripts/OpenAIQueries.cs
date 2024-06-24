@@ -31,7 +31,7 @@ public class OpenAIQueries : MonoBehaviour
         "formal and assertive assistant, who talks like a robot",
         "computer-like, succinct assistant, who gives the straight facts",
         "very friendly, excited companion, who is eager to please who you're talking to",
-        "wise, old-fashioned, slightly Shakespearean-sounding mentor",
+        "wise, old-fashioned, slightly Shakespearean-sounding mentor", //posh
         "gentle, sweet, soft-spoken assistant who gives very brief statements, as though slipping in words to someone without trying to interrupt what they're doing"
     };
     [HideInInspector]
