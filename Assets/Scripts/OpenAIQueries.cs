@@ -24,7 +24,8 @@ public class OpenAIQueries : MonoBehaviour
     private GuideAudioSync m_GuideAudioSync;
     private AIGuide m_AIGuideScript;
 
-    // Open AI query variables (query varies)
+    // Variables to construct OpenAI queries
+    private string objectNames;
     public List<string> roles = new List<string>
     {
         "warm, friendly, but still professional tour guide",
@@ -35,28 +36,42 @@ public class OpenAIQueries : MonoBehaviour
         "gentle, sweet, soft-spoken assistant who gives very brief statements, as though slipping in words to someone without trying to interrupt what they're doing"
     };
     [HideInInspector]
-    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. The other photo is the player's current perspective and what they are currently looking at in the scene.";
+    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
+        "The other photo is the player's current perspective and what they are currently looking at in the scene.";
     [HideInInspector]
-    public string objectClassifications = "The upright, yellow cube is named Tall Building. " +
-        "The upright, green cube is named Short Building. " +
-        "The long, yellow cube laying on its side is named Sideways Building. " +
-        "The red cylinder in front of Sideways Building is named Red Car. " +
-        "The green, flattened oval in the back is named Landmark. ";
+    public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
-    public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
+    public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
+    {
+        get
+        {
+            return "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
+                   "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
+                   "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
+                   "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
+                   "and 'guide' after a comma if they don't specify teleportation." +
+                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
+                   "Only do this if you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
+                   "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
+                   "plus the word 'modify' after a comma." +
+                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
+                   "Only do this if you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
+        }
+    }
+    /*public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
         "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
         "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
         "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
         "and 'guide' after a comma if they don't specify teleportation." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
+        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
         "Only do this is you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
         "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
         "plus the word 'modify' after a comma." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: Landmark, Sideways Building, Tall Building, Red Car, Short Building." +
-        "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
+        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
+        "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";*/
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
-    public string memoClassifications = "Limit your reply to 300 words or less.";
+    public string memoClassifications = "Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
 
     // OpenAI audio, text message, result variables
     [HideInInspector]
@@ -69,7 +84,6 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject targetForModification;
     //[HideInInspector]
     public string modeOfModification;
-    private Texture2D capturedScreenshot;
 
     public string query;
     public string result;
@@ -93,6 +107,7 @@ public class OpenAIQueries : MonoBehaviour
         m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = FindObjectOfType<AudioSource>();
         LoadConfig();
+        LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");
 
         // Create an instance of the OpenAI client
@@ -289,6 +304,51 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
+    private void LoadRoomDescriptions()
+    {
+        TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
+        if (descriptionsAsset != null)
+        {
+            DescriptionsData descriptionData = JsonUtility.FromJson<DescriptionsData>(descriptionsAsset.text);
+
+            // Once we have the descriptions, check the current scene and set objectClassifications to the appropriate description
+            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (descriptionData != null)
+            {
+                if (currentSceneName.Equals("GuideTest_Networked"))
+                {
+                    objectClassifications = descriptionData.GuideTest_Networked;
+                    objectNames = descriptionData.Test_Objects;
+                }
+                else if (currentSceneName.Equals("GuidePark1_Networked"))
+                {
+                    objectClassifications = descriptionData.GuidePark1_Networked;
+                    objectNames = descriptionData.Park1_Objects;
+                    // Debug.Log("objectClassifications set to: " + objectClassifications);
+                    // Debug.Log("queryClassifications set to: " + queryClassifications);
+                }
+                else if (currentSceneName.Equals("GuidePark2_Networked"))
+                {
+                    objectClassifications = descriptionData.GuidePark2_Networked;
+                    // Debug.Log("objectClassifications set to: " + objectClassifications);
+                }
+                else if (currentSceneName.Equals("GuidePark3_Networked"))
+                {
+                    objectClassifications = descriptionData.GuidePark3_Networked;
+                    // Debug.Log("objectClassifications set to: " + objectClassifications);
+                }
+                else
+                {
+                    Debug.LogWarning("Description for the current scene not found in RoomDescriptions.json.");
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("RoomDescriptions.json file not found in Resources folder.");
+        }
+    }
+
     private void getAudioSync()
     {
         if (m_GuideAudioSync == null)
@@ -307,5 +367,15 @@ public class OpenAIQueries : MonoBehaviour
     private class ConfigData
     {
         public string APIKey;
+    }
+
+    private class DescriptionsData
+    {
+        public string GuideTest_Networked;
+        public string GuidePark1_Networked;
+        public string GuidePark2_Networked;
+        public string GuidePark3_Networked;
+        public string Test_Objects;
+        public string Park1_Objects;
     }
 }

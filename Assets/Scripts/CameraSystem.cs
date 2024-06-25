@@ -8,8 +8,10 @@ using UnityEngine.XR;
 public class CameraSystem : MonoBehaviour
 {
     // Variables to set camera parameters
-    //private float birdHeight = 15f;
-    //private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+    private float birdHeight = 30f; // 15f for test scene
+    private float birdZOffset = -10f; // Moves the camera back from directly over the player to get a better angle
+    private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+    private float fieldOfView = 80f; // 60f is default
 
     // Public camera variables for AIGuide script to access
     public Camera birdEyeCamera;
@@ -25,6 +27,7 @@ public class CameraSystem : MonoBehaviour
     {
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        createBirdEyeCamera();
     }
 
     private void Update()
@@ -42,6 +45,18 @@ public class CameraSystem : MonoBehaviour
                 calledCamerasToStart = true;
             }
         }
+    }
+
+    private void createBirdEyeCamera()
+    {
+        GameObject newCamera = new GameObject("Bird's Eye Camera");
+        birdEyeCamera = newCamera.AddComponent<Camera>();
+
+        // Camera has specified height it goes above the guide to get bird's eye view + rotation + widened field of view to look down at the scene
+        birdHeight = birdHeight + transform.position.y;
+        birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
+        birdEyeCamera.transform.eulerAngles = birdRotation;
+        birdEyeCamera.fieldOfView = fieldOfView;
     }
 
     public void CaptureScreenshot()
