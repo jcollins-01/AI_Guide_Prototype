@@ -24,9 +24,6 @@ public class AIGuide : MonoBehaviour
     //private bool firstQuery = true;
     private bool buttonPressed = false;
 
-    // Variables to share with other scripts
-    public Camera birdEyeCamera;
-
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
@@ -36,7 +33,6 @@ public class AIGuide : MonoBehaviour
     {
         // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>();
-        createBirdEyeCamera();
 
         // Add necessary components to the attached GameObject
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
@@ -226,18 +222,5 @@ public class AIGuide : MonoBehaviour
     {
         if (m_guideAudioSync == null)
             m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
-    }
-
-    private void createBirdEyeCamera()
-    {
-        float birdHeight = 15f;
-        Vector3 birdRotation = new Vector3(65f, 0f, 0f);
-        GameObject newCamera = new GameObject("Bird's Eye Camera");
-        birdEyeCamera = newCamera.AddComponent<Camera>();
-
-        // Camera has specified height it goes above the guide to get bird's eye view + rotation to look down at the scene
-        birdHeight = birdHeight + transform.position.y;
-        birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z);
-        birdEyeCamera.transform.eulerAngles = birdRotation;
     }
 }
