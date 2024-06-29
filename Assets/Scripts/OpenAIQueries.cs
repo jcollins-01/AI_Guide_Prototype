@@ -330,11 +330,13 @@ public class OpenAIQueries : MonoBehaviour
                 else if (currentSceneName.Equals("GuidePark2_Networked"))
                 {
                     objectClassifications = descriptionData.GuidePark2_Networked;
+                    objectNames = descriptionData.Park2_Objects;
                     // Debug.Log("objectClassifications set to: " + objectClassifications);
                 }
                 else if (currentSceneName.Equals("GuidePark3_Networked"))
                 {
                     objectClassifications = descriptionData.GuidePark3_Networked;
+                    objectNames = descriptionData.Park3_Objects;
                     // Debug.Log("objectClassifications set to: " + objectClassifications);
                 }
                 else
@@ -377,5 +379,7 @@ public class OpenAIQueries : MonoBehaviour
         public string GuidePark3_Networked;
         public string Test_Objects;
         public string Park1_Objects;
+        public string Park2_Objects;
+        public string Park3_Objects;
     }
 }
