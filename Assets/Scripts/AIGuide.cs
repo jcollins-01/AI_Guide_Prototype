@@ -46,7 +46,7 @@ public class AIGuide : MonoBehaviour
     // Method to test if result is working
     public void SetNewResult(string result)
     {
-        Debug.Log("Reached SetNewResult");
+        // Debug.Log("Reached SetNewResult");
         if (m_guideAudioSync != null)
             m_guideAudioSync.SetResult(result);
         else
@@ -169,10 +169,12 @@ public class AIGuide : MonoBehaviour
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
+                        Debug.Log("Played arrival effect");
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         AudioSource audioSource = GetComponent<AudioSource>();
                         audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.mute = false;
                         audioSource.Play();
                     }
                 } 

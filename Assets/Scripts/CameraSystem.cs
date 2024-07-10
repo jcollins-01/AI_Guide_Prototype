@@ -115,7 +115,7 @@ public class CameraSystem : MonoBehaviour
 
     void UploadImage()
     {
-        Debug.Log("Uploading screenshot to Image Shack");
+        // Debug.Log("Uploading screenshot to Image Shack");
         // Loads the screenshots (Unity considers it a texture) from Resources
         Texture2D viewCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/viewpointCapture");
         Texture2D birdCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/birdEyeCapture");

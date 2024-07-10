@@ -28,7 +28,7 @@ public class OpenAIQueries : MonoBehaviour
     private string objectNames;
     public List<string> roles = new List<string>
     {
-        "warm, friendly, but still professional tour guide",
+        "warm, friendly, but still professional sighted guide",
         "formal and assertive assistant, who talks like a robot",
         "computer-like, succinct assistant, who gives the straight facts",
         "very friendly, excited companion, who is eager to please who you're talking to",
@@ -71,7 +71,7 @@ public class OpenAIQueries : MonoBehaviour
         "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";*/
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
-    public string memoClassifications = "Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
+    public string memoClassifications = "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
 
     // OpenAI audio, text message, result variables
     [HideInInspector]
@@ -185,8 +185,8 @@ public class OpenAIQueries : MonoBehaviour
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink), // m_CameraSystemScript.birdsEyeImageLink
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink) //m_CameraSystemScript.viewpointImageLink
             //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
 
