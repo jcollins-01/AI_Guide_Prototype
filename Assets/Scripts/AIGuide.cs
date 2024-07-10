@@ -39,6 +39,7 @@ public class AIGuide : MonoBehaviour
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
+        gameObject.AddComponent<ChangeAvatarRuntime>();
 
         Debug.Log("AIGuide is active!");
     }
