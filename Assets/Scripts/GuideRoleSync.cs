@@ -6,11 +6,29 @@ public class GuideRoleSync : RealtimeComponent<GuideRoleModel>
 {
     private ChangeAvatarRuntime _changeAvatarRuntime;
 
+    // Monitoring bools
+    private bool changeAvatarFound = false;
+
     private void Awake()
     {
-        _changeAvatarRuntime = GetComponent<ChangeAvatarRuntime>();
+        _changeAvatarRuntime = GetComponentInChildren<ChangeAvatarRuntime>();
         if (_changeAvatarRuntime == null)
             Debug.LogError("ChangeAvatarRuntime component missing from this GameObject.");
+    }
+
+    void Update()
+    {
+        // Call until the component is found
+        if (!changeAvatarFound)
+            getChangeAvatarRuntime();
+    }
+
+    private void getChangeAvatarRuntime()
+    {
+        if (_changeAvatarRuntime == null)
+            _changeAvatarRuntime = FindObjectOfType<ChangeAvatarRuntime>();
+        else
+            changeAvatarFound = true;
     }
 
     protected override void OnRealtimeModelReplaced(GuideRoleModel previousModel, GuideRoleModel currentModel)
