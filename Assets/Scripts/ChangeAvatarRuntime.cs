@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class ChangeAvatarRuntime : MonoBehaviour
 {
+    // Role for multiplayer syncing
+    private int _role;
+
     // Variables to hold scripts we need access to
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
+    private GuideRoleSync m_guideRoleSync;
 
     // GameObjects for avatar assignment
     private GameObject theGuide;
@@ -20,6 +24,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private bool sharedMovementFound = false;
     private bool aiGuideFound = false;
     private bool avatarsFound = false;
+    private bool roleSyncFound = false;
 
     // Variable to assign publicly in the editor; set in RoomManager
     //public bool isPlayer;
@@ -33,9 +38,15 @@ public class ChangeAvatarRuntime : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        getSharedMovement();
-        getAIGuide();
-        getPossibleModels();
+        // Call until each respective component is found or assigned
+        if (!sharedMovementFound)
+            getSharedMovement();
+        if (!aiGuideFound)
+            getAIGuide();
+        if (!avatarsFound)
+            getPossibleModels();
+        if (!roleSyncFound)
+            getRoleSync();
 
         // Assign the guide's appearance by its role, called constantly in case of role updates
         if (sharedMovementFound && aiGuideFound && avatarsFound)
@@ -46,62 +57,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
     {
         // Grab role to see if it has changed
         int role = m_AIGuideScript.role;
+        UpdateAvatar(role);
 
-        // Assign renderers by role, deactivate non-role, activate others
-        if (role == 1) // Human
-        {
-            Debug.Log("Assigning human avatar");
-            EnableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
-            DisableAllRenderers(robot);
-            DisableAllRenderers(bird);
-        }
-        else if (role == 2) // Guide Dog
-        {
-            Debug.Log("Assigning dog avatar");
-            DisableAllRenderers(human);
-            EnableAllRenderers(dog);
-            DisableAllRenderers(cane);
-            DisableAllRenderers(robot);
-            DisableAllRenderers(bird);
-        }
-        else if (role == 3) // White Cane
-        {
-            Debug.Log("Assigning cane avatar");
-            DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            EnableAllRenderers(cane);
-            DisableAllRenderers(robot);
-            DisableAllRenderers(bird);
-        }
-        else if (role == 4) // Robot
-        {
-            Debug.Log("Assigning robot avatar");
-            DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
-            EnableAllRenderers(robot);
-            DisableAllRenderers(bird);
-        }
-        else if (role == 5) // Bird
-        {
-            Debug.Log("Assigning bird avatar");
-            DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
-            DisableAllRenderers(robot);
-            EnableAllRenderers(bird);
-        }
-        else // Invisible Guide
-        {
-            Debug.Log("Assigning NO avatar");
-            DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
-            DisableAllRenderers(robot);
-            DisableAllRenderers(bird);
-        }
+        // Set the multiplayer network role if we have the sync component
+        if (roleSyncFound)
+            m_guideRoleSync.SetRole(role);
     }
 
     private void DisableAllRenderers(GameObject model)
@@ -213,5 +173,87 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
         else
             avatarsFound = true;
+    }
+
+    // Methods to update the avatar across the multiplayer network
+    private void getRoleSync()
+    {
+        if (m_guideRoleSync == null)
+        {
+            m_guideRoleSync = FindObjectOfType<GuideRoleSync>();
+            Debug.Log("Have not found role sync");
+        }
+        else
+        {
+            roleSyncFound = true;
+            Debug.Log("Found role sync");
+        }
+            
+    }
+
+    public void SetRole(int role)
+    {
+        _role = role;
+        UpdateAvatar(_role);
+    }
+
+    public int GetCurrentRole()
+    {
+        return _role;
+    }
+
+    private void UpdateAvatar(int role)
+    {
+        //Debug.Log("Avatar changed to role: " + role);
+
+        // Assign renderers by role, deactivate non-role, activate others
+        if (role == 1) // Human
+        {
+            EnableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+        }
+        else if (role == 2) // Guide Dog
+        {
+            DisableAllRenderers(human);
+            EnableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+        }
+        else if (role == 3) // White Cane
+        {
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            EnableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+        }
+        else if (role == 4) // Robot
+        {
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            EnableAllRenderers(robot);
+            DisableAllRenderers(bird);
+        }
+        else if (role == 5) // Bird
+        {
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            EnableAllRenderers(bird);
+        }
+        else // Invisible Guide
+        {
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+        }
     }
 }
