@@ -51,6 +51,9 @@ public class ChangeAvatarRuntime : MonoBehaviour
         // Assign the guide's appearance by its role, called constantly in case of role updates
         if (sharedMovementFound && aiGuideFound && avatarsFound)
             assignAvatarByRole();
+
+        // Continuously search for unassigned confederates and assign them random avatars
+        pickAvatarAtRandomForAll();
     }
 
     private void assignAvatarByRole()
@@ -137,6 +140,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
                 model4.SetActive(true);
             }
 
+            // Change their tag once assigned so the script ignores them
             avatar.tag = "AvatarAssigned";
         }
     }
