@@ -173,7 +173,7 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
                         audioSource.mute = false;
                         audioSource.Play();
                     }
@@ -188,7 +188,7 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
                         audioSource.Play();
                     }
                 }

@@ -1793,6 +1793,7 @@ GameObject:
   - component: {fileID: 3281081717620070587}
   - component: {fileID: 7499811818819337961}
   - component: {fileID: 7499811818819337960}
+  - component: {fileID: 7499811818819337962}
   m_Layer: 6
   m_Name: XR Origin
   m_TagString: Untagged
@@ -2308,6 +2309,19 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7499811818819337962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950086389194246744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3312afc9cf03804dab5045e2722bcbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAudio: {fileID: 0}
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0
@@ -2496,7 +2510,13 @@ PrefabInstance:
       propertyPath: _viewUUID
       value: 7ccea2e5-64e8-46b3-a403-7f1ca1d59717
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 1438950145782524783, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
+    - {fileID: 7549097609790877083, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
+    - {fileID: 7194244898831649377, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
+    - {fileID: 7251277913883845169, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
+    - {fileID: 5410492345261040550, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
+    - {fileID: 6186614344254711379, guid: d4435fb9be9b69a4996b31e6cb318a80, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

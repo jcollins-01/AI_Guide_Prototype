@@ -181,12 +181,12 @@ public class ChangeAvatarRuntime : MonoBehaviour
         if (m_guideRoleSync == null)
         {
             m_guideRoleSync = FindObjectOfType<GuideRoleSync>();
-            Debug.Log("Have not found role sync");
+            //Debug.Log("Have not found role sync");
         }
         else
         {
             roleSyncFound = true;
-            Debug.Log("Found role sync");
+            //Debug.Log("Found role sync");
         }
             
     }

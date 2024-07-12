@@ -128,6 +128,10 @@ public class OpenAIQueries : MonoBehaviour
     {
         // The role becomes the string value contained at the index we sent over from AIGuide
         role = roles[m_AIGuideScript.role-1];
+        int index = m_AIGuideScript.role - 1;
+        //Debug.Log("The role number is " + m_AIGuideScript.role);
+        //Debug.Log("The role index is " + index);
+        //Debug.Log("The size of the roles list is " + roles.Count);
     }
 
     private void getCameraSystem()

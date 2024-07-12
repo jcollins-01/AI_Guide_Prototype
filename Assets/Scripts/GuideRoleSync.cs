@@ -47,7 +47,7 @@ public class GuideRoleSync : RealtimeComponent<GuideRoleModel>
 
     private void RoleDidChange(GuideRoleModel model, int value)
     {
-        Debug.Log("Detected a role change over the network");
+        //Debug.Log("Detected a role change over the network");
         _changeAvatarRuntime.SetRole(value);
     }
 
