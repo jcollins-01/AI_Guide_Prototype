@@ -41,7 +41,7 @@ public class CameraSystem : MonoBehaviour
             {
                 // Begin capturing screenshots every 10 secs to keep guide updated on scene
                 //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-                CaptureScreenshot();
+                //CaptureScreenshot();
                 calledCamerasToStart = true;
             }
         }
@@ -57,9 +57,20 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
         birdEyeCamera.transform.eulerAngles = birdRotation;
         birdEyeCamera.fieldOfView = fieldOfView;
+
+        // After the bird's eye camera is created, enable other cameras in the scene
+        Camera guideCamera = GameObject.Find("Guide Camera").GetComponent<Camera>();
+        enableCamera(viewpointCamera);
+        enableCamera(guideCamera);
     }
 
-    public void CaptureScreenshot()
+    private void enableCamera(Camera camera)
+    {
+        if (birdEyeCamera != null)
+            camera.enabled = true;
+    }
+
+    private void CaptureScreenshot()
     {
         // Captures screenshots from both cameras in system
         CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");

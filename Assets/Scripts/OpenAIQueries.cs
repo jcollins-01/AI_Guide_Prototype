@@ -58,17 +58,6 @@ public class OpenAIQueries : MonoBehaviour
                    "Only do this if you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
         }
     }
-    /*public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
-        "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-        "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
-        "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
-        "and 'guide' after a comma if they don't specify teleportation." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-        "Only do this is you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
-        "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
-        "plus the word 'modify' after a comma." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-        "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";*/
     // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
     [HideInInspector]
     public string memoClassifications = "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
@@ -126,12 +115,14 @@ public class OpenAIQueries : MonoBehaviour
 
     private void getGuideRole()
     {
-        // The role becomes the string value contained at the index we sent over from AIGuide
-        role = roles[m_AIGuideScript.role-1];
+        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
         int index = m_AIGuideScript.role - 1;
-        //Debug.Log("The role number is " + m_AIGuideScript.role);
-        //Debug.Log("The role index is " + index);
-        //Debug.Log("The size of the roles list is " + roles.Count);
+
+        if (index < 0 || index >= roles.Count)
+            return;
+        
+        // The role becomes the string value contained at the index we sent over from AIGuide
+        role = roles[index];
     }
 
     private void getCameraSystem()

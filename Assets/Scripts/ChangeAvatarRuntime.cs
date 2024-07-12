@@ -43,7 +43,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
             getSharedMovement();
         if (!aiGuideFound)
             getAIGuide();
-        if (!avatarsFound)
+        if (sharedMovementFound && !avatarsFound)
             getPossibleModels();
         if (!roleSyncFound)
             getRoleSync();

@@ -125,7 +125,7 @@ public class AIGuide : MonoBehaviour
             }
             else
             {
-                m_OpenAIQueriesScript.text = "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+                m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
             }*/
 
             // Call the CallCompletion method with the user's recorded voice query

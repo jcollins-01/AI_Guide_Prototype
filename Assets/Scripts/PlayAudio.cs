@@ -38,10 +38,9 @@ public class PlayAudio : MonoBehaviour
     void Start()
     {
         // Grab necessary components from scene
-        playerAudio = thePlayer.GetComponent<AudioSource>();
         interactionManager = FindObjectOfType<XRInteractionManager>();
-        teleport = interactionManager.GetComponent<TeleportationProvider>();
-        move = interactionManager.GetComponent<ActionBasedContinuousMoveProvider>();
+        teleport = FindObjectOfType<TeleportationProvider>();
+        move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
 
         // Assign sounds from Resources
         teleportEffect = Resources.Load<AudioClip>("Audio/teleport");
@@ -90,7 +89,8 @@ public class PlayAudio : MonoBehaviour
 
     IEnumerator checkTurning()
     {
-        DeviceBasedSnapTurnProvider snapTurn = GetComponent<DeviceBasedSnapTurnProvider>();
+        //DeviceBasedSnapTurnProvider snapTurn = FindObjectOfType<DeviceBasedSnapTurnProvider>();
+        ActionBasedSnapTurnProvider snapTurn = FindObjectOfType<ActionBasedSnapTurnProvider>();
 
         if (snapTurn.locomotionPhase == LocomotionPhase.Moving) // If the movement of snap turning is active
         {
@@ -155,7 +155,7 @@ public class PlayAudio : MonoBehaviour
                 }
                 else // If position hasn't changed
                 {
-                    if (theGuide.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
+                    if (theGuide.GetComponentInParent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
                     {
                         playerAudio.clip = idleEffect;
                         if (!playerAudio.isPlaying)
@@ -190,6 +190,7 @@ public class PlayAudio : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
+            playerAudio = thePlayer.GetComponentInParent<AudioSource>();
             sharedMovementFound = true;
         }
     }
