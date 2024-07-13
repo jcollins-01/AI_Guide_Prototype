@@ -115,7 +115,7 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
             // Construct the query to send to GPT-4 - ADD guideClassification
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
             // [DEPRECATED] If this is the first query, send all classifcations - after that, the guide should remember the player, photo, and scene contexts
             /*if (firstQuery)

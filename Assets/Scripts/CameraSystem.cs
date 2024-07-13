@@ -41,7 +41,7 @@ public class CameraSystem : MonoBehaviour
             {
                 // Begin capturing screenshots every 10 secs to keep guide updated on scene
                 //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-                //CaptureScreenshot();
+                CaptureScreenshot();
                 calledCamerasToStart = true;
             }
         }
@@ -145,7 +145,7 @@ public class CameraSystem : MonoBehaviour
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
     // For resetting Image Shack account, go to Settings > Basic > Manage Exceptions > find/add imageshack.com > Delete Data
-    private string imageApiKey = "ZLMKQ3ICb1f3267dffcd71402f43c10aeca41c17";
+    private string imageApiKey = "6EHKLMNTd1353fef85ed809f9acb93b2e33f0ead";
 
     [HideInInspector]
     public string viewpointImageLink;

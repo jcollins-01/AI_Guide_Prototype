@@ -39,8 +39,10 @@ public class GuideFollow : MonoBehaviour
     void Update()
     {
         // Calls until the shared movement and AI Guide scripts are assigned (when we have a player and a guide)
-        getSharedMovement();
-        getAIGuide();
+        if (!sharedMovementFound)
+            getSharedMovement();
+        if (!aiGuideFound)
+            getAIGuide();
 
         // Wait to request ownership until we have all players in scene + multiplayer room is definitely instantiated
         if (sharedMovementFound)
@@ -140,7 +142,8 @@ public class GuideFollow : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
-            sharedMovementFound = true;
+            if (theGuide != null && thePlayer != null)
+                sharedMovementFound = true;
         }
     }
 

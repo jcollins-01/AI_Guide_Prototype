@@ -190,8 +190,14 @@ public class PlayAudio : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
-            playerAudio = thePlayer.GetComponentInParent<AudioSource>();
-            sharedMovementFound = true;
+            if (theGuide != null && thePlayer != null)
+            {
+                // Assign playerAudio component after we have access to thePlayer
+                if (playerAudio == null)
+                    playerAudio = thePlayer.GetComponentInParent<AudioSource>();
+
+                sharedMovementFound = true;
+            }
         }
     }
 }

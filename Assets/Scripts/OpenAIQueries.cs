@@ -37,7 +37,10 @@ public class OpenAIQueries : MonoBehaviour
     };
     [HideInInspector]
     public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
-        "The other photo is the player's current perspective and what they are currently looking at in the scene.";
+        "The other photo is the player's current perspective and what they are currently looking at in the scene." +
+        "The player is going to ask you questions about the contents in these photos.";
+    [HideInInspector]
+    public string memoClassifications = "Limit your reply to 150 words or less. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -51,16 +54,14 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
                    "and 'guide' after a comma if they don't specify teleportation." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
+                   "Only do this if you're sure they want to go to an object." +
                    "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
+                   "Only do this if you're sure they want to add a sound." +
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability.";
         }
     }
-    // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
-    [HideInInspector]
-    public string memoClassifications = "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
 
     // OpenAI audio, text message, result variables
     [HideInInspector]
@@ -354,7 +355,7 @@ public class OpenAIQueries : MonoBehaviour
 
     public void SetNewResult(string result)
     {
-        Debug.Log("Reached SetNewResult");
+        //Debug.Log("Reached SetNewResult");
         if (m_GuideAudioSync != null)
             m_GuideAudioSync.SetResult(result);
         else
