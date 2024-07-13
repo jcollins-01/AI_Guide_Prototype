@@ -600,7 +600,7 @@ GameObject:
   - component: {fileID: 2078673634}
   - component: {fileID: 2078673632}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: Guide Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -737,7 +737,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2078673630}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -2026,7 +2026,7 @@ Camera:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 972060187089539768}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_ClearFlags: 1
   m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
@@ -2321,16 +2321,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3312afc9cf03804dab5045e2722bcbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  teleportEffect: {fileID: 8300000, guid: 8cd5c32a087fb49499b98ed7a090f9e2, type: 3}
-  walkEffect: {fileID: 8300000, guid: 4eb202fd736dd874e87b70e7d63615c7, type: 3}
-  woodEffect: {fileID: 8300000, guid: 5c514d9afbc1d91489fca7805122b8ac, type: 3}
-  waterEffect: {fileID: 8300000, guid: 2b5324f6f7fae274ba6f8893ef7fbf78, type: 3}
-  grassEffect: {fileID: 8300000, guid: 00c89c428d8affa4b954eea7e5901b41, type: 3}
-  turnEffect: {fileID: 8300000, guid: 90683fc7ca6d98d4eaaa83cc80218e28, type: 3}
-  idleEffect: {fileID: 8300000, guid: a1aa1da5a77860740ba2b0e74c59addc, type: 3}
-  noEffect: {fileID: 8300000, guid: f5c234ff20093b546adebcd013a9ac24, type: 3}
-  currentClip: {fileID: 0}
-  surfaceMaterial: 
+  playerAudio: {fileID: 0}
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0

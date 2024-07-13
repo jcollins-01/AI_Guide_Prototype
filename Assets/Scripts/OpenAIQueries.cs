@@ -40,7 +40,7 @@ public class OpenAIQueries : MonoBehaviour
         "The other photo is the player's current perspective and what they are currently looking at in the scene." +
         "The player is going to ask you questions about the contents in these photos.";
     [HideInInspector]
-    public string memoClassifications = "Limit your reply to 150 words or less. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
+    public string memoClassifications = "Limit your reply to 150 words or less - DO NOT GO OVER THIS WORD LIMIT. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -59,7 +59,7 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
-                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability.";
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, limit your reply to 150 words or less.";
         }
     }
 

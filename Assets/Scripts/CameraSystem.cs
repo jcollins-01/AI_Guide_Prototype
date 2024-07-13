@@ -52,6 +52,11 @@ public class CameraSystem : MonoBehaviour
         GameObject newCamera = new GameObject("Bird's Eye Camera");
         birdEyeCamera = newCamera.AddComponent<Camera>();
 
+        // If we're in the test scene, alter the birdHeight variable to be closer since the scene isn't as big
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked"))
+            birdHeight = 15f;
+
         // Camera has specified height it goes above the guide to get bird's eye view + rotation + widened field of view to look down at the scene
         birdHeight = birdHeight + transform.position.y;
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);

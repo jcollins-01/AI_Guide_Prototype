@@ -127,7 +127,7 @@ public class PlayAudio : MonoBehaviour
             }
             else // If position hasn't changed
             {
-                if (theGuide.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
+                if (theGuide.GetComponentInParent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
                 {
                     playerAudio.clip = idleEffect;
                     if (!playerAudio.isPlaying)

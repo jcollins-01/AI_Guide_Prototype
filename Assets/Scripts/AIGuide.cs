@@ -114,13 +114,13 @@ public class AIGuide : MonoBehaviour
         // Checking for completion of speech transcription
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
-            // Construct the query to send to GPT-4 - ADD guideClassification
+            // Construct the query to send to GPT-4
             m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
-            // [DEPRECATED] If this is the first query, send all classifcations - after that, the guide should remember the player, photo, and scene contexts
+            // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
             /*if (firstQuery)
             {
-                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.photoClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+                m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
                 firstQuery = false;
             }
             else
