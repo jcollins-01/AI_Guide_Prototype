@@ -11,6 +11,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
     private GuideRoleSync m_guideRoleSync;
+    private ConfederateHandler m_ConfederateHandlerScript;
 
     // GameObjects for avatar assignment
     private GameObject theGuide;
@@ -25,14 +26,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private bool aiGuideFound = false;
     private bool avatarsFound = false;
     private bool roleSyncFound = false;
-
-    // Variable to assign publicly in the editor; set in RoomManager
-    //public bool isPlayer;
+    private bool confederateHandlerFound = false;
 
     private void Start()
     {
-        // Find and load appropriate resources
-        m_AIGuideScript = GetComponent<AIGuide>();
+        
     }
 
     // Update is called once per frame
@@ -47,24 +45,37 @@ public class ChangeAvatarRuntime : MonoBehaviour
             getPossibleModels();
         if (!roleSyncFound)
             getRoleSync();
+        if (!confederateHandlerFound)
+            getConfederateHandler();
 
         // Assign the guide's appearance by its role, called constantly in case of role updates
-        if (sharedMovementFound && aiGuideFound && avatarsFound)
-            assignAvatarByRole();
+        if (sharedMovementFound && aiGuideFound && avatarsFound && confederateHandlerFound)
+        {
+            // If the local client is NOT a confederate version, we can update the guide's role from it
+            if (!m_ConfederateHandlerScript.confederateVersion)
+                assignAvatarByRole();
+        }
 
         // Continuously search for unassigned confederates and assign them random avatars
         pickAvatarAtRandomForAll();
     }
 
-    private void assignAvatarByRole()
+    public void assignAvatarByRole()
     {
         // Grab role to see if it has changed
         int role = m_AIGuideScript.role;
         UpdateAvatar(role);
 
         // Set the multiplayer network role if we have the sync component
+        SetNewRole(role);
+    }
+
+    private void SetNewRole(int role)
+    {
         if (roleSyncFound)
             m_guideRoleSync.SetRole(role);
+        else
+            Debug.LogError("GuideAudioSync is not initialized.");
     }
 
     private void DisableAllRenderers(GameObject model)
@@ -95,7 +106,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     // Finds all avatars in the scene with AvatarUnassigned tag, gives a random avatar
     // This is done for confederates so they have random appearances
-    private void pickAvatarAtRandomForAll()
+    public void pickAvatarAtRandomForAll()
     {
         GameObject[] avatarsInScene;
         avatarsInScene = GameObject.FindGameObjectsWithTag("AvatarUnassigned");
@@ -179,6 +190,14 @@ public class ChangeAvatarRuntime : MonoBehaviour
             avatarsFound = true;
     }
 
+    private void getConfederateHandler()
+    {
+        if (m_ConfederateHandlerScript == null)
+            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
+        else
+            confederateHandlerFound = true;
+    }
+
     // Methods to update the avatar across the multiplayer network
     private void getRoleSync()
     {
@@ -197,6 +216,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     public void SetRole(int role)
     {
+        Debug.Log("Set a new guide role from network");
         _role = role;
         UpdateAvatar(_role);
     }

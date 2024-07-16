@@ -27,7 +27,7 @@ public class CameraSystem : MonoBehaviour
     {
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-        createBirdEyeCamera();
+        //createBirdEyeCamera();
     }
 
     private void Update()
@@ -35,16 +35,23 @@ public class CameraSystem : MonoBehaviour
         // If there is a guide in the scene, pull the bird eye camera from it, then begin sending screenshots
         if (GetComponent<SharedMovement>().theGuide != null && !calledCamerasToStart)
         {
-            birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
+            //birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
 
             if (!calledCamerasToStart)
             {
                 // Begin capturing screenshots every 10 secs to keep guide updated on scene
                 //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-                CaptureScreenshot();
+                //CaptureScreenshot(); // capture once from both cameras
+                //InvokeRepeating("CaptureWrapper", 0f, 10f);
+                //destroyBirdEyeCamera();
                 calledCamerasToStart = true;
             }
         }
+    }
+    
+    private void destroyBirdEyeCamera()
+    {
+        Destroy(birdEyeCamera.gameObject);
     }
 
     private void createBirdEyeCamera()
@@ -64,15 +71,24 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.fieldOfView = fieldOfView;
 
         // After the bird's eye camera is created, enable other cameras in the scene
-        Camera guideCamera = GameObject.Find("Guide Camera").GetComponent<Camera>();
-        enableCamera(viewpointCamera);
-        enableCamera(guideCamera);
+        //Camera guideCamera = GameObject.Find("Guide Camera").GetComponent<Camera>();
+        //enableCamera(guideCamera);
+        //enableCamera(viewpointCamera);
     }
 
-    private void enableCamera(Camera camera)
+
+    /*private void enableCamera(Camera camera)
     {
         if (birdEyeCamera != null)
             camera.enabled = true;
+    }*/
+
+    private void CaptureWrapper()
+    {
+        CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");
+
+        refreshed = false;
+        RefreshAssets();
     }
 
     private void CaptureScreenshot()

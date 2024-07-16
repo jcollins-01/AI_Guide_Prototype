@@ -47,13 +47,13 @@ public class GuideRoleSync : RealtimeComponent<GuideRoleModel>
 
     private void RoleDidChange(GuideRoleModel model, int value)
     {
-        //Debug.Log("Detected a role change over the network");
+        //Debug.Log("Detected a role change over the network, role is " + value);
         _changeAvatarRuntime.SetRole(value);
     }
 
     public void SetRole(int role)
     {
-        //Debug.Log("Reached SetRole in GuideRoleSync");
+        //Debug.Log("Reached SetRole in GuideRoleSync, role is " + role);
         if (model != null)
             model.role = role;
         else

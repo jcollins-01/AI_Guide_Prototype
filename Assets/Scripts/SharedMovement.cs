@@ -147,8 +147,8 @@ public class SharedMovement : MonoBehaviour
 
         foreach (GameObject currentPlayer in foundPlayers)
         {
-            // If the found player has a SharedMovement component (is not a guide) and is using the guide set them as the main player
-            if (currentPlayer.GetComponent<SharedMovement>()) //&& currentPlayer.GetComponent<SharedMovement>().guideOn == true
+            // If the found player has a SharedMovement component (is not a guide), set them as the main player
+            if (currentPlayer.GetComponent<SharedMovement>())
                 thePlayer = currentPlayer;
         }
 

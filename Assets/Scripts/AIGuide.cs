@@ -41,6 +41,17 @@ public class AIGuide : MonoBehaviour
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
 
         Debug.Log("AIGuide is active!");
+
+        // Line for testing role change over the network
+        InvokeRepeating("ChangeGuideRole", 0f, 10f);
+    }
+
+    // For testing the role change over the network
+    private void ChangeGuideRole()
+    {
+        int randRole = Random.Range(1, 6);
+
+        role = randRole;
     }
 
     // Method to test if result is working
@@ -56,12 +67,6 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.A))
-        {
-            Debug.Log("Sent a result from the Wizard");
-            SetNewResult(result);
-        }
-
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();

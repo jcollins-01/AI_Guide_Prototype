@@ -28,6 +28,8 @@ public class PlayAudio : MonoBehaviour
     private AudioClip grassEffect;
     private AudioClip turnEffect;
     private AudioClip idleEffect; // Guide only
+    private AudioClip woodCollisionEffect;
+    private AudioClip collisionEffect;
     private AudioClip noEffect; // For sharing sound properly
 
     // For sharing audio over network (not implemented yet)
@@ -50,6 +52,8 @@ public class PlayAudio : MonoBehaviour
         grassEffect = Resources.Load<AudioClip>("Audio/grass-walk");
         turnEffect = Resources.Load<AudioClip>("Audio/turn");
         idleEffect = Resources.Load<AudioClip>("Audio/guide_idle");
+        woodCollisionEffect = Resources.Load<AudioClip>("Audio/wooden-collision");
+        collisionEffect = Resources.Load<AudioClip>("Audio/general-collision");
         noEffect = Resources.Load<AudioClip>("Audio/nothing");
     }
 
@@ -75,7 +79,7 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    IEnumerator checkTeleport()
+    public IEnumerator checkTeleport()
     {
         // If the action of teleportation has completed
         if (teleport.locomotionPhase == LocomotionPhase.Done)
@@ -87,7 +91,7 @@ public class PlayAudio : MonoBehaviour
         yield return new WaitForSeconds(0F);
     }
 
-    IEnumerator checkTurning()
+    public IEnumerator checkTurning()
     {
         //DeviceBasedSnapTurnProvider snapTurn = FindObjectOfType<DeviceBasedSnapTurnProvider>();
         ActionBasedSnapTurnProvider snapTurn = FindObjectOfType<ActionBasedSnapTurnProvider>();
@@ -101,7 +105,7 @@ public class PlayAudio : MonoBehaviour
         yield return new WaitForSeconds(0F);
     }
 
-    IEnumerator checkMoving(Vector3 lastPosition)
+    public IEnumerator checkMoving(Vector3 lastPosition)
     {
         // First wait to check for a new position
         yield return new WaitForSeconds(0.000001f);
@@ -172,6 +176,7 @@ public class PlayAudio : MonoBehaviour
     {
         //Debug.Log("Collided with " + hit.transform.tag + " object.");
 
+        // Collect surface materials for all objects we collide with to share over network
         if (hit.transform.tag == "Wood")
             surfaceMaterial = "wood";
         else if (hit.transform.tag == "Water")
@@ -180,6 +185,17 @@ public class PlayAudio : MonoBehaviour
             surfaceMaterial = "grass";
         else
             surfaceMaterial = "other";
+
+        // If we hit Obstacles (layer 8), play a collision sound
+        if (hit.gameObject.layer == 8)
+        {
+            if (hit.transform.tag == "Wood")
+                playerAudio.clip = woodCollisionEffect;
+            else if (hit.transform.tag == "Player") // When collisions between Player and Rig are on at the scene open, ensure no collision sound occurs
+                playerAudio.clip = noEffect;
+            else
+                playerAudio.clip = collisionEffect;
+        }
     }
 
     private void getSharedMovement()

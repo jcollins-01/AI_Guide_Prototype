@@ -47,8 +47,8 @@ public class OpenAIQueries : MonoBehaviour
     public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
     {
         get
-        {
-            return "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
+        {//succintly summarize?
+            return "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
                    "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
@@ -59,7 +59,7 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
-                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, limit your reply to 150 words or less.";
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
     }
 
