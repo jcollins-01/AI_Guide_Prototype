@@ -58,11 +58,16 @@ public class SharedMovement : MonoBehaviour
         if (!confederateHandlerFound)
             getConfederateHandler();
 
-        // If we've grabbed the ConfederateHandler component and we are not playing as a confederate
-        if (confederateHandlerFound && !m_ConfederateHandlerScript.confederateVersion)
+        // If there is an AIGuide object in the scene (an AI guide has joined)
+        if (FindObjectOfType<AIGuide>())
         {
             // Assigns roles to guide and player
             AssignRoles();
+        }
+
+        // If we've grabbed the ConfederateHandler component and we are not playing as a confederate
+        if (confederateHandlerFound && !m_ConfederateHandlerScript.confederateVersion)
+        {
             // Creates the CameraSystem for the guide to keep track of Player's Movement
             if (!cameraAdded)
             {
@@ -169,9 +174,12 @@ public class SharedMovement : MonoBehaviour
 
         foreach (GameObject currentPlayer in foundPlayers)
         {
-            // If the found player has a SharedMovement component (is not a guide), set them as the main player
-            if (currentPlayer.GetComponent<SharedMovement>())
+            // If the found player has a SharedMovement component (not a guide) and confederate version is false (not a confederate), set them as the player
+            if (currentPlayer.GetComponent<SharedMovement>() && !m_ConfederateHandlerScript.confederateVersion)
+            {
+                Debug.Log("Assigned player from a local NON CONFEDERATE");
                 thePlayer = currentPlayer;
+            }
         }
 
         // Grabs the necessary physics components for Shared Movement
@@ -262,6 +270,10 @@ public class SharedMovement : MonoBehaviour
         if (m_ConfederateHandlerScript == null)
             m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
         else
+        {
+            Debug.Log("Got confederate handler script");
             confederateHandlerFound = true;
+        }
+            
     }
 }

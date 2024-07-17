@@ -13,7 +13,7 @@ public class ConfederateHandler : MonoBehaviour
     private SharedMovement m_SharedMovementScript;
 
     // Game Objects
-    private GameObject theConfederate;
+    public GameObject theConfederate;
 
     // Bools to share with other scripts
     public bool confederateVersion;
@@ -34,11 +34,15 @@ public class ConfederateHandler : MonoBehaviour
         if (currentSceneName.Equals("Con_GuideTest_Networked") || currentSceneName.Equals("Con_Park1_Networked") || currentSceneName.Equals("Con_Park2_Networked") || currentSceneName.Equals("Con_Park3_Networked"))
         {
             AssignConfederate();
-            //m_SharedMovementScript.enabled = false;
             confederateVersion = true;
+            // Send confederate version over a network
         }
         else
+        {
             confederateVersion = false;
+            // Send confederate version over a network
+        }
+
     }
 
     // Update is called once per frame
