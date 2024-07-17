@@ -6,8 +6,7 @@ using Normal.Realtime;
 
 public class PlayAudio : MonoBehaviour
 {
-    // Components to grab from scene and scripts
-    public AudioSource playerAudio;
+    // Components to grab from scripts
     private TeleportationProvider teleport;
     private ActionBasedContinuousMoveProvider move;
     private XRInteractionManager interactionManager;
@@ -16,20 +15,28 @@ public class PlayAudio : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
+    private ConfederateHandler m_ConfederateHandlerScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
+    private bool confederateHandlerFound = false;
 
-    // Sound effects for sonification
+    // Audio sources for sonification
+    public AudioSource playerAudio;
+    private AudioSource guideAudio;
+
+    // Sound effects for player sonification
     private AudioClip teleportEffect;
     private AudioClip walkEffect;
     private AudioClip woodEffect;
     private AudioClip waterEffect;
     private AudioClip grassEffect;
     private AudioClip turnEffect;
-    private AudioClip idleEffect; // Guide only
     private AudioClip woodCollisionEffect;
     private AudioClip collisionEffect;
+
+    // Sound effects for guide sonification
+    private AudioClip idleEffect;
     private AudioClip noEffect; // For sharing sound properly
 
     // For sharing audio over network (not implemented yet)
@@ -51,19 +58,24 @@ public class PlayAudio : MonoBehaviour
         waterEffect = Resources.Load<AudioClip>("Audio/water-walk");
         grassEffect = Resources.Load<AudioClip>("Audio/grass-walk");
         turnEffect = Resources.Load<AudioClip>("Audio/turn");
-        idleEffect = Resources.Load<AudioClip>("Audio/guide_idle");
         woodCollisionEffect = Resources.Load<AudioClip>("Audio/wooden-collision");
         collisionEffect = Resources.Load<AudioClip>("Audio/general-collision");
+
+        idleEffect = Resources.Load<AudioClip>("Audio/guide_idle");
         noEffect = Resources.Load<AudioClip>("Audio/nothing");
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Grab components we need access to
+        if (!confederateHandlerFound)
+            getConfederateHandler();
         if (!sharedMovementFound)
             getSharedMovement();
         
-        if (sharedMovementFound)
+        // If we have shared movement components assigned (a guide and player) OR we found the confederate handler and are a confederate
+        if (sharedMovementFound || (confederateHandlerFound && m_ConfederateHandlerScript.confederateVersion))
         {
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;
@@ -131,7 +143,7 @@ public class PlayAudio : MonoBehaviour
             }
             else // If position hasn't changed
             {
-                if (theGuide.GetComponentInParent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
+                if (!m_ConfederateHandlerScript.confederateVersion) // if we are playing as the player with a guide
                 {
                     playerAudio.clip = idleEffect;
                     if (!playerAudio.isPlaying)
@@ -159,7 +171,7 @@ public class PlayAudio : MonoBehaviour
                 }
                 else // If position hasn't changed
                 {
-                    if (theGuide.GetComponentInParent<RealtimeView>().isOwnedLocallyInHierarchy) //if we are playing as theGuide
+                    if (!m_ConfederateHandlerScript.confederateVersion) // if we are playing as the player with a guide
                     {
                         playerAudio.clip = idleEffect;
                         if (!playerAudio.isPlaying)
@@ -215,5 +227,13 @@ public class PlayAudio : MonoBehaviour
                 sharedMovementFound = true;
             }
         }
+    }
+
+    private void getConfederateHandler()
+    {
+        if (m_ConfederateHandlerScript == null)
+            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
+        else
+            confederateHandlerFound = true;
     }
 }

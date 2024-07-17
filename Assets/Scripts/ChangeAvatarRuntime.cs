@@ -13,13 +13,19 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private GuideRoleSync m_guideRoleSync;
     private ConfederateHandler m_ConfederateHandlerScript;
 
-    // GameObjects for avatar assignment
+    // GameObjects for guide avatar assignment
     private GameObject theGuide;
     private GameObject human;
     private GameObject dog;
     private GameObject cane;
     private GameObject robot;
     private GameObject bird;
+
+    // GameObjects for confederate avatar assignment
+    private GameObject model1;
+    private GameObject model2;
+    private GameObject model3;
+    private GameObject model4;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -53,14 +59,14 @@ public class ChangeAvatarRuntime : MonoBehaviour
         {
             // If the local client is NOT a confederate version, we can update the guide's role from it
             if (!m_ConfederateHandlerScript.confederateVersion)
-                assignAvatarByRole();
+                assignGuideAvatarByRole();
         }
 
         // Continuously search for unassigned confederates and assign them random avatars
-        pickAvatarAtRandomForAll();
+        //pickAvatarAtRandomForAll();
     }
 
-    public void assignAvatarByRole()
+    private void assignGuideAvatarByRole()
     {
         // Grab role to see if it has changed
         int role = m_AIGuideScript.role;
@@ -70,12 +76,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
         SetNewRole(role);
     }
 
-    private void SetNewRole(int role)
+    // Called from ConfederateHandler
+    public void assignConfederateAvatarByRole(int role)
     {
-        if (roleSyncFound)
-            m_guideRoleSync.SetRole(role);
-        else
-            Debug.LogError("GuideAudioSync is not initialized.");
+        UpdateAvatar(role);
+        SetNewRole(role);
     }
 
     private void DisableAllRenderers(GameObject model)
@@ -105,8 +110,8 @@ public class ChangeAvatarRuntime : MonoBehaviour
     }
 
     // Finds all avatars in the scene with AvatarUnassigned tag, gives a random avatar
-    // This is done for confederates so they have random appearances
-    public void pickAvatarAtRandomForAll()
+    // This is done if we want confederates to have random appearances, not shared over the network
+    private void pickAvatarAtRandomForAll()
     {
         GameObject[] avatarsInScene;
         avatarsInScene = GameObject.FindGameObjectsWithTag("AvatarUnassigned");
@@ -177,6 +182,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     private void getPossibleModels()
     {
+        // Grab all possible models for guide avatars
         if (human == null || dog == null || cane == null || robot == null || bird == null)
         {
             // Grab all possible models for avatars
@@ -188,6 +194,16 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
         else
             avatarsFound = true;
+    }
+
+    // Called from ConfederateHandler
+    public void getConfederateModels(GameObject theConfederate)
+    {
+        // Grab all possible models for confederate avatars
+        model1 = theConfederate.transform.Find("Model 1").gameObject;
+        model2 = theConfederate.transform.Find("Model 2").gameObject;
+        model3 = theConfederate.transform.Find("Model 3").gameObject;
+        model4 = theConfederate.transform.Find("Model 4").gameObject;
     }
 
     private void getConfederateHandler()
@@ -202,21 +218,15 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private void getRoleSync()
     {
         if (m_guideRoleSync == null)
-        {
             m_guideRoleSync = FindObjectOfType<GuideRoleSync>();
-            //Debug.Log("Have not found role sync");
-        }
         else
-        {
             roleSyncFound = true;
-            //Debug.Log("Found role sync");
-        }
             
     }
 
     public void SetRole(int role)
     {
-        Debug.Log("Set a new guide role from network");
+        Debug.Log("Set a new role from network");
         _role = role;
         UpdateAvatar(_role);
     }
@@ -224,6 +234,14 @@ public class ChangeAvatarRuntime : MonoBehaviour
     public int GetCurrentRole()
     {
         return _role;
+    }
+
+    private void SetNewRole(int role)
+    {
+        if (roleSyncFound)
+            m_guideRoleSync.SetRole(role);
+        else
+            Debug.LogError("GuideAudioSync is not initialized.");
     }
 
     private void UpdateAvatar(int role)
@@ -271,13 +289,41 @@ public class ChangeAvatarRuntime : MonoBehaviour
             DisableAllRenderers(robot);
             EnableAllRenderers(bird);
         }
-        else // Invisible Guide
+        else if (role == 6) // Invisible Guide
         {
             DisableAllRenderers(human);
             DisableAllRenderers(dog);
             DisableAllRenderers(cane);
             DisableAllRenderers(robot);
             DisableAllRenderers(bird);
+        } // END OF GUIDE ROLES ----- BEGINNING OF CONFEDERATE ROLES
+        else if (role == 7 && confederateHandlerFound) // Model 1
+        {
+            EnableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
+        }
+        else if (role == 8 && confederateHandlerFound) // Model 2
+        {
+            DisableAllRenderers(model1);
+            EnableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
+        }
+        else if (role == 9 && confederateHandlerFound) // Model 3
+        {
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            EnableAllRenderers(model3);
+            DisableAllRenderers(model4);
+        }
+        else if (role == 10 && confederateHandlerFound) // Model 4
+        {
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            EnableAllRenderers(model4);
         }
     }
 }

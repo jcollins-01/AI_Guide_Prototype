@@ -27,7 +27,7 @@ public class CameraSystem : MonoBehaviour
     {
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
-        //createBirdEyeCamera();
+        createBirdEyeCamera();
     }
 
     private void Update()
@@ -35,7 +35,7 @@ public class CameraSystem : MonoBehaviour
         // If there is a guide in the scene, pull the bird eye camera from it, then begin sending screenshots
         if (GetComponent<SharedMovement>().theGuide != null && !calledCamerasToStart)
         {
-            //birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
+            birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
 
             if (!calledCamerasToStart)
             {

@@ -9,6 +9,7 @@ public class SharedMovement : MonoBehaviour
 {
     // Variables to hold scripts and Game Objects we need access to
     private VRHandling m_VRHandlingScript;
+    private ConfederateHandler m_ConfederateHandlerScript;
     public GameObject thePlayer;
     public GameObject theGuide;
     private XROrigin playerRig;
@@ -26,6 +27,10 @@ public class SharedMovement : MonoBehaviour
     public bool playerGrabbingGuide = false;
     public CapsuleCollider guideCollider;
 
+    // Monitoring bools
+    private bool confederateHandlerFound = false;
+    private bool cameraAdded = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -40,10 +45,7 @@ public class SharedMovement : MonoBehaviour
                 playerRig = rig;
         }
 
-        // Creates the CameraSystem for the guide to keep track of Player's Movement
-        gameObject.AddComponent<CameraSystem>(); //guideOn
-
-        // Ignore collisions between Player and XR Rig
+        // Ignore collisions between Player or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
         CharacterController control = FindObjectOfType<CharacterController>();
         control.detectCollisions = true;
@@ -52,9 +54,29 @@ public class SharedMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Assigns roles to guide and player
-        AssignRoles(); //guideOn
+        // Looks for the ConfederateHandler component so we can check if we're a confederate
+        if (!confederateHandlerFound)
+            getConfederateHandler();
 
+        // If we've grabbed the ConfederateHandler component and we are not playing as a confederate
+        if (confederateHandlerFound && !m_ConfederateHandlerScript.confederateVersion)
+        {
+            // Assigns roles to guide and player
+            AssignRoles();
+            // Creates the CameraSystem for the guide to keep track of Player's Movement
+            if (!cameraAdded)
+            {
+                gameObject.AddComponent<CameraSystem>();
+                cameraAdded = true;
+            }
+            
+            // Enables shared movement between the player and the guide when player grabs the guide
+            ShareMovementOnGrab();
+        }
+    }
+
+    private void ShareMovementOnGrab()
+    {
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
@@ -89,7 +111,7 @@ public class SharedMovement : MonoBehaviour
             {
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
-            } 
+            }
         }
     }
 
@@ -233,5 +255,13 @@ public class SharedMovement : MonoBehaviour
         float headingAngle = Quaternion.LookRotation(forward).eulerAngles.y;
         // Applies new rotation angle so the player faces the same direction as the guide
         thePlayer.transform.rotation = Quaternion.Euler(0.0f, headingAngle, 0.0f);
+    }
+
+    private void getConfederateHandler()
+    {
+        if (m_ConfederateHandlerScript == null)
+            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
+        else
+            confederateHandlerFound = true;
     }
 }
