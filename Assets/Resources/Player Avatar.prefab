@@ -387,6 +387,7 @@ GameObject:
   - component: {fileID: 4695322967106071732}
   - component: {fileID: 5482015977298676800}
   - component: {fileID: 3718601752087374894}
+  - component: {fileID: 7058234254195486520}
   m_Layer: 3
   m_Name: Player Avatar
   m_TagString: Untagged
@@ -438,6 +439,10 @@ MonoBehaviour:
     component: {fileID: 3289871539358793073}
   - componentID: 2
     component: {fileID: 2795285929888297462}
+  - componentID: 3
+    component: {fileID: 0}
+  - componentID: 4
+    component: {fileID: 7058234254195486520}
   _childViews:
   - componentID: 1
     component: {fileID: 0}
@@ -656,6 +661,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   theConfederate: {fileID: 0}
   confederateVersion: 1
+--- !u!114 &7058234254195486520
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1241684057453767626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f25e362f898e30b45817363576579bd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1421275851210865147
 GameObject:
   m_ObjectHideFlags: 0

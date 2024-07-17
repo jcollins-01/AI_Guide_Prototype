@@ -22,6 +22,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private GameObject bird;
 
     // GameObjects for confederate avatar assignment
+    private GameObject theConfederate;
     private GameObject model1;
     private GameObject model2;
     private GameObject model3;
@@ -79,6 +80,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     // Called from ConfederateHandler
     public void assignConfederateAvatarByRole(int role)
     {
+        Debug.Log("Sending confederate role to network + updating avatar");
         UpdateAvatar(role);
         SetNewRole(role);
     }
@@ -197,8 +199,9 @@ public class ChangeAvatarRuntime : MonoBehaviour
     }
 
     // Called from ConfederateHandler
-    public void getConfederateModels(GameObject theConfederate)
+    public void getConfederateModels(GameObject passedConfederate)
     {
+        theConfederate = passedConfederate;
         // Grab all possible models for confederate avatars
         model1 = theConfederate.transform.Find("Model 1").gameObject;
         model2 = theConfederate.transform.Find("Model 2").gameObject;
@@ -226,7 +229,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     public void SetRole(int role)
     {
-        Debug.Log("Set a new role from network");
+        Debug.Log("Set a new role from network" + role);
         _role = role;
         UpdateAvatar(_role);
     }
@@ -299,31 +302,31 @@ public class ChangeAvatarRuntime : MonoBehaviour
         } // END OF GUIDE ROLES ----- BEGINNING OF CONFEDERATE ROLES
         else if (role == 7 && confederateHandlerFound) // Model 1
         {
-            EnableAllRenderers(model1);
-            DisableAllRenderers(model2);
-            DisableAllRenderers(model3);
-            DisableAllRenderers(model4);
+            model1.SetActive(true);
+            model2.SetActive(false);
+            model3.SetActive(false);
+            model4.SetActive(false);
         }
         else if (role == 8 && confederateHandlerFound) // Model 2
         {
-            DisableAllRenderers(model1);
-            EnableAllRenderers(model2);
-            DisableAllRenderers(model3);
-            DisableAllRenderers(model4);
+            model1.SetActive(false);
+            model2.SetActive(true);
+            model3.SetActive(false);
+            model4.SetActive(false);
         }
         else if (role == 9 && confederateHandlerFound) // Model 3
         {
-            DisableAllRenderers(model1);
-            DisableAllRenderers(model2);
-            EnableAllRenderers(model3);
-            DisableAllRenderers(model4);
+            model1.SetActive(false);
+            model2.SetActive(false);
+            model3.SetActive(true);
+            model4.SetActive(false);
         }
         else if (role == 10 && confederateHandlerFound) // Model 4
         {
-            DisableAllRenderers(model1);
-            DisableAllRenderers(model2);
-            DisableAllRenderers(model3);
-            EnableAllRenderers(model4);
+            model1.SetActive(false);
+            model2.SetActive(false);
+            model3.SetActive(false);
+            model4.SetActive(true);
         }
     }
 }

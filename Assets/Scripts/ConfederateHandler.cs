@@ -11,6 +11,7 @@ public class ConfederateHandler : MonoBehaviour
     private ChangeAvatarRuntime m_ChangeAvatarRuntimeScript;
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
+    private ConfederateHandlerSync m_confederateHandlerSync;
 
     // Game Objects
     public GameObject theConfederate;
@@ -27,20 +28,25 @@ public class ConfederateHandler : MonoBehaviour
     {
         // Grabs scripts already in the scene at start
         m_PlayAudioScript = FindObjectOfType<PlayAudio>(); // On XR rig
-        m_SharedMovementScript = GetComponent<SharedMovement>(); // On this Game Object
-        
+        //m_SharedMovementScript = GetComponent<SharedMovement>(); // On this Game Object
+        /*m_confederateHandlerSync = GetComponent<ConfederateHandlerSync>(); // On this Game Object
+        if (m_confederateHandlerSync == null)
+            Debug.LogError("ConfederateHandlerSync component missing from this GameObject.");*/
+
         // If we are in a confederate scene, assign the player owned locally in hierarchy to the audio source
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Con_GuideTest_Networked") || currentSceneName.Equals("Con_Park1_Networked") || currentSceneName.Equals("Con_Park2_Networked") || currentSceneName.Equals("Con_Park3_Networked"))
         {
             AssignConfederate();
+            // Ignore collisions between Player or Confederate and XR Rig
+            Physics.IgnoreLayerCollision(3, 6, true);
+            CharacterController control = FindObjectOfType<CharacterController>();
+            control.detectCollisions = true;
             confederateVersion = true;
-            // Send confederate version over a network
         }
         else
         {
             confederateVersion = false;
-            // Send confederate version over a network
         }
 
     }
@@ -52,10 +58,28 @@ public class ConfederateHandler : MonoBehaviour
         if (!aiGuideFound)
             getAIGuide();
 
+        // If there's a guide in the scene, send our confederate role over the network
+        /*if (aiGuideFound)
+        {
+            // Send confederate version over a network
+            if (confederateVersion)
+                m_confederateHandlerSync.SetConfederateVersion(true);
+            else
+                m_confederateHandlerSync.SetConfederateVersion(false);
+        }
+
         // If there's a guide in the scene and we are the confederate, assign the scripts and run functions dependent on it
-        if (aiGuideFound && confederateVersion)
+        /*if (aiGuideFound && confederateVersion)
         {
             m_AIGuideScript = FindObjectOfType<AIGuide>();
+            m_ChangeAvatarRuntimeScript = FindObjectOfType<ChangeAvatarRuntime>();
+
+            // Assign confederate a random appearance and share it to the network
+            AssignConfederateAvatar();
+        }*/
+
+        if (aiGuideFound && confederateVersion)
+        {
             m_ChangeAvatarRuntimeScript = FindObjectOfType<ChangeAvatarRuntime>();
 
             // Assign confederate a random appearance and share it to the network
@@ -101,6 +125,7 @@ public class ConfederateHandler : MonoBehaviour
 
             // Generates a random role from 7-10, 7: Model 1, 8: Model 2, 9: Model 3, 10: Model 4
             int randomRole = Random.Range(7, 11);
+            Debug.Log("Random role is " + randomRole);
             m_ChangeAvatarRuntimeScript.assignConfederateAvatarByRole(randomRole);
 
             avatarAssigned = true;

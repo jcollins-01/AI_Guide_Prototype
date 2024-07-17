@@ -45,6 +45,9 @@ public class SharedMovement : MonoBehaviour
                 playerRig = rig;
         }
 
+        // Creates the CameraSystem for the guide to keep track of Player's Movement
+        gameObject.AddComponent<CameraSystem>();
+
         // Ignore collisions between Player or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
         CharacterController control = FindObjectOfType<CharacterController>();
@@ -54,6 +57,13 @@ public class SharedMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Assigns roles to guide and player
+        AssignRoles();
+
+        // Enables shared movement between the player and the guide when player grabs the guide
+        ShareMovementOnGrab();
+
+        /*
         // Looks for the ConfederateHandler component so we can check if we're a confederate
         if (!confederateHandlerFound)
             getConfederateHandler();
@@ -78,6 +88,7 @@ public class SharedMovement : MonoBehaviour
             // Enables shared movement between the player and the guide when player grabs the guide
             ShareMovementOnGrab();
         }
+        */
     }
 
     private void ShareMovementOnGrab()
@@ -175,11 +186,8 @@ public class SharedMovement : MonoBehaviour
         foreach (GameObject currentPlayer in foundPlayers)
         {
             // If the found player has a SharedMovement component (not a guide) and confederate version is false (not a confederate), set them as the player
-            if (currentPlayer.GetComponent<SharedMovement>() && !m_ConfederateHandlerScript.confederateVersion)
-            {
-                Debug.Log("Assigned player from a local NON CONFEDERATE");
+            if (currentPlayer.GetComponent<SharedMovement>()) //&& !m_ConfederateHandlerScript.confederateVersion)
                 thePlayer = currentPlayer;
-            }
         }
 
         // Grabs the necessary physics components for Shared Movement

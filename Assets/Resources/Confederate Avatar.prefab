@@ -2130,7 +2130,7 @@ GameObject:
   - component: {fileID: 9195612182662847209}
   m_Layer: 3
   m_Name: Confederate Avatar
-  m_TagString: AvatarUnassigned
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2182,6 +2182,8 @@ MonoBehaviour:
     component: {fileID: 3289871539358793073}
   - componentID: 2
     component: {fileID: 2795285929888297462}
+  - componentID: 3
+    component: {fileID: 0}
   _childViews:
   - componentID: 1
     component: {fileID: 0}
@@ -2382,15 +2384,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fe34b1a21f5c384e80eb32a6500c65c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ChangeAvatarRuntimeScript: {fileID: 0}
-  m_GuideRoleSync: {fileID: 0}
-  m_AIGuideScript: {fileID: 0}
-  theGuide: {fileID: 0}
-  human: {fileID: 0}
-  dog: {fileID: 0}
-  cane: {fileID: 0}
-  robot: {fileID: 0}
-  bird: {fileID: 0}
+  theConfederate: {fileID: 0}
   confederateVersion: 1
 --- !u!1 &1250304209146934156
 GameObject:
@@ -3631,7 +3625,7 @@ MonoBehaviour:
     plantFeet: 1
     spine:
       bones: []
-      headTarget: {fileID: 0}
+      headTarget: {fileID: 7993559550116176942}
       positionWeight: 1
       rotationWeight: 1
       headClampWeight: 0.6
@@ -3655,7 +3649,7 @@ MonoBehaviour:
       rootHeadingOffset: 0
     leftArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 8301684031885640442}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -3677,7 +3671,7 @@ MonoBehaviour:
         m_RotationOrder: 4
     rightArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 6501412319741730576}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -11587,7 +11581,7 @@ MonoBehaviour:
     plantFeet: 1
     spine:
       bones: []
-      headTarget: {fileID: 0}
+      headTarget: {fileID: 7993559550116176942}
       positionWeight: 1
       rotationWeight: 1
       headClampWeight: 0.6
@@ -11611,7 +11605,7 @@ MonoBehaviour:
       rootHeadingOffset: 0
     leftArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 8301684031885640442}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -11623,7 +11617,7 @@ MonoBehaviour:
       bendGoalWeight: 0
       swivelOffset: 0
       wristToPalmAxis: {x: 0, y: 1, z: 0}
-      palmToThumbAxis: {x: 1, y: 0, z: 0}
+      palmToThumbAxis: {x: 0, y: 0, z: 1}
       armLengthMlp: 1
       stretchCurve:
         serializedVersion: 2
@@ -11633,7 +11627,7 @@ MonoBehaviour:
         m_RotationOrder: 4
     rightArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 6501412319741730576}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -11645,7 +11639,7 @@ MonoBehaviour:
       bendGoalWeight: 0
       swivelOffset: 0
       wristToPalmAxis: {x: 0, y: 1, z: 0}
-      palmToThumbAxis: {x: -1, y: -0, z: -0}
+      palmToThumbAxis: {x: 0, y: -0, z: 1}
       armLengthMlp: 1
       stretchCurve:
         serializedVersion: 2
@@ -13508,7 +13502,7 @@ MonoBehaviour:
     plantFeet: 1
     spine:
       bones: []
-      headTarget: {fileID: 0}
+      headTarget: {fileID: 7993559550116176942}
       positionWeight: 1
       rotationWeight: 1
       headClampWeight: 0.6
@@ -13532,7 +13526,7 @@ MonoBehaviour:
       rootHeadingOffset: 0
     leftArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 8301684031885640442}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -13544,7 +13538,7 @@ MonoBehaviour:
       bendGoalWeight: 0
       swivelOffset: 0
       wristToPalmAxis: {x: 0, y: 1, z: 0}
-      palmToThumbAxis: {x: 1, y: 0, z: 0}
+      palmToThumbAxis: {x: 0, y: 0, z: 1}
       armLengthMlp: 1
       stretchCurve:
         serializedVersion: 2
@@ -13554,7 +13548,7 @@ MonoBehaviour:
         m_RotationOrder: 4
     rightArm:
       bones: []
-      target: {fileID: 0}
+      target: {fileID: 6501412319741730576}
       positionWeight: 1
       rotationWeight: 1
       shoulderRotationWeight: 1
@@ -13566,7 +13560,7 @@ MonoBehaviour:
       bendGoalWeight: 0
       swivelOffset: 0
       wristToPalmAxis: {x: 0, y: 1, z: 0}
-      palmToThumbAxis: {x: -1, y: -0, z: -0}
+      palmToThumbAxis: {x: 0, y: -0, z: 1}
       armLengthMlp: 1
       stretchCurve:
         serializedVersion: 2
