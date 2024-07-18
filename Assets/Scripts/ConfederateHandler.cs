@@ -11,13 +11,12 @@ public class ConfederateHandler : MonoBehaviour
     private ChangeAvatarRuntime m_ChangeAvatarRuntimeScript;
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
-    private ConfederateHandlerSync m_confederateHandlerSync;
 
     // Game Objects
     //public GameObject theConfederate;
 
     // Bools to share with other scripts
-    public bool confederateVersion;
+    //public bool confederateVersion;
 
     // Monitoring bools
     private bool aiGuideFound = false;

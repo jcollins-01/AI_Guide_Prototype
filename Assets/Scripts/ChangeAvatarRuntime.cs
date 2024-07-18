@@ -11,6 +11,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private AIGuide m_AIGuideScript;
     //private SharedMovement m_SharedMovementScript;
     private GuideRoleSync m_guideRoleSync;
+    private ConfederateRoleSync m_confederateRoleSync;
     private ConfederateHandler m_ConfederateHandlerScript;
     private GuideFollow m_GuideFollowScript;
 
@@ -34,6 +35,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private bool aiGuideFound = false;
     private bool avatarsFound = false;
     private bool roleSyncFound = false;
+    private bool confederateRoleSyncFound = false;
     private bool confederateHandlerFound = false;
     private bool guideFollowFound = false;
     private bool confederateAvatarAssigned = false;
@@ -60,6 +62,8 @@ public class ChangeAvatarRuntime : MonoBehaviour
             getPossibleModels();
         if (!roleSyncFound)
             getRoleSync();
+        if (!confederateRoleSyncFound)
+            getConfederateRoleSync();
         if (!confederateHandlerFound)
             getConfederateHandler();
         if (!guideFollowFound)
@@ -108,7 +112,9 @@ public class ChangeAvatarRuntime : MonoBehaviour
             Debug.Log("Random role is " + randomRole);
 
             UpdateAvatar(randomRole);
-            SetNewRole(randomRole);
+
+            // Set the multiplayer network role if we have the sync component
+            SetNewConfederateRole(randomRole);
             confederateAvatarAssigned = true;
         }
     }
@@ -232,17 +238,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
             avatarsFound = true;
     }
 
-    // Called from ConfederateHandler
-    public void getConfederateModels(GameObject passedConfederate)
-    {
-        theConfederate = passedConfederate;
-        // Grab all possible models for confederate avatars
-        model1 = theConfederate.transform.Find("Model 1").gameObject;
-        model2 = theConfederate.transform.Find("Model 2").gameObject;
-        model3 = theConfederate.transform.Find("Model 3").gameObject;
-        model4 = theConfederate.transform.Find("Model 4").gameObject;
-    }
-
     private void getConfederateHandler()
     {
         if (FindObjectOfType<ConfederateHandler>())
@@ -279,7 +274,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     public void SetRole(int role)
     {
-        Debug.Log("Set a new role from network" + role);
+        Debug.Log("Set a new role from network: " + role);
         _role = role;
         UpdateAvatar(_role);
     }
@@ -294,7 +289,36 @@ public class ChangeAvatarRuntime : MonoBehaviour
         if (roleSyncFound)
             m_guideRoleSync.SetRole(role);
         else
-            Debug.LogError("GuideAudioSync is not initialized.");
+            Debug.LogError("GuideRoleSync is not initialized.");
+    }
+
+    private void getConfederateRoleSync()
+    {
+        if (m_confederateRoleSync == null)
+            m_confederateRoleSync = FindObjectOfType<ConfederateRoleSync>();
+        else
+            confederateRoleSyncFound = true;
+
+    }
+
+    public void SetConfederateRole(int role)
+    {
+        Debug.Log("Set a new confederate role from network: " + role);
+        _role = role;
+        UpdateAvatar(_role);
+    }
+
+    public int GetConfederateCurrentRole()
+    {
+        return _role;
+    }
+
+    private void SetNewConfederateRole(int role)
+    {
+        if (confederateRoleSyncFound)
+            m_confederateRoleSync.SetConfederateRole(role);
+        else
+            Debug.LogError("ConfederateRoleSync is not initialized.");
     }
 
     private void UpdateAvatar(int role)
