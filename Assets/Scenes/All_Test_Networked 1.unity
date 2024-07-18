@@ -2849,6 +2849,7 @@ GameObject:
   - component: {fileID: 7499811818819337961}
   - component: {fileID: 7499811818819337960}
   - component: {fileID: 7499811818819337962}
+  - component: {fileID: 7499811818819337963}
   m_Layer: 6
   m_Name: XR Origin
   m_TagString: Untagged
@@ -3385,6 +3386,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAudio: {fileID: 0}
+--- !u!114 &7499811818819337963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950086389194246744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fe34b1a21f5c384e80eb32a6500c65c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  confederateVersion: 0
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0

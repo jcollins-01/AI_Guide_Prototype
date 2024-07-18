@@ -14,7 +14,7 @@ public class ConfederateHandler : MonoBehaviour
     private ConfederateHandlerSync m_confederateHandlerSync;
 
     // Game Objects
-    public GameObject theConfederate;
+    //public GameObject theConfederate;
 
     // Bools to share with other scripts
     public bool confederateVersion;

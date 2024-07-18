@@ -36,6 +36,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private bool roleSyncFound = false;
     private bool confederateHandlerFound = false;
     private bool guideFollowFound = false;
+    private bool confederateAvatarAssigned = false;
 
     private void Start()
     {
@@ -101,11 +102,15 @@ public class ChangeAvatarRuntime : MonoBehaviour
     // Called from ConfederateHandler
     public void assignConfederateAvatarByRole()
     {
-        int randomRole = Random.Range(7, 11);
-        Debug.Log("Random role is " + randomRole);
+        if (!confederateAvatarAssigned)
+        {
+            int randomRole = Random.Range(7, 11);
+            Debug.Log("Random role is " + randomRole);
 
-        UpdateAvatar(randomRole);
-        SetNewRole(randomRole);
+            UpdateAvatar(randomRole);
+            SetNewRole(randomRole);
+            confederateAvatarAssigned = true;
+        }
     }
 
     private void DisableAllRenderers(GameObject model)
@@ -240,10 +245,13 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     private void getConfederateHandler()
     {
-        if (m_ConfederateHandlerScript == null)
-            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
-        else
-            confederateHandlerFound = true;
+        if (FindObjectOfType<ConfederateHandler>())
+        {
+            if (m_ConfederateHandlerScript == null)
+                m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
+            else
+                confederateHandlerFound = true;
+        }
     }
 
     private void getGuideFollow()
