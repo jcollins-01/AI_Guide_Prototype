@@ -57,6 +57,7 @@ public class CameraSystem : MonoBehaviour
     private void createBirdEyeCamera()
     {
         GameObject newCamera = new GameObject("Bird's Eye Camera");
+
         birdEyeCamera = newCamera.AddComponent<Camera>();
 
         // If we're in the test scene, alter the birdHeight variable to be closer since the scene isn't as big

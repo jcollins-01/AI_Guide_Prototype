@@ -29,7 +29,6 @@ public class SharedMovement : MonoBehaviour
 
     // Monitoring bools
     private bool confederateHandlerFound = false;
-    private bool cameraAdded = false;
 
     // Start is called before the first frame update
     void Start()
@@ -40,7 +39,7 @@ public class SharedMovement : MonoBehaviour
         // Checks which ones are root objects, which would make them players
         foreach (XROrigin rig in foundRigs)
         {
-            // Assign playerRig to the only rig on the XR Rig layer (layer for player's rig)
+            // Assign playerRig to the only rig on the XR Rig layer (layer for player's rig, guide's is on default)
             if (rig.gameObject.layer == 6)
                 playerRig = rig;
         }
@@ -62,33 +61,6 @@ public class SharedMovement : MonoBehaviour
 
         // Enables shared movement between the player and the guide when player grabs the guide
         ShareMovementOnGrab();
-
-        /*
-        // Looks for the ConfederateHandler component so we can check if we're a confederate
-        if (!confederateHandlerFound)
-            getConfederateHandler();
-
-        // If there is an AIGuide object in the scene (an AI guide has joined)
-        if (FindObjectOfType<AIGuide>())
-        {
-            // Assigns roles to guide and player
-            AssignRoles();
-        }
-
-        // If we've grabbed the ConfederateHandler component and we are not playing as a confederate
-        if (confederateHandlerFound && !m_ConfederateHandlerScript.confederateVersion)
-        {
-            // Creates the CameraSystem for the guide to keep track of Player's Movement
-            if (!cameraAdded)
-            {
-                gameObject.AddComponent<CameraSystem>();
-                cameraAdded = true;
-            }
-            
-            // Enables shared movement between the player and the guide when player grabs the guide
-            ShareMovementOnGrab();
-        }
-        */
     }
 
     private void ShareMovementOnGrab()
@@ -187,7 +159,10 @@ public class SharedMovement : MonoBehaviour
         {
             // If the found player has a SharedMovement component (not a guide) and confederate version is false (not a confederate), set them as the player
             if (currentPlayer.GetComponent<SharedMovement>()) //&& !m_ConfederateHandlerScript.confederateVersion)
+            {
+                //if (currentPlayer.GetComponent<Normal.Realtime.RealtimeView>().ownerIDInHierarchy == 0) // If they joined the scene first
                 thePlayer = currentPlayer;
+            } 
         }
 
         // Grabs the necessary physics components for Shared Movement
@@ -238,11 +213,16 @@ public class SharedMovement : MonoBehaviour
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on
         // If not, turn collisions off - the guide falls in this second category where we want to ignore collisions while we're grabbing it
-        XRGrabInteractable grab = other.GetComponent<XRGrabInteractable>();
-        if (grab.interactorsSelecting.Count == 1)
+        if (other.GetComponent<XRGrabInteractable>())
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
         else
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);
+
+        /*XRGrabInteractable grab = other.GetComponent<XRGrabInteractable>();
+        if (grab.interactorsSelecting.Count == 1)
+            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
+        else
+            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);*/
     }
 
     public void OnTriggerExit(Collider other)

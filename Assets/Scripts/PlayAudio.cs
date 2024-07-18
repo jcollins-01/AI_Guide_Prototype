@@ -15,11 +15,13 @@ public class PlayAudio : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
-    private ConfederateHandler m_ConfederateHandlerScript;
+    //private ConfederateHandler m_ConfederateHandlerScript;
+    private GuideFollow m_GuideFollowScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
-    private bool confederateHandlerFound = false;
+    //private bool confederateHandlerFound = false;
+    private bool guideFollowFound = false;
 
     // Audio sources for sonification
     public AudioSource playerAudio;
@@ -69,13 +71,15 @@ public class PlayAudio : MonoBehaviour
     void Update()
     {
         // Grab components we need access to
-        if (!confederateHandlerFound)
-            getConfederateHandler();
+        //if (!confederateHandlerFound)
+            //getConfederateHandler();
         if (!sharedMovementFound)
             getSharedMovement();
-        
+        if (!guideFollowFound)
+            getGuideFollow();
+
         // If we have shared movement components assigned (a guide and player) OR we found the confederate handler and are a confederate
-        if (sharedMovementFound || (confederateHandlerFound && m_ConfederateHandlerScript.confederateVersion))
+        if (sharedMovementFound) // || (confederateHandlerFound && m_ConfederateHandlerScript.confederateVersion))
         {
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;
@@ -143,7 +147,7 @@ public class PlayAudio : MonoBehaviour
             }
             else // If position hasn't changed
             {
-                if (!m_ConfederateHandlerScript.confederateVersion) // if we are playing as the player with a guide
+                if (guideFollowFound) // if we are playing as the player with a guide
                 {
                     playerAudio.clip = idleEffect;
                     if (!playerAudio.isPlaying)
@@ -171,7 +175,7 @@ public class PlayAudio : MonoBehaviour
                 }
                 else // If position hasn't changed
                 {
-                    if (!m_ConfederateHandlerScript.confederateVersion) // if we are playing as the player with a guide
+                    if (guideFollowFound) // if we are playing as the player with a guide
                     {
                         playerAudio.clip = idleEffect;
                         if (!playerAudio.isPlaying)
@@ -229,11 +233,24 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    private void getConfederateHandler()
+    /*private void getConfederateHandler()
     {
         if (m_ConfederateHandlerScript == null)
             m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
         else
             confederateHandlerFound = true;
+    }*/
+
+    private void getGuideFollow()
+    {
+        // If there is a GuideFollow component in the scene (we are in the scene with the Guide's rig), look to assign guide follow
+        // This will not work for a confederate scene
+        if (FindObjectOfType<GuideFollow>())
+        {
+            if (m_GuideFollowScript == null)
+                m_GuideFollowScript = FindObjectOfType<GuideFollow>();
+            else
+                guideFollowFound = true;
+        }
     }
 }

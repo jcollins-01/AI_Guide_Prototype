@@ -34,21 +34,17 @@ public class ConfederateHandler : MonoBehaviour
             Debug.LogError("ConfederateHandlerSync component missing from this GameObject.");*/
 
         // If we are in a confederate scene, assign the player owned locally in hierarchy to the audio source
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        /*string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Con_GuideTest_Networked") || currentSceneName.Equals("Con_Park1_Networked") || currentSceneName.Equals("Con_Park2_Networked") || currentSceneName.Equals("Con_Park3_Networked"))
         {
             AssignConfederate();
-            // Ignore collisions between Player or Confederate and XR Rig
-            Physics.IgnoreLayerCollision(3, 6, true);
-            CharacterController control = FindObjectOfType<CharacterController>();
-            control.detectCollisions = true;
             confederateVersion = true;
         }
         else
         {
             confederateVersion = false;
-        }
-
+        }*/
+        AssignConfederate();
     }
 
     // Update is called once per frame
@@ -78,19 +74,19 @@ public class ConfederateHandler : MonoBehaviour
             AssignConfederateAvatar();
         }*/
 
-        if (aiGuideFound && confederateVersion)
+        if (aiGuideFound) // && confederateVersion)
         {
             m_ChangeAvatarRuntimeScript = FindObjectOfType<ChangeAvatarRuntime>();
 
             // Assign confederate a random appearance and share it to the network
-            AssignConfederateAvatar();
+            //AssignConfederateAvatar();
         }
     }
 
     private void AssignConfederate()
     {
         // Gets a list of all realtimeViews in the scene
-        var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
+        /*var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
         List<GameObject> foundPlayers = new List<GameObject>();
 
         // Checks which ones are root objects, which would make them players
@@ -108,20 +104,22 @@ public class ConfederateHandler : MonoBehaviour
                 theConfederate = currentPlayer;
                 AssignConfederateAudio();
             }  
-        }
+        }*/
+        AssignConfederateAudio();
     }
 
     private void AssignConfederateAudio()
     {
-        m_PlayAudioScript.playerAudio = theConfederate.GetComponent<AudioSource>();
+        //m_PlayAudioScript.playerAudio = theConfederate.GetComponent<AudioSource>();
+        m_PlayAudioScript.playerAudio = GetComponent<AudioSource>();
     }
 
-    private void AssignConfederateAvatar()
+    /*private void AssignConfederateAvatar()
     {
         if (!avatarAssigned)
         {
             // Pass our avatar changing script our local confederate
-            m_ChangeAvatarRuntimeScript.getConfederateModels(theConfederate);
+            //m_ChangeAvatarRuntimeScript.getConfederateModels(theConfederate);
 
             // Generates a random role from 7-10, 7: Model 1, 8: Model 2, 9: Model 3, 10: Model 4
             int randomRole = Random.Range(7, 11);
@@ -130,14 +128,14 @@ public class ConfederateHandler : MonoBehaviour
 
             avatarAssigned = true;
         }
-    }
+    }*/
 
     // Function to check if an object is the root of its hierarchy
-    bool IsRootObject(GameObject obj)
+    /*bool IsRootObject(GameObject obj)
     {
         // Check if the object has no parent
         return obj.transform.parent == null;
-    }
+    }*/
 
     private void getAIGuide()
     {

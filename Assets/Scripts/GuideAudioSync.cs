@@ -95,7 +95,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     void GetAPIKey()
     {
-        OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
-        apiKey = aIQueries.apiKey;
+        //OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
+        //apiKey = aIQueries.apiKey;
     }
 }

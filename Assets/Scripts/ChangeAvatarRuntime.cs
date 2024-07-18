@@ -9,12 +9,13 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private AIGuide m_AIGuideScript;
-    private SharedMovement m_SharedMovementScript;
+    //private SharedMovement m_SharedMovementScript;
     private GuideRoleSync m_guideRoleSync;
     private ConfederateHandler m_ConfederateHandlerScript;
+    private GuideFollow m_GuideFollowScript;
 
     // GameObjects for guide avatar assignment
-    private GameObject theGuide;
+    //private GameObject theGuide;
     private GameObject human;
     private GameObject dog;
     private GameObject cane;
@@ -29,38 +30,58 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private GameObject model4;
 
     // Monitoring bools
-    private bool sharedMovementFound = false;
+    //private bool sharedMovementFound = false;
     private bool aiGuideFound = false;
     private bool avatarsFound = false;
     private bool roleSyncFound = false;
     private bool confederateHandlerFound = false;
+    private bool guideFollowFound = false;
 
     private void Start()
     {
-        
+        // Ignore collisions between Player or Confederate and XR Rig - ADDED FOR USING GUIDE AS BASE OF CONFEDERATE
+        Physics.IgnoreLayerCollision(3, 6, true);
+        CharacterController control = FindObjectOfType<CharacterController>();
+        control.detectCollisions = true;
     }
 
     // Update is called once per frame
     void Update()
     {
         // Call until each respective component is found or assigned
-        if (!sharedMovementFound)
-            getSharedMovement();
+        //if (!sharedMovementFound)
+        //getSharedMovement();
         if (!aiGuideFound)
             getAIGuide();
-        if (sharedMovementFound && !avatarsFound)
+        //if (sharedMovementFound && !avatarsFound)
+        //getPossibleModels();
+        if (!avatarsFound) // We want both confederates and guide clients to get all the models
             getPossibleModels();
         if (!roleSyncFound)
             getRoleSync();
         if (!confederateHandlerFound)
             getConfederateHandler();
+        if (!guideFollowFound)
+            getGuideFollow();
 
         // Assign the guide's appearance by its role, called constantly in case of role updates
-        if (sharedMovementFound && aiGuideFound && avatarsFound && confederateHandlerFound)
+        /*if (sharedMovementFound && aiGuideFound && avatarsFound && confederateHandlerFound)
         {
+            assignGuideAvatarByRole();
             // If the local client is NOT a confederate version, we can update the guide's role from it
-            if (!m_ConfederateHandlerScript.confederateVersion)
-                assignGuideAvatarByRole();
+            //if (!m_ConfederateHandlerScript.confederateVersion)
+            //assignGuideAvatarByRole();
+        }*/
+
+        // Assign the guide's appearance by its role, called constantly in case of role updates
+        if (guideFollowFound && avatarsFound) // If we are in the guide scene (GF) + have models for guide and confederate (AF), we can assign the guide
+        {
+            assignGuideAvatarByRole();
+        }
+
+        if (confederateHandlerFound && avatarsFound) // If we are the confederate (CH) + have models for guide and confederate (AF), we can assign the confederate
+        {
+            assignConfederateAvatarByRole();
         }
 
         // Continuously search for unassigned confederates and assign them random avatars
@@ -78,11 +99,13 @@ public class ChangeAvatarRuntime : MonoBehaviour
     }
 
     // Called from ConfederateHandler
-    public void assignConfederateAvatarByRole(int role)
+    public void assignConfederateAvatarByRole()
     {
-        Debug.Log("Sending confederate role to network + updating avatar");
-        UpdateAvatar(role);
-        SetNewRole(role);
+        int randomRole = Random.Range(7, 11);
+        Debug.Log("Random role is " + randomRole);
+
+        UpdateAvatar(randomRole);
+        SetNewRole(randomRole);
     }
 
     private void DisableAllRenderers(GameObject model)
@@ -163,7 +186,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
     }
 
-    private void getSharedMovement()
+    /*private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
@@ -172,7 +195,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
             theGuide = m_SharedMovementScript.theGuide;
             sharedMovementFound = true;
         }
-    }
+    }*/
 
     private void getAIGuide()
     {
@@ -185,14 +208,20 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private void getPossibleModels()
     {
         // Grab all possible models for guide avatars
-        if (human == null || dog == null || cane == null || robot == null || bird == null)
+        if (human == null || dog == null || cane == null || robot == null || bird == null || model1 == null || model2 == null || model3 == null || model4 == null)
         {
-            // Grab all possible models for avatars
-            human = theGuide.transform.parent.transform.Find("Human Model").gameObject;
-            dog = theGuide.transform.parent.transform.Find("Guide Dog Model").gameObject;
-            cane = theGuide.transform.parent.transform.Find("White Cane Model").gameObject;
-            robot = theGuide.transform.parent.transform.Find("Robot Model").gameObject;
-            bird = theGuide.transform.parent.transform.Find("Bird Model").gameObject;
+            // Grab all possible models for guide avatars - go to parent to search for all models underneath
+            human = gameObject.transform.parent.transform.Find("Human Model").gameObject;
+            dog = gameObject.transform.parent.transform.Find("Guide Dog Model").gameObject;
+            cane = gameObject.transform.parent.transform.Find("White Cane Model").gameObject;
+            robot = gameObject.transform.parent.transform.Find("Robot Model").gameObject;
+            bird = gameObject.transform.parent.transform.Find("Bird Model").gameObject;
+
+            // Grab all possible models for confederate avatars
+            model1 = gameObject.transform.parent.transform.Find("Model 1").gameObject;
+            model2 = gameObject.transform.parent.transform.Find("Model 2").gameObject;
+            model3 = gameObject.transform.parent.transform.Find("Model 3").gameObject;
+            model4 = gameObject.transform.parent.transform.Find("Model 4").gameObject;
         }
         else
             avatarsFound = true;
@@ -215,6 +244,19 @@ public class ChangeAvatarRuntime : MonoBehaviour
             m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
         else
             confederateHandlerFound = true;
+    }
+
+    private void getGuideFollow()
+    {
+        // If there is a GuideFollow component in the scene (we are in the scene with the Guide's rig), look to assign guide follow
+        // This will not work for a confederate scene
+        if (FindObjectOfType<GuideFollow>())
+        {
+            if (m_GuideFollowScript == null)
+                m_GuideFollowScript = FindObjectOfType<GuideFollow>();
+            else
+                guideFollowFound = true;
+        }
     }
 
     // Methods to update the avatar across the multiplayer network
@@ -254,11 +296,18 @@ public class ChangeAvatarRuntime : MonoBehaviour
         // Assign renderers by role, deactivate non-role, activate others
         if (role == 1) // Human
         {
+            // Enable selected guide avatar
             EnableAllRenderers(human);
             DisableAllRenderers(dog);
             DisableAllRenderers(cane);
             DisableAllRenderers(robot);
             DisableAllRenderers(bird);
+
+            // Disable all confederate avatars
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
         else if (role == 2) // Guide Dog
         {
@@ -267,6 +316,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
             DisableAllRenderers(cane);
             DisableAllRenderers(robot);
             DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
         else if (role == 3) // White Cane
         {
@@ -275,6 +329,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
             EnableAllRenderers(cane);
             DisableAllRenderers(robot);
             DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
         else if (role == 4) // Robot
         {
@@ -283,6 +342,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
             DisableAllRenderers(cane);
             EnableAllRenderers(robot);
             DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
         else if (role == 5) // Bird
         {
@@ -291,6 +355,11 @@ public class ChangeAvatarRuntime : MonoBehaviour
             DisableAllRenderers(cane);
             DisableAllRenderers(robot);
             EnableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
         else if (role == 6) // Invisible Guide
         {
@@ -299,34 +368,65 @@ public class ChangeAvatarRuntime : MonoBehaviour
             DisableAllRenderers(cane);
             DisableAllRenderers(robot);
             DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         } // END OF GUIDE ROLES ----- BEGINNING OF CONFEDERATE ROLES
-        else if (role == 7 && confederateHandlerFound) // Model 1
+        else if (role == 7) // Model 1
         {
-            model1.SetActive(true);
-            model2.SetActive(false);
-            model3.SetActive(false);
-            model4.SetActive(false);
+            // Disable guide models (since base is guide avatar)
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+
+            // Enable correct confederate model
+            EnableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
-        else if (role == 8 && confederateHandlerFound) // Model 2
+        else if (role == 8) // Model 2
         {
-            model1.SetActive(false);
-            model2.SetActive(true);
-            model3.SetActive(false);
-            model4.SetActive(false);
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            EnableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
-        else if (role == 9 && confederateHandlerFound) // Model 3
+        else if (role == 9) // Model 3
         {
-            model1.SetActive(false);
-            model2.SetActive(false);
-            model3.SetActive(true);
-            model4.SetActive(false);
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            EnableAllRenderers(model3);
+            DisableAllRenderers(model4);
         }
-        else if (role == 10 && confederateHandlerFound) // Model 4
+        else if (role == 10) // Model 4
         {
-            model1.SetActive(false);
-            model2.SetActive(false);
-            model3.SetActive(false);
-            model4.SetActive(true);
+            DisableAllRenderers(human);
+            DisableAllRenderers(dog);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(robot);
+            DisableAllRenderers(bird);
+
+            DisableAllRenderers(model1);
+            DisableAllRenderers(model2);
+            DisableAllRenderers(model3);
+            EnableAllRenderers(model4);
         }
     }
 }
