@@ -51,8 +51,8 @@ public class ChangeAvatarRuntime : MonoBehaviour
         // If we are a confederate object with one of these tags, we can pick the random role to send to network
         if (tag == "Confederate_1")
             AssignConfederateOne();
-        if (tag == "Confederate_2")
-            AssignConfederateTwo();
+        /*if (tag == "Confederate_2")
+            AssignConfederateTwo();*/
     }
 
     // Update is called once per frame
@@ -87,22 +87,35 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }*/
 
         // Assign the guide's appearance by its role, called constantly in case of role updates
-        if (guideFollowFound && avatarsFound) // If we are in the guide scene (GF) + have models for guide and confederate (AF), we can assign the guide
+        if (guideFollowFound && avatarsFound) // If we are in the guide scene (GF) + have models for guide (AF), we can assign the guide
         {
             assignGuideAvatarByRole();
+
+            // If a confederate_1 joins the scene, re-assign the confed avatar models to the newest confederate_1
+            if (GameObject.FindWithTag("Confederate_1")) // Grab all possible models for confederate one avatars
+            {
+                model1 = GameObject.Find("Model 1").gameObject;
+                model2 = GameObject.Find("Model 2").gameObject;
+                model3 = GameObject.Find("Model 3").gameObject;
+                model4 = GameObject.Find("Model 4").gameObject;
+            }
         }
 
-        if (confederateHandlerFound && avatarsFound) // If we are the confederate (CH) + have models for guide and confederate (AF), we can assign the confederate
+        if (confederateHandlerFound) // If we are the confederate (CH) + have models for guide and confederate (AF), we can assign the confederate
         {
-            // If confederate 1 has joined the scene, you can assign its role (same for confederate 2)
+            // If confederate 1 has joined the scene, re-assign the confed avatar models to the newest confederate_1
             if (GameObject.FindWithTag("Confederate_1"))
             {
+                model1 = GameObject.Find("Model 1").gameObject;
+                model2 = GameObject.Find("Model 2").gameObject;
+                model3 = GameObject.Find("Model 3").gameObject;
+                model4 = GameObject.Find("Model 4").gameObject;
+
                 assignConfederateAvatarOneByRole();
-                Debug.Log("Found confederate one - assigning avatar with role " + confederateRoleOne);
             }
                 
-            if (GameObject.FindWithTag("Confederate_2"))
-                assignConfederateAvatarTwoByRole();
+            /*if (GameObject.FindWithTag("Confederate_2"))
+                assignConfederateAvatarTwoByRole();*/
         }
 
         // Continuously search for unassigned confederates and assign them random avatars
@@ -116,12 +129,12 @@ public class ChangeAvatarRuntime : MonoBehaviour
         Debug.Log("Random role for confederate one is " + confederateRoleOne);
     }
 
-    private void AssignConfederateTwo()
+    /*private void AssignConfederateTwo()
     {
         // Pick random role to assign for confederate 2
         confederateRoleTwo = Random.Range(11, 15);
         Debug.Log("Random role for confederate two is " + confederateRoleTwo);
-    }
+    }*/
 
     private void assignGuideAvatarByRole()
     {
@@ -148,7 +161,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
     }
 
-    public void assignConfederateAvatarTwoByRole()
+    /*public void assignConfederateAvatarTwoByRole()
     {
         if (!confederateTwoAssigned)
         {
@@ -160,7 +173,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
             SetNewConfederateRole(role);
             confederateTwoAssigned = true;
         }
-    }
+    }*/
 
     private void DisableAllRenderers(GameObject model)
     {
@@ -177,12 +190,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     private void EnableAllRenderers(GameObject model)
     {
-        //if (model == human || model == dog || model == cane || model == robot || model == bird)
-            //Debug.Log("Reached enable for guide avatars");
-
-        if (model == model1 || model == model2 || model == model3 || model == model4)
-            Debug.Log("Reached enable for confederate avatars");
-
         if (model != null)
         {
             // Get all Renderer components in the children of the object
@@ -191,11 +198,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
             // Disable each Renderer component
             foreach (Renderer renderer in renderers)
                 renderer.enabled = true;
-        }
-
-        if (model == model1 || model == model2 || model == model3 || model == model4)
-        {
-            Debug.Log("Trying to enable " + model.name + " on object " + model.transform.parent.name);
         }
     }
 
@@ -273,7 +275,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private void getPossibleModels()
     {
         // Grab all possible models for guide avatars
-        if (human == null || dog == null || cane == null || robot == null || bird == null || model1 == null || model2 == null || model3 == null || model4 == null)
+        if (human == null || dog == null || cane == null || robot == null || bird == null)
         {
             // Grab all possible models for guide avatars - go to parent to search for all models underneath
             if (GameObject.FindWithTag("Guide")) // If a guide has entered the scene, we can start looking for these models
@@ -284,21 +286,9 @@ public class ChangeAvatarRuntime : MonoBehaviour
                 robot = GameObject.Find("Robot Model").gameObject;
                 bird = GameObject.Find("Bird Model").gameObject; //gameObject.transform.parent.transform.Find
             }
-
-            // Grab all possible models for confederate one avatars
-            if (GameObject.FindWithTag("Confederate_1")) // If a confederate has entered the scene, we can start looking for these models
-            {
-                model1 = GameObject.Find("Model 1").gameObject;
-                model2 = GameObject.Find("Model 2").gameObject;
-                model3 = GameObject.Find("Model 3").gameObject;
-                model4 = GameObject.Find("Model 4").gameObject;
-            }
         }
         else
-        {
             avatarsFound = true;
-            Debug.Log("We found the avatars " + avatarsFound);
-        }
     }
 
     private void getConfederateHandler()

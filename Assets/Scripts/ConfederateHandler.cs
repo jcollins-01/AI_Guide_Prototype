@@ -14,32 +14,13 @@ public class ConfederateHandler : MonoBehaviour
 
     // Monitoring bools
     private bool aiGuideFound = false;
-    private bool avatarAssigned = false;
-    
+    private bool audioAssigned = false;
+
     // Start is called before the first frame update
     void Start()
     {
         // Grabs scripts already in the scene at start
         m_PlayAudioScript = FindObjectOfType<PlayAudio>(); // On XR rig
-        //m_SharedMovementScript = GetComponent<SharedMovement>(); // On this Game Object
-        /*m_confederateHandlerSync = GetComponent<ConfederateHandlerSync>(); // On this Game Object
-        if (m_confederateHandlerSync == null)
-            Debug.LogError("ConfederateHandlerSync component missing from this GameObject.");*/
-
-        // If we are in a confederate scene, assign the player owned locally in hierarchy to the audio source
-        /*string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("Con_GuideTest_Networked") || currentSceneName.Equals("Con_Park1_Networked") || currentSceneName.Equals("Con_Park2_Networked") || currentSceneName.Equals("Con_Park3_Networked"))
-        {
-            AssignConfederate();
-            confederateVersion = true;
-        }
-        else
-        {
-            confederateVersion = false;
-        }*/
-        
-
-        AssignConfederateAudio();
     }
 
     // Update is called once per frame
@@ -48,26 +29,8 @@ public class ConfederateHandler : MonoBehaviour
         // Continuously look for an AIGuide object (for a guide to join the scene)
         if (!aiGuideFound)
             getAIGuide();
-
-        // If there's a guide in the scene, send our confederate role over the network
-        /*if (aiGuideFound)
-        {
-            // Send confederate version over a network
-            if (confederateVersion)
-                m_confederateHandlerSync.SetConfederateVersion(true);
-            else
-                m_confederateHandlerSync.SetConfederateVersion(false);
-        }
-
-        // If there's a guide in the scene and we are the confederate, assign the scripts and run functions dependent on it
-        /*if (aiGuideFound && confederateVersion)
-        {
-            m_AIGuideScript = FindObjectOfType<AIGuide>();
-            m_ChangeAvatarRuntimeScript = FindObjectOfType<ChangeAvatarRuntime>();
-
-            // Assign confederate a random appearance and share it to the network
-            AssignConfederateAvatar();
-        }*/
+        if (!audioAssigned)
+            AssignConfederateAudio();
 
         if (aiGuideFound) // && confederateVersion)
         {
@@ -80,7 +43,20 @@ public class ConfederateHandler : MonoBehaviour
 
     private void AssignConfederateAudio()
     {
-        m_PlayAudioScript.playerAudio = GetComponent<AudioSource>();
+        if (!audioAssigned)
+        {
+            if (GameObject.FindWithTag("Confederate_1"))
+            {
+                m_PlayAudioScript.playerAudio = GameObject.FindWithTag("Confederate_1").GetComponentInChildren<AudioSource>();
+                audioAssigned = true;
+            }
+
+            if (GameObject.FindWithTag("Confederate_2"))
+            {
+                m_PlayAudioScript.playerAudio = GameObject.FindWithTag("Confederate_2").GetComponentInChildren<AudioSource>();
+                audioAssigned = true;
+            }
+        }
     }
 
     /*private void AssignConfederateAvatar()
