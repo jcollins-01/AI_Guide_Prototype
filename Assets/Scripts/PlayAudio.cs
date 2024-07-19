@@ -15,12 +15,10 @@ public class PlayAudio : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
-    //private ConfederateHandler m_ConfederateHandlerScript;
     private GuideFollow m_GuideFollowScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
-    //private bool confederateHandlerFound = false;
     private bool guideFollowFound = false;
 
     // Audio sources for sonification
@@ -71,15 +69,13 @@ public class PlayAudio : MonoBehaviour
     void Update()
     {
         // Grab components we need access to
-        //if (!confederateHandlerFound)
-            //getConfederateHandler();
         if (!sharedMovementFound)
             getSharedMovement();
         if (!guideFollowFound)
             getGuideFollow();
 
         // If we have shared movement components assigned (a guide and player) OR we found the confederate handler and are a confederate
-        if (sharedMovementFound) // || (confederateHandlerFound && m_ConfederateHandlerScript.confederateVersion))
+        if (sharedMovementFound) 
         {
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;
@@ -232,14 +228,6 @@ public class PlayAudio : MonoBehaviour
             }
         }
     }
-
-    /*private void getConfederateHandler()
-    {
-        if (m_ConfederateHandlerScript == null)
-            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
-        else
-            confederateHandlerFound = true;
-    }*/
 
     private void getGuideFollow()
     {

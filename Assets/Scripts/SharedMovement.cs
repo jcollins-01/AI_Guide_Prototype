@@ -9,7 +9,6 @@ public class SharedMovement : MonoBehaviour
 {
     // Variables to hold scripts and Game Objects we need access to
     private VRHandling m_VRHandlingScript;
-    private ConfederateHandler m_ConfederateHandlerScript;
     public GameObject thePlayer;
     public GameObject theGuide;
     private XROrigin playerRig;
@@ -26,9 +25,6 @@ public class SharedMovement : MonoBehaviour
     // Variables to share player actions with other scripts
     public bool playerGrabbingGuide = false;
     public CapsuleCollider guideCollider;
-
-    // Monitoring bools
-    private bool confederateHandlerFound = false;
 
     // Start is called before the first frame update
     void Start()
@@ -158,11 +154,8 @@ public class SharedMovement : MonoBehaviour
         foreach (GameObject currentPlayer in foundPlayers)
         {
             // If the found player has a SharedMovement component (not a guide) and confederate version is false (not a confederate), set them as the player
-            if (currentPlayer.GetComponent<SharedMovement>()) //&& !m_ConfederateHandlerScript.confederateVersion)
-            {
-                //if (currentPlayer.GetComponent<Normal.Realtime.RealtimeView>().ownerIDInHierarchy == 0) // If they joined the scene first
+            if (currentPlayer.GetComponent<SharedMovement>())
                 thePlayer = currentPlayer;
-            } 
         }
 
         // Grabs the necessary physics components for Shared Movement
@@ -251,17 +244,5 @@ public class SharedMovement : MonoBehaviour
         float headingAngle = Quaternion.LookRotation(forward).eulerAngles.y;
         // Applies new rotation angle so the player faces the same direction as the guide
         thePlayer.transform.rotation = Quaternion.Euler(0.0f, headingAngle, 0.0f);
-    }
-
-    private void getConfederateHandler()
-    {
-        if (m_ConfederateHandlerScript == null)
-            m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>();
-        else
-        {
-            Debug.Log("Got confederate handler script");
-            confederateHandlerFound = true;
-        }
-            
     }
 }

@@ -9,14 +9,12 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     // Variables to hold scripts we need access to
     private AIGuide m_AIGuideScript;
-    //private SharedMovement m_SharedMovementScript;
     private GuideRoleSync m_guideRoleSync;
     private ConfederateRoleSync m_confederateRoleSync;
     private ConfederateHandler m_ConfederateHandlerScript;
     private GuideFollow m_GuideFollowScript;
 
     // GameObjects for guide avatar assignment
-    //private GameObject theGuide;
     private GameObject human;
     private GameObject dog;
     private GameObject cane;
@@ -58,15 +56,8 @@ public class ChangeAvatarRuntime : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Call until each respective component is found or assigned
-        //if (!sharedMovementFound)
-        //getSharedMovement();
         if (!aiGuideFound)
             getAIGuide();
-        //if (sharedMovementFound && !avatarsFound)
-        //getPossibleModels();
-        //if (!avatarsFound) // We want both confederates and guide clients to get all the models
-        //getPossibleModels();
         getPossibleModels();
         if (!roleSyncFound)
             getRoleSync();
@@ -76,15 +67,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
             getConfederateHandler();
         if (!guideFollowFound)
             getGuideFollow();
-
-        // Assign the guide's appearance by its role, called constantly in case of role updates
-        /*if (sharedMovementFound && aiGuideFound && avatarsFound && confederateHandlerFound)
-        {
-            assignGuideAvatarByRole();
-            // If the local client is NOT a confederate version, we can update the guide's role from it
-            //if (!m_ConfederateHandlerScript.confederateVersion)
-            //assignGuideAvatarByRole();
-        }*/
 
         // Assign the guide's appearance by its role, called constantly in case of role updates
         if (guideFollowFound && avatarsFound) // If we are in the guide scene (GF) + have models for guide (AF), we can assign the guide
@@ -113,28 +95,15 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
                 assignConfederateAvatarOneByRole();
             }
-                
-            /*if (GameObject.FindWithTag("Confederate_2"))
-                assignConfederateAvatarTwoByRole();*/
         }
-
-        // Continuously search for unassigned confederates and assign them random avatars
-        //pickAvatarAtRandomForAll();
     }
 
     private void AssignConfederateOne()
     {
         // Pick random role to assign for confederate 1
         confederateRoleOne = Random.Range(7, 11);
-        Debug.Log("Random role for confederate one is " + confederateRoleOne);
+        //Debug.Log("Random role for confederate one is " + confederateRoleOne);
     }
-
-    /*private void AssignConfederateTwo()
-    {
-        // Pick random role to assign for confederate 2
-        confederateRoleTwo = Random.Range(11, 15);
-        Debug.Log("Random role for confederate two is " + confederateRoleTwo);
-    }*/
 
     private void assignGuideAvatarByRole()
     {
@@ -150,9 +119,8 @@ public class ChangeAvatarRuntime : MonoBehaviour
     {
         if (!confederateOneAssigned)
         {
+            // Set the local avatar to the correct role
             int role = confederateRoleOne;
-            Debug.Log("Random role for confederate one is " + role);
-            // Set the local avatar to the correct role immediately
             UpdateAvatar(role);
 
             // Set the multiplayer network role if we have the sync component
@@ -160,20 +128,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
             confederateOneAssigned = true;
         }
     }
-
-    /*public void assignConfederateAvatarTwoByRole()
-    {
-        if (!confederateTwoAssigned)
-        {
-            int role = confederateRoleTwo;
-            // Set the local avatar to the correct role immediately
-            UpdateAvatar(role);
-
-            // Set the multiplayer network role if we have the sync component
-            SetNewConfederateRole(role);
-            confederateTwoAssigned = true;
-        }
-    }*/
 
     private void DisableAllRenderers(GameObject model)
     {
@@ -252,17 +206,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
             avatar.tag = "AvatarAssigned";
         }
     }
-
-    /*private void getSharedMovement()
-    {
-        if (m_SharedMovementScript == null)
-            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-        else
-        {
-            theGuide = m_SharedMovementScript.theGuide;
-            sharedMovementFound = true;
-        }
-    }*/
 
     private void getAIGuide()
     {
@@ -376,8 +319,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     private void UpdateAvatar(int role)
     {
-        //Debug.Log("Avatar changed to role: " + role);
-
         // Assign renderers by role, deactivate non-role, activate others
         if (role == 1) // Human
         {

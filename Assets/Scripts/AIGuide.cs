@@ -14,7 +14,6 @@ public class AIGuide : MonoBehaviour
     public SharedMovement m_SharedMovementScript;
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
-    private ConfederateHandler m_ConfederateHandlerScript;
     public GuideAudioSync m_guideAudioSync;
 
     // Variables for monitoring
@@ -33,7 +32,6 @@ public class AIGuide : MonoBehaviour
     void Start()
     {
         // Find necessary components to the attached GameObject
-        //m_ConfederateHandlerScript = FindObjectOfType<ConfederateHandler>(); // On Player avatar
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
 
         // Add necessary components to the attached GameObject
@@ -45,7 +43,7 @@ public class AIGuide : MonoBehaviour
         Debug.Log("AIGuide is active!");
 
         // Line for testing role change over the network
-        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
+        InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
     // For testing the role change over the network
@@ -62,8 +60,8 @@ public class AIGuide : MonoBehaviour
         // Debug.Log("Reached SetNewResult");
         if (m_guideAudioSync != null)
             m_guideAudioSync.SetResult(result);
-        //else
-            //Debug.LogError("GuideAudioSync is not initialized.");
+        else
+            Debug.LogError("GuideAudioSync is not initialized.");
     }
 
     // Update is called once per frame
@@ -231,12 +229,5 @@ public class AIGuide : MonoBehaviour
     {
         if (m_guideAudioSync == null)
             m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
-    }
-
-    // Function to check if an object is the root of its hierarchy
-    bool IsRootObject(GameObject obj)
-    {
-        // Check if the object has no parent
-        return obj.transform.parent == null;
     }
 }
