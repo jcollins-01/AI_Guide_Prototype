@@ -12,12 +12,6 @@ public class ConfederateHandler : MonoBehaviour
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
 
-    // Game Objects
-    //public GameObject theConfederate;
-
-    // Bools to share with other scripts
-    //public bool confederateVersion;
-
     // Monitoring bools
     private bool aiGuideFound = false;
     private bool avatarAssigned = false;
@@ -43,7 +37,9 @@ public class ConfederateHandler : MonoBehaviour
         {
             confederateVersion = false;
         }*/
-        AssignConfederate();
+        
+
+        AssignConfederateAudio();
     }
 
     // Update is called once per frame
@@ -82,34 +78,8 @@ public class ConfederateHandler : MonoBehaviour
         }
     }
 
-    private void AssignConfederate()
-    {
-        // Gets a list of all realtimeViews in the scene
-        /*var foundViews = FindObjectsOfType<Normal.Realtime.RealtimeView>();
-        List<GameObject> foundPlayers = new List<GameObject>();
-
-        // Checks which ones are root objects, which would make them players
-        foreach (Normal.Realtime.RealtimeView realtimeView in foundViews)
-        {
-            if (IsRootObject(realtimeView.gameObject))
-                foundPlayers.Add(realtimeView.gameObject);
-        }
-
-        foreach (GameObject currentPlayer in foundPlayers)
-        {
-            // If the found player is owned locally in the hierarchy, this is our local confederate
-            if (currentPlayer.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy)
-            {
-                theConfederate = currentPlayer;
-                AssignConfederateAudio();
-            }  
-        }*/
-        AssignConfederateAudio();
-    }
-
     private void AssignConfederateAudio()
     {
-        //m_PlayAudioScript.playerAudio = theConfederate.GetComponent<AudioSource>();
         m_PlayAudioScript.playerAudio = GetComponent<AudioSource>();
     }
 

@@ -95,7 +95,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     void GetAPIKey()
     {
-        //OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
-        //apiKey = aIQueries.apiKey;
+        // If in one of the guide scenes, look for the key
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked") || currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("GuidePark3_Networked"))
+        {
+            OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
+            apiKey = aIQueries.apiKey;
+        }
     }
 }

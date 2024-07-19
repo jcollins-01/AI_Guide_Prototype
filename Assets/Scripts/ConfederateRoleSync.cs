@@ -47,7 +47,7 @@ public class ConfederateRoleSync : RealtimeComponent<ConfederateRoleModel>
 
     private void RoleDidChange(ConfederateRoleModel model, int value)
     {
-        //Debug.Log("Detected a role change over the network, role is " + value);
+        Debug.Log("Detected a confederate role change over the network, role is " + value);
         _changeAvatarRuntime.SetConfederateRole(value);
     }
 
