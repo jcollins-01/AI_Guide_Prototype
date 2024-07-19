@@ -45,7 +45,7 @@ public class AIGuide : MonoBehaviour
         Debug.Log("AIGuide is active!");
 
         // Line for testing role change over the network
-        InvokeRepeating("ChangeGuideRole", 0f, 10f);
+        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
     // For testing the role change over the network

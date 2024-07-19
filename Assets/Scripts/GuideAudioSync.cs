@@ -95,9 +95,8 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     void GetAPIKey()
     {
-        // If in one of the guide scenes, look for the key
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("GuideTest_Networked") || currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("GuidePark3_Networked"))
+        // If there's a guide in the scene, get the api key (a confed won't have this available until a guide joins them)
+        if (GameObject.FindWithTag("Guide"))
         {
             OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
             apiKey = aIQueries.apiKey;

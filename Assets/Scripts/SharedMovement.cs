@@ -47,7 +47,7 @@ public class SharedMovement : MonoBehaviour
         // Creates the CameraSystem for the guide to keep track of Player's Movement
         gameObject.AddComponent<CameraSystem>();
 
-        // Ignore collisions between Player or Confederate and XR Rig
+        // Ignore collisions between Player, Guide, or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
         CharacterController control = FindObjectOfType<CharacterController>();
         control.detectCollisions = true;
