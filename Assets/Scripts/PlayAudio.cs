@@ -23,7 +23,6 @@ public class PlayAudio : MonoBehaviour
 
     // Audio sources for sonification
     public AudioSource playerAudio;
-    private AudioSource guideAudio;
 
     // Sound effects for player sonification
     private AudioClip teleportEffect;
@@ -40,7 +39,7 @@ public class PlayAudio : MonoBehaviour
     private AudioClip noEffect; // For sharing sound properly
 
     // For sharing audio over network (not implemented yet)
-    private AudioClip currentClip;
+    public AudioClip currentClip;
     private string surfaceMaterial;
 
     // Start is called before the first frame update
@@ -77,6 +76,10 @@ public class PlayAudio : MonoBehaviour
         // If we have shared movement components assigned (a guide and player) OR we found the confederate handler and are a confederate
         if (sharedMovementFound) 
         {
+            // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
+            if (GetComponent<GuideFollow>())
+                playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>();
+
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;
             else
