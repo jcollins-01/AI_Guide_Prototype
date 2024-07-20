@@ -203,15 +203,80 @@ public class PlayAudio : MonoBehaviour
                 if (currPosition != lastPosition)
                 {
                     if (surfaceMaterial == "wood")
-                        playerAudio.clip = woodEffect;
+                    {
+                        // Decide walking clip based on guide role
+                        switch (role)
+                        {
+                            case 1: // human
+                                playerAudio.clip = woodEffect;
+                                break;
+                            case 2: // robot
+                                playerAudio.clip = robotWalkEffect;
+                                break;
+                            case 3: // cane
+                                playerAudio.clip = caneWalkEffect;
+                                break;
+                            case 4: // dog
+                                playerAudio.clip = dogWalkEffect;
+                                break;
+                            case 5: // bird
+                                playerAudio.clip = birdFlyEffect;
+                                break;
+                            case 6: // invisible
+                                playerAudio.clip = noEffect;
+                                break;
+                        }
+                    }
                     else if (surfaceMaterial == "water")
-                        playerAudio.clip = waterEffect;
+                    {
+                        switch (role)
+                        {
+                            case 1: // human
+                                playerAudio.clip = waterEffect;
+                                break;
+                            case 2: // robot
+                                playerAudio.clip = robotWalkEffect;
+                                break;
+                            case 3: // cane
+                                playerAudio.clip = noEffect;
+                                break;
+                            case 4: // dog
+                                playerAudio.clip = waterEffect;
+                                break;
+                            case 5: // bird
+                                playerAudio.clip = birdFlyEffect;
+                                break;
+                            case 6: // invisible
+                                playerAudio.clip = noEffect;
+                                break;
+                        }
+                    }
                     else if (surfaceMaterial == "grass")
-                        playerAudio.clip = grassEffect;
+                    {
+                        switch (role)
+                        {
+                            case 1: // human
+                                playerAudio.clip = grassEffect;
+                                break;
+                            case 2: // robot
+                                playerAudio.clip = robotWalkEffect;
+                                break;
+                            case 3: // cane
+                                playerAudio.clip = caneWalkEffect;
+                                break;
+                            case 4: // dog
+                                playerAudio.clip = grassEffect;
+                                break;
+                            case 5: // bird
+                                playerAudio.clip = birdFlyEffect;
+                                break;
+                            case 6: // invisible
+                                playerAudio.clip = noEffect;
+                                break;
+                        }
+                    }
                     else
                     {
-                        Debug.Log("Current role is " + role);
-                        // Decide walking clip based on guide role
                         switch (role)
                         {
                             case 1: // human
@@ -253,11 +318,77 @@ public class PlayAudio : MonoBehaviour
                     if (currPosition != lastPosition)
                     {
                         if (surfaceMaterial == "wood")
-                            playerAudio.clip = woodEffect;
+                        {
+                            switch (role)
+                            {
+                                case 1: // human
+                                    playerAudio.clip = woodEffect;
+                                    break;
+                                case 2: // robot
+                                    playerAudio.clip = robotWalkEffect;
+                                    break;
+                                case 3: // cane
+                                    playerAudio.clip = caneWalkEffect;
+                                    break;
+                                case 4: // dog
+                                    playerAudio.clip = dogWalkEffect;
+                                    break;
+                                case 5: // bird
+                                    playerAudio.clip = birdFlyEffect;
+                                    break;
+                                case 6: // invisible
+                                    playerAudio.clip = noEffect;
+                                    break;
+                            }
+                        }
                         else if (surfaceMaterial == "water")
-                            playerAudio.clip = waterEffect;
+                        {
+                            switch (role)
+                            {
+                                case 1: // human
+                                    playerAudio.clip = waterEffect;
+                                    break;
+                                case 2: // robot
+                                    playerAudio.clip = robotWalkEffect;
+                                    break;
+                                case 3: // cane
+                                    playerAudio.clip = noEffect;
+                                    break;
+                                case 4: // dog
+                                    playerAudio.clip = waterEffect;
+                                    break;
+                                case 5: // bird
+                                    playerAudio.clip = birdFlyEffect;
+                                    break;
+                                case 6: // invisible
+                                    playerAudio.clip = noEffect;
+                                    break;
+                            }
+                        }
                         else if (surfaceMaterial == "grass")
-                            playerAudio.clip = grassEffect;
+                        {
+                            switch (role)
+                            {
+                                case 1: // human
+                                    playerAudio.clip = grassEffect;
+                                    break;
+                                case 2: // robot
+                                    playerAudio.clip = robotWalkEffect;
+                                    break;
+                                case 3: // cane
+                                    playerAudio.clip = caneWalkEffect;
+                                    break;
+                                case 4: // dog
+                                    playerAudio.clip = grassEffect;
+                                    break;
+                                case 5: // bird
+                                    playerAudio.clip = birdFlyEffect;
+                                    break;
+                                case 6: // invisible
+                                    playerAudio.clip = noEffect;
+                                    break;
+                            }
+                        }
                         else
                         {
                             // Decide walking clip based on guide role
