@@ -63,7 +63,7 @@ public class GuideFollow : MonoBehaviour
                 Quaternion targetRotation = theGuide.transform.rotation;
 
                 // Humanoid follow position - trailing after the player and facing them
-                if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 4) // Human and robot
+                if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 2) // Human and robot
                 {
                     // Calculate the target position based on the player's position and follow distance
                     Vector3 directionToPlayer = (thePlayer.transform.position - transform.position).normalized;
@@ -77,7 +77,7 @@ public class GuideFollow : MonoBehaviour
                 }
 
                 // Dog follow position - moving at the right side of the player and facing the same direction as them
-                if (m_AIGuideScript.role == 2)
+                if (m_AIGuideScript.role == 4)
                 {
                     // Calculate the position on the right side of the player
                     Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);

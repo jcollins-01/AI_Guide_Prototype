@@ -12,6 +12,7 @@ public class PlayAudio : MonoBehaviour
     private XRInteractionManager interactionManager;
     private GameObject thePlayer;
     private GameObject theGuide;
+    private int role;
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
@@ -33,10 +34,14 @@ public class PlayAudio : MonoBehaviour
     private AudioClip turnEffect;
     private AudioClip woodCollisionEffect;
     private AudioClip collisionEffect;
+    private AudioClip noEffect; // For sharing sound properly
 
     // Sound effects for guide sonification
     private AudioClip idleEffect;
-    private AudioClip noEffect; // For sharing sound properly
+    private AudioClip robotWalkEffect;
+    private AudioClip caneWalkEffect;
+    private AudioClip dogWalkEffect;
+    private AudioClip birdFlyEffect;
 
     // For sharing audio over network (not implemented yet)
     public AudioClip currentClip;
@@ -59,9 +64,13 @@ public class PlayAudio : MonoBehaviour
         turnEffect = Resources.Load<AudioClip>("Audio/turn");
         woodCollisionEffect = Resources.Load<AudioClip>("Audio/wooden-collision");
         collisionEffect = Resources.Load<AudioClip>("Audio/general-collision");
+        noEffect = Resources.Load<AudioClip>("Audio/nothing");
 
         idleEffect = Resources.Load<AudioClip>("Audio/guide_idle");
-        noEffect = Resources.Load<AudioClip>("Audio/nothing");
+        robotWalkEffect = Resources.Load<AudioClip>("Audio/robot-walk");
+        caneWalkEffect = Resources.Load<AudioClip>("Audio/white-cane");
+        dogWalkEffect = Resources.Load<AudioClip>("Audio/dog-walk");
+        birdFlyEffect = Resources.Load<AudioClip>("Audio/bird-flap");
     }
 
     // Update is called once per frame
@@ -127,36 +136,19 @@ public class PlayAudio : MonoBehaviour
         // If the Vector3 of the currPosition is different from the lastPosition
         Vector3 currPosition = transform.GetComponentInParent<CharacterController>().transform.position;
 
-        // If our last clip playing was any of the walking effects, we don't wait for them to be done playing before switching
-        if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect)
-        {
-            if (currPosition != lastPosition)
-            {
-                if (surfaceMaterial == "wood")
-                    playerAudio.clip = woodEffect;
-                else if (surfaceMaterial == "water")
-                    playerAudio.clip = waterEffect;
-                else if (surfaceMaterial == "grass")
-                    playerAudio.clip = grassEffect;
-                else
-                    playerAudio.clip = walkEffect;
+        playAudioForMovingPlayer(currPosition, lastPosition);
+        playAudioForMovingGuide(currPosition, lastPosition);
 
-                if (!playerAudio.isPlaying)
-                    playerAudio.Play();
-            }
-            else // If position hasn't changed
-            {
-                if (guideFollowFound) // if we are playing as the player with a guide
-                {
-                    playerAudio.clip = idleEffect;
-                    if (!playerAudio.isPlaying)
-                        playerAudio.Play();
-                }
-            }
-        }
-        else // We wait for the audio clip to finish before assigning a walk clip
+        yield return new WaitForSeconds(0.000001f);
+    }
+
+    private void playAudioForMovingPlayer(Vector3 currPosition, Vector3 lastPosition)
+    {
+        // If our audio is not coming from a guide, use the player audio clips
+        if (playerAudio.transform.tag != "Guide")
         {
-            if (!playerAudio.isPlaying)
+            // If our last clip playing was any of the walking effects, we don't wait for them to be done playing before switching
+            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect)
             {
                 if (currPosition != lastPosition)
                 {
@@ -172,19 +164,139 @@ public class PlayAudio : MonoBehaviour
                     if (!playerAudio.isPlaying)
                         playerAudio.Play();
                 }
-                else // If position hasn't changed
+            }
+            else // We wait for the audio clip to finish before assigning a walk clip
+            {
+                if (!playerAudio.isPlaying)
                 {
-                    if (guideFollowFound) // if we are playing as the player with a guide
+                    if (currPosition != lastPosition)
                     {
-                        playerAudio.clip = idleEffect;
+                        if (surfaceMaterial == "wood")
+                            playerAudio.clip = woodEffect;
+                        else if (surfaceMaterial == "water")
+                            playerAudio.clip = waterEffect;
+                        else if (surfaceMaterial == "grass")
+                            playerAudio.clip = grassEffect;
+                        else
+                            playerAudio.clip = walkEffect;
+
                         if (!playerAudio.isPlaying)
                             playerAudio.Play();
                     }
-                }
-            } // End if (!playerAudio.isPlaying)
+                } // End if (!playerAudio.isPlaying)
+            }
         }
+    }
 
-        yield return new WaitForSeconds(0.000001f);
+    private void playAudioForMovingGuide(Vector3 currPosition, Vector3 lastPosition)
+    {
+        // If our audio is coming from the guide, use the guide audio clips
+        if (guideFollowFound && playerAudio.transform.tag == "Guide")
+        {
+            if (FindObjectOfType<AIGuide>())
+                role = FindObjectOfType<AIGuide>().role;
+
+            // If our last clip playing was any of the walking effects, we don't wait for them to be done playing before switching
+            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect ||
+                playerAudio.clip == robotWalkEffect || playerAudio.clip == caneWalkEffect || playerAudio.clip == dogWalkEffect || playerAudio.clip == birdFlyEffect)
+            {
+                if (currPosition != lastPosition)
+                {
+                    if (surfaceMaterial == "wood")
+                        playerAudio.clip = woodEffect;
+                    else if (surfaceMaterial == "water")
+                        playerAudio.clip = waterEffect;
+                    else if (surfaceMaterial == "grass")
+                        playerAudio.clip = grassEffect;
+                    else
+                    {
+                        Debug.Log("Current role is " + role);
+                        // Decide walking clip based on guide role
+                        switch (role)
+                        {
+                            case 1: // human
+                                playerAudio.clip = walkEffect;
+                                break;
+                            case 2: // robot
+                                playerAudio.clip = robotWalkEffect;
+                                break;
+                            case 3: // cane
+                                playerAudio.clip = caneWalkEffect;
+                                break;
+                            case 4: // dog
+                                playerAudio.clip = dogWalkEffect;
+                                break;
+                            case 5: // bird
+                                playerAudio.clip = birdFlyEffect;
+                                break;
+                            case 6: // invisible
+                                playerAudio.clip = noEffect;
+                                break;
+                        }
+                    }
+
+                    if (!playerAudio.isPlaying)
+                        playerAudio.Play();
+                }
+                else // If position hasn't changed
+                {
+                    // Used to play idle effect, but now we don't want that interfering with hearing the guide talk
+                    /*playerAudio.clip = idleEffect;
+                    if (!playerAudio.isPlaying)
+                        playerAudio.Play();*/
+                }
+            }
+            else // We wait for the audio clip to finish before assigning a walk clip
+            {
+                if (!playerAudio.isPlaying)
+                {
+                    if (currPosition != lastPosition)
+                    {
+                        if (surfaceMaterial == "wood")
+                            playerAudio.clip = woodEffect;
+                        else if (surfaceMaterial == "water")
+                            playerAudio.clip = waterEffect;
+                        else if (surfaceMaterial == "grass")
+                            playerAudio.clip = grassEffect;
+                        else
+                        {
+                            // Decide walking clip based on guide role
+                            switch (role)
+                            {
+                                case 1: // human
+                                    playerAudio.clip = walkEffect;
+                                    break;
+                                case 2: // robot
+                                    playerAudio.clip = robotWalkEffect;
+                                    break;
+                                case 3: // cane
+                                    playerAudio.clip = caneWalkEffect;
+                                    break;
+                                case 4: // dog
+                                    playerAudio.clip = dogWalkEffect;
+                                    break;
+                                case 5: // bird
+                                    playerAudio.clip = birdFlyEffect;
+                                    break;
+                                case 6: // invisible
+                                    playerAudio.clip = noEffect;
+                                    break;
+                            }
+                        }
+
+                        if (!playerAudio.isPlaying)
+                            playerAudio.Play();
+                    }
+                    else // If position hasn't changed
+                    {
+                        // Used to play idle effect, but now we don't want that interfering with hearing the guide talk
+                        /*playerAudio.clip = idleEffect;
+                        if (!playerAudio.isPlaying)
+                            playerAudio.Play();*/
+                    }
+                } // End if (!playerAudio.isPlaying)
+            }
+        }
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)

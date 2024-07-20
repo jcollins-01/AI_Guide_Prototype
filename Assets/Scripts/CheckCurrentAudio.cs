@@ -1,3 +1,4 @@
+using Normal.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,10 @@ using UnityEngine;
 public class CheckCurrentAudio : MonoBehaviour
 {
     // GameObjects to play audio on
-    private GameObject thePlayer;
-    private GameObject theGuide;
-    private GameObject confederateOne;
-    private GameObject confederateTwo;
+    public GameObject thePlayer;
+    public GameObject theGuide;
+    public GameObject confederateOne;
+    public GameObject confederateTwo;
 
     // Audio components for playing audio
     public AudioSource playerAudio;
@@ -32,7 +33,7 @@ public class CheckCurrentAudio : MonoBehaviour
     private AudioClip _clip = default;
     private AudioClip _previousClip = default;
 
-    //private AudioClipSync _audioClipSync;
+    private AudioClipSync _audioClipSync;
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
@@ -51,9 +52,6 @@ public class CheckCurrentAudio : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // Finds the PlayAudio component attached to the same rig as this component (each player has their own, including the guide)
-        m_PlayAudioScript = GetComponent<PlayAudio>();
-
         // Set default values for clips to be overwritten
         _clip = currentClip;
         _previousClip = null;
@@ -63,37 +61,39 @@ public class CheckCurrentAudio : MonoBehaviour
         if (gameObject.tag == "Guide")
         {
             // Get the audioclipsync component for this client and set our audioclipsync variable to it
-            //GetComponent<AudioClipSync>() --- This is to make sure we grab the sync component from the guide and the player and access them separately
+            _audioClipSync = GetComponent<AudioClipSync>(); //This is to make sure we grab the sync component from the guide and the player and access them separately
+            m_PlayAudioScript = GameObject.FindWithTag("Guide Rig").GetComponent<PlayAudio>();
             guideClient = true;
-
-            // We have to wait until update to add the local audio sources since we can't be sure the confederates have joined yet at start
+            Debug.Log("Playing as the guide, audio clip sync is " + GetComponent<AudioClipSync>());
         }
 
         if (gameObject.tag == "Player")
         {
             // Get the audioclipsync component for this client and set our audioclipsync variable to it
-            //GetComponent<AudioClipSync>() --- This is to make sure we grab the sync component from the guide and the player and access them separately
+            _audioClipSync = GetComponent<AudioClipSync>();
+            m_PlayAudioScript = GameObject.FindWithTag("Player Rig").GetComponent<PlayAudio>();
             guideClient = true;
-
-            // We have to wait until update to add the local audio sources since we can't be sure the confederates have joined yet at start
+            Debug.Log("Playing as the player, audio clip sync is " + GetComponent<AudioClipSync>());
         }
 
         // If our audio is coming from the client with confed 1, add audio sources to the player and guide
         if (gameObject.tag == "Confederate_1")
         {
             // Get the audioclipsync component for this client and set our audioclipsync variable to it
+            _audioClipSync = GetComponent<AudioClipSync>();
+            m_PlayAudioScript = GameObject.FindWithTag("Confederate Rig").GetComponent<PlayAudio>();
             confederateOneClient = true;
-
-            // We have to wait until update to add the local audio sources since we can't be sure the guide and player have joined yet at start
+            Debug.Log("Playing as the confederate_1, audio clip sync is " + GetComponent<AudioClipSync>());
         }
 
         // If our audio is coming from the client with confed 1, add audio sources to the player and guide
         if (gameObject.tag == "Confederate_2")
         {
             // Get the audioclipsync component for this client and set our audioclipsync variable to it
+            _audioClipSync = GetComponent<AudioClipSync>();
+            m_PlayAudioScript = GameObject.FindWithTag("EditorOnly").GetComponent<PlayAudio>(); // CHANGE TO CONFEDERATE RIG
             confederateTwoClient = true;
-
-            // We have to wait until update to add the local audio sources since we can't be sure the guide and player have joined yet at start
+            Debug.Log("Playing as the confederate_2, audio clip sync is " + GetComponent<AudioClipSync>());
         }
 
         // Assign sounds from Resources
@@ -120,31 +120,35 @@ public class CheckCurrentAudio : MonoBehaviour
             checkConfederateArrival();
 
         // Add audio sources to all other players that aren't from our client
-        if (!audioAdded)
-            addAudioSources();
+        //if (!audioAdded)
+            //addAudioSources();
 
         // Repeatedly check for the audio clip current set on each player
-        if (audioAdded)
-            getCurrentAudio();
+        //if (audioAdded)
+            //getCurrentAudio();
 
         // If every player is present, determine our role and play local audio accordingly
-        if (sharedMovementFound && confederatesArrived)
-            determineLocalRole();
+        //if (sharedMovementFound && confederatesArrived)
+            //determineLocalRole();
     }
 
     private void determineLocalRole()
     {
+        //Debug.Log("Reached determineLocalRole");
         // Determine the role we are playing as, get the clip assigned to all other roles, and play that clip from the audio source we added to them
         if (gameObject.tag == "Guide") // This should play the correct audio for the Player too
         {
             // Add to confederates (since we already hear the player locally)
-            playSyncedAudio(confederateOne, confederateOneAudio);
+            Debug.Log("Determined to be a guide");
+            
             playSyncedAudio(confederateTwo, confederateTwoAudio);
+            playSyncedAudio(confederateOne, confederateOneAudio);
         }
 
         if (gameObject.tag == "Confederate_1")
         {
             // Add to other confederate, guide, and player
+            Debug.Log("Determined to be confederate_1");
             playSyncedAudio(confederateTwo, confederateTwoAudio);
             playSyncedAudio(theGuide, guideAudio);
             playSyncedAudio(thePlayer, playerAudio);
@@ -153,6 +157,7 @@ public class CheckCurrentAudio : MonoBehaviour
         if (gameObject.tag == "Confederate_2")
         {
             // Add to other confederate, guide, and player
+            Debug.Log("Determined to be confederate_2");
             playSyncedAudio(confederateOne, confederateOneAudio);
             playSyncedAudio(theGuide, guideAudio);
             playSyncedAudio(thePlayer, playerAudio);
@@ -161,10 +166,69 @@ public class CheckCurrentAudio : MonoBehaviour
 
     private void playSyncedAudio(GameObject player, AudioSource audioSource)
     {
-        // if (player.GetComponent<AudioClipSync>().audioClipName == "teleportEffect")
-        audioSource.clip = teleportEffect;
-        audioSource.Play();
-        // ... All other clip cases
+        Debug.Log("Reached playSyncAudio");
+        Debug.Log("We have an audio sync clip component for "  + player + " which is " + player.GetComponent<AudioClipSync>());
+        Debug.Log("The name of the clip is " + player.GetComponent<AudioClipSync>()._clipName);
+        if (player.GetComponent<AudioClipSync>()._clipName == teleportEffect.name)
+        {
+            Debug.Log("Playing teleport for " + player);
+            audioSource.clip = teleportEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == walkEffect.name)
+        {
+            Debug.Log("Playing walk for " + player);
+            audioSource.clip = walkEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == woodEffect.name)
+        {
+            Debug.Log("Playing wood for " + player);
+            audioSource.clip = woodEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == waterEffect.name)
+        {
+            Debug.Log("Playing water for " + player);
+            audioSource.clip = waterEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == grassEffect.name)
+        {
+            Debug.Log("Playing grass for " + player);
+            audioSource.clip = grassEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == turnEffect.name)
+        {
+            Debug.Log("Playing turn for " + player);
+            audioSource.clip = turnEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == woodCollisionEffect.name)
+        {
+            Debug.Log("Playing wood collision for " + player);
+            audioSource.clip = woodCollisionEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == collisionEffect.name)
+        {
+            Debug.Log("Playing general collision for " + player);
+            audioSource.clip = collisionEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == idleEffect.name)
+        {
+            Debug.Log("Playing idle for " + player);
+            audioSource.clip = idleEffect;
+            audioSource.Play();
+        }
+        else if (player.GetComponent<AudioClipSync>()._clipName == noEffect.name)
+        {
+            Debug.Log("Playing no effect for " + player);
+            audioSource.clip = noEffect;
+            audioSource.Play();
+        }
     }
 
     private void getCurrentAudio()
@@ -174,13 +238,32 @@ public class CheckCurrentAudio : MonoBehaviour
 
         if (_clip != _previousClip)
         {
+            Debug.Log("Audio clip has changed to " + currentClip.name);
             // For each audio sound effect, send the name of the current clip to the local audioclipsync component
             // This is how we'll share with the network which clip each player is playing
             if (currentClip == teleportEffect)
             {
                 //Send currentClip.name to the AudioClipSync component
+                _audioClipSync.SetClipName(teleportEffect.name);
             }
-            //.... All other clip cases
+            else if (currentClip == walkEffect)
+                _audioClipSync.SetClipName(walkEffect.name);
+            else if (currentClip == woodEffect)
+                _audioClipSync.SetClipName(woodEffect.name);
+            else if (currentClip == waterEffect)
+                _audioClipSync.SetClipName(waterEffect.name);
+            else if (currentClip == grassEffect)
+                _audioClipSync.SetClipName(grassEffect.name);
+            else if (currentClip == turnEffect)
+                _audioClipSync.SetClipName(turnEffect.name);
+            else if (currentClip == woodCollisionEffect)
+                _audioClipSync.SetClipName(woodCollisionEffect.name);
+            else if (currentClip == collisionEffect)
+                _audioClipSync.SetClipName(collisionEffect.name);
+            else if (currentClip == idleEffect)
+                _audioClipSync.SetClipName(idleEffect.name);
+            else if (currentClip == noEffect)
+                _audioClipSync.SetClipName(noEffect.name);
 
             _previousClip = _clip;
         }

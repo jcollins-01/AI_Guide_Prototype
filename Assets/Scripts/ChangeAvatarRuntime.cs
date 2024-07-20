@@ -218,15 +218,15 @@ public class ChangeAvatarRuntime : MonoBehaviour
     private void getPossibleModels()
     {
         // Grab all possible models for guide avatars
-        if (human == null || dog == null || cane == null || robot == null || bird == null)
+        if (human == null || robot == null || cane == null || dog == null || bird == null)
         {
             // Grab all possible models for guide avatars - go to parent to search for all models underneath
             if (GameObject.FindWithTag("Guide")) // If a guide has entered the scene, we can start looking for these models
             {
                 human = GameObject.Find("Human Model").gameObject;
-                dog = GameObject.Find("Guide Dog Model").gameObject;
-                cane = GameObject.Find("White Cane Model").gameObject;
                 robot = GameObject.Find("Robot Model").gameObject;
+                cane = GameObject.Find("White Cane Model").gameObject;
+                dog = GameObject.Find("Guide Dog Model").gameObject;
                 bird = GameObject.Find("Bird Model").gameObject; //gameObject.transform.parent.transform.Find
             }
         }
@@ -324,49 +324,49 @@ public class ChangeAvatarRuntime : MonoBehaviour
         {
             // Enable selected guide avatar
             EnableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
             DisableAllRenderers(robot);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(dog);
             DisableAllRenderers(bird);
         }
         else if (role == 2) // Guide Dog
         {
             DisableAllRenderers(human);
-            EnableAllRenderers(dog);
+            EnableAllRenderers(robot);
             DisableAllRenderers(cane);
-            DisableAllRenderers(robot);
+            DisableAllRenderers(dog);
             DisableAllRenderers(bird);
         }
         else if (role == 3) // White Cane
         {
             DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            EnableAllRenderers(cane);
             DisableAllRenderers(robot);
+            EnableAllRenderers(cane);
+            DisableAllRenderers(dog);
             DisableAllRenderers(bird);
         }
         else if (role == 4) // Robot
         {
             DisableAllRenderers(human);
-            DisableAllRenderers(dog);
+            DisableAllRenderers(robot);
             DisableAllRenderers(cane);
-            EnableAllRenderers(robot);
+            EnableAllRenderers(dog);
             DisableAllRenderers(bird);
         }
         else if (role == 5) // Bird
         {
             DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
             DisableAllRenderers(robot);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(dog);
             EnableAllRenderers(bird);
         }
         else if (role == 6) // Invisible Guide
         {
             DisableAllRenderers(human);
-            DisableAllRenderers(dog);
-            DisableAllRenderers(cane);
             DisableAllRenderers(robot);
+            DisableAllRenderers(cane);
+            DisableAllRenderers(dog);
             DisableAllRenderers(bird);
         } // END OF GUIDE ROLES ----- BEGINNING OF CONFEDERATE ROLES
         else if (role == 7) // Model 1
