@@ -207,6 +207,9 @@ public class PlayAudio : MonoBehaviour
                 playerAudio.clip = noEffect;
             else
                 playerAudio.clip = collisionEffect;
+
+            if (!playerAudio.isPlaying)
+                playerAudio.Play();
         }
     }
 
