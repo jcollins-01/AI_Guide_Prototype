@@ -413,6 +413,8 @@ GameObject:
   - component: {fileID: 1770790798}
   - component: {fileID: 1770790797}
   - component: {fileID: 1770790800}
+  - component: {fileID: 1770790802}
+  - component: {fileID: 1770790801}
   m_Layer: 0
   m_Name: XR Origin (Guide Rig)
   m_TagString: Untagged
@@ -481,6 +483,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   guideHeight: 0
   playerHeight: 0
+--- !u!114 &1770790801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770790796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3312afc9cf03804dab5045e2722bcbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAudio: {fileID: 0}
+  currentClip: {fileID: 0}
+--- !u!143 &1770790802
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770790796}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1914637166
 GameObject:
   m_ObjectHideFlags: 0
@@ -2322,6 +2364,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAudio: {fileID: 0}
+  currentClip: {fileID: 0}
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0
