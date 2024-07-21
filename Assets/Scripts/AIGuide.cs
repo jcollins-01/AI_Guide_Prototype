@@ -154,8 +154,6 @@ public class AIGuide : MonoBehaviour
             if (!m_OpenAIQueriesScript.audioSource.isPlaying)
                 m_OpenAIQueriesScript.audioSource.Play();
             voiceCalls += 1;
-
-            Debug.Log("audio source we received in AIguide is " + m_OpenAIQueriesScript.audioSource);
         }
 
         // Checking if a target GameObject was selected to be moved to
