@@ -27,17 +27,22 @@ public class CheckCurrentAudio : MonoBehaviour
     private AudioClip turnEffect;
     private AudioClip woodCollisionEffect;
     private AudioClip collisionEffect;
-    private AudioClip idleEffect;
     private AudioClip noEffect;
+    private AudioClip robotWalkEffect;
+    private AudioClip caneWalkEffect;
+    private AudioClip dogWalkEffect;
+    private AudioClip birdFlyEffect;
 
     private AudioClip _clip = default;
     private AudioClip _previousClip = default;
 
     private AudioClipSync _audioClipSync;
+    private AudioClipSync _guideAudioClipSync;
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
     private PlayAudio m_PlayAudioScript;
+    private PlayAudio m_GuidePlayAudioScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -61,8 +66,8 @@ public class CheckCurrentAudio : MonoBehaviour
         if (gameObject.tag == "Guide")
         {
             // Get the audioclipsync component for this client and set our audioclipsync variable to it
-            _audioClipSync = GetComponent<AudioClipSync>(); //This is to make sure we grab the sync component from the guide and the player and access them separately
-            m_PlayAudioScript = GameObject.FindWithTag("Guide Rig").GetComponent<PlayAudio>();
+            _guideAudioClipSync = GetComponent<AudioClipSync>(); //This is to make sure we grab the sync component from the guide and the player and access them separately
+            m_GuidePlayAudioScript = GameObject.FindWithTag("Guide Rig").GetComponent<PlayAudio>();
             guideClient = true;
             Debug.Log("Playing as the guide, audio clip sync is " + GetComponent<AudioClipSync>());
         }
@@ -105,9 +110,12 @@ public class CheckCurrentAudio : MonoBehaviour
         turnEffect = Resources.Load<AudioClip>("Audio/turn");
         woodCollisionEffect = Resources.Load<AudioClip>("Audio/wooden-collision");
         collisionEffect = Resources.Load<AudioClip>("Audio/general-collision");
-
-        idleEffect = Resources.Load<AudioClip>("Audio/guide_idle");
         noEffect = Resources.Load<AudioClip>("Audio/nothing");
+
+        robotWalkEffect = Resources.Load<AudioClip>("Audio/robot-walk");
+        caneWalkEffect = Resources.Load<AudioClip>("Audio/white-cane");
+        dogWalkEffect = Resources.Load<AudioClip>("Audio/dog-walk");
+        birdFlyEffect = Resources.Load<AudioClip>("Audio/bird-flap");
     }
 
     // Update is called once per frame
@@ -120,12 +128,15 @@ public class CheckCurrentAudio : MonoBehaviour
             checkConfederateArrival();
 
         // Add audio sources to all other players that aren't from our client
-        //if (!audioAdded)
-            //addAudioSources();
+        if (!audioAdded)
+            addAudioSources();
 
-        // Repeatedly check for the audio clip current set on each player
-        //if (audioAdded)
-            //getCurrentAudio();
+        // Repeatedly check for the audio clip current set on each player and the guide
+        if (audioAdded)
+        {
+            getCurrentAudio();
+            getCurrentGuideAudio(); // Guide checked separately since it shares same client as player
+        }
 
         // If every player is present, determine our role and play local audio accordingly
         //if (sharedMovementFound && confederatesArrived)
@@ -140,9 +151,8 @@ public class CheckCurrentAudio : MonoBehaviour
         {
             // Add to confederates (since we already hear the player locally)
             Debug.Log("Determined to be a guide");
-            
-            playSyncedAudio(confederateTwo, confederateTwoAudio);
             playSyncedAudio(confederateOne, confederateOneAudio);
+            playSyncedAudio(confederateTwo, confederateTwoAudio);
         }
 
         if (gameObject.tag == "Confederate_1")
@@ -217,12 +227,6 @@ public class CheckCurrentAudio : MonoBehaviour
             audioSource.clip = collisionEffect;
             audioSource.Play();
         }
-        else if (player.GetComponent<AudioClipSync>()._clipName == idleEffect.name)
-        {
-            Debug.Log("Playing idle for " + player);
-            audioSource.clip = idleEffect;
-            audioSource.Play();
-        }
         else if (player.GetComponent<AudioClipSync>()._clipName == noEffect.name)
         {
             Debug.Log("Playing no effect for " + player);
@@ -231,8 +235,54 @@ public class CheckCurrentAudio : MonoBehaviour
         }
     }
 
+    private void getCurrentGuideAudio()
+    {
+        Debug.Log("We have the play audio for guide " + m_GuidePlayAudioScript);
+        currentClip = m_GuidePlayAudioScript.currentClip;
+        _clip = currentClip;
+
+        if (_clip != _previousClip)
+        {
+            Debug.Log("Guide audio clip has changed to " + currentClip.name);
+            // For each audio sound effect, send the name of the current clip to the local audioclipsync component
+            // This is how we'll share with the network which clip each player is playing
+            if (currentClip == teleportEffect)
+            {
+                //Send currentClip.name to the AudioClipSync component
+                _guideAudioClipSync.SetClipName(teleportEffect.name);
+            }
+            else if (currentClip == walkEffect)
+                _guideAudioClipSync.SetClipName(walkEffect.name);
+            else if (currentClip == woodEffect)
+                _guideAudioClipSync.SetClipName(woodEffect.name);
+            else if (currentClip == waterEffect)
+                _guideAudioClipSync.SetClipName(waterEffect.name);
+            else if (currentClip == grassEffect)
+                _guideAudioClipSync.SetClipName(grassEffect.name);
+            else if (currentClip == turnEffect)
+                _guideAudioClipSync.SetClipName(turnEffect.name);
+            else if (currentClip == woodCollisionEffect)
+                _guideAudioClipSync.SetClipName(woodCollisionEffect.name);
+            else if (currentClip == collisionEffect)
+                _guideAudioClipSync.SetClipName(collisionEffect.name);
+            else if (currentClip == noEffect)
+                _guideAudioClipSync.SetClipName(noEffect.name);
+            else if (currentClip == robotWalkEffect)
+                _guideAudioClipSync.SetClipName(robotWalkEffect.name);
+            else if (currentClip == caneWalkEffect)
+                _guideAudioClipSync.SetClipName(caneWalkEffect.name);
+            else if (currentClip == dogWalkEffect)
+                _guideAudioClipSync.SetClipName(dogWalkEffect.name);
+            else if (currentClip == birdFlyEffect)
+                _guideAudioClipSync.SetClipName(birdFlyEffect.name);
+
+            _previousClip = _clip;
+        }
+    }
+
     private void getCurrentAudio()
     {
+        Debug.Log("We have the play audio for player " + m_PlayAudioScript);
         currentClip = m_PlayAudioScript.currentClip;
         _clip = currentClip;
 
@@ -260,8 +310,6 @@ public class CheckCurrentAudio : MonoBehaviour
                 _audioClipSync.SetClipName(woodCollisionEffect.name);
             else if (currentClip == collisionEffect)
                 _audioClipSync.SetClipName(collisionEffect.name);
-            else if (currentClip == idleEffect)
-                _audioClipSync.SetClipName(idleEffect.name);
             else if (currentClip == noEffect)
                 _audioClipSync.SetClipName(noEffect.name);
 
@@ -306,6 +354,26 @@ public class CheckCurrentAudio : MonoBehaviour
 
             audioAdded = true;
         }
+
+        if (confederateTwoClient && sharedMovementFound)
+        {
+            playerAudio = thePlayer.AddComponent<AudioSource>();
+            playerAudio.loop = true;
+            playerAudio.spatialBlend = 1f;
+            playerAudio.playOnAwake = false;
+
+            guideAudio = theGuide.AddComponent<AudioSource>();
+            guideAudio.loop = true;
+            guideAudio.spatialBlend = 1f;
+            guideAudio.playOnAwake = false;
+
+            confederateOneAudio = confederateOne.AddComponent<AudioSource>();
+            confederateOneAudio.loop = true;
+            confederateOneAudio.spatialBlend = 1f;
+            confederateOneAudio.playOnAwake = false;
+
+            audioAdded = true;
+        }
     }
 
     private void getSharedMovement()
@@ -314,7 +382,7 @@ public class CheckCurrentAudio : MonoBehaviour
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
         else
         {
-            theGuide = m_SharedMovementScript.theGuide;
+            theGuide = m_SharedMovementScript.theGuide.transform.parent.gameObject;
             thePlayer = m_SharedMovementScript.thePlayer;
             if (theGuide != null && thePlayer != null)
             {
@@ -323,7 +391,7 @@ public class CheckCurrentAudio : MonoBehaviour
                     playerAudio = thePlayer.GetComponentInParent<AudioSource>();
 
                 if (guideAudio == null)
-                    guideAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>();
+                    guideAudio = theGuide.GetComponent<AudioSource>();
 
                 sharedMovementFound = true;
             }

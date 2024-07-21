@@ -56,7 +56,8 @@ public class SharedMovement : MonoBehaviour
         AssignRoles();
 
         // Enables shared movement between the player and the guide when player grabs the guide
-        ShareMovementOnGrab();
+        if (!FindObjectOfType<ConfederateHandler>()) // Only enable SharedMovement if we aren't in the confederate client
+            ShareMovementOnGrab();
     }
 
     private void ShareMovementOnGrab()

@@ -95,7 +95,7 @@ public class OpenAIQueries : MonoBehaviour
     {
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
-        audioSource = FindObjectOfType<AudioSource>();
+        audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadConfig();
         LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");

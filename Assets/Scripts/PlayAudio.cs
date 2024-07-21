@@ -87,7 +87,7 @@ public class PlayAudio : MonoBehaviour
         {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())
-                playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>();
+                playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>(); // Ensure we grab the audio source for Play Audio, not Open AI
 
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;

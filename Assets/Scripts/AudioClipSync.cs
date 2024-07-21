@@ -15,32 +15,21 @@ public class AudioClipSync : RealtimeComponent<AudioClipModel>
     {
         // Find each appropriate rig based on our role and grab Play Audio
         if (gameObject.tag == "Guide")
-        {
             _playAudioScript = FindObjectOfType<GuideFollow>().gameObject.GetComponent<PlayAudio>();
-            Debug.Log("ACS getting play audio from Guide " + FindObjectOfType<GuideFollow>().gameObject.GetComponent<PlayAudio>());
-        }
             
 
         if (gameObject.tag == "Player")
-        {
             _playAudioScript = GameObject.FindWithTag("Player Rig").gameObject.GetComponent<PlayAudio>();
-            Debug.Log("ACS getting play audio from Player " + GameObject.FindWithTag("Player Rig").gameObject.GetComponent<PlayAudio>());
-            Debug.Log("Player rig is " + GameObject.FindWithTag("Player Rig"));
-        }
             
 
         if (gameObject.tag == "Confederate_1")// || gameObject.tag == "Confederate_2")
-        {
             _playAudioScript = GameObject.FindWithTag("Confederate Rig").gameObject.GetComponent<PlayAudio>();
-            Debug.Log("ACS getting play audio from a confederate " + GameObject.FindWithTag("Confederate Rig").gameObject.GetComponent<PlayAudio>());
-        }
             
-
         // REMOVE AFTER TESTING
         if (gameObject.tag == "Confederate_2")
             _playAudioScript = GameObject.FindWithTag("EditorOnly").gameObject.GetComponent<PlayAudio>();
 
-        _playAudioScript = FindObjectOfType<PlayAudio>();
+        //_playAudioScript = FindObjectOfType<PlayAudio>();
 
         if (_playAudioScript == null)
             Debug.LogError("PlayAudio script missing from this GameObject.");

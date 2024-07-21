@@ -386,8 +386,6 @@ GameObject:
   - component: {fileID: 1902067044196675309}
   - component: {fileID: 4695322967106071732}
   - component: {fileID: 5482015977298676800}
-  - component: {fileID: -2201441941348336236}
-  - component: {fileID: -5559499234083662052}
   m_Layer: 3
   m_Name: Player Avatar
   m_TagString: Player
@@ -444,7 +442,7 @@ MonoBehaviour:
   - componentID: 4
     component: {fileID: 0}
   - componentID: 5
-    component: {fileID: -2201441941348336236}
+    component: {fileID: 0}
   _childViews:
   - componentID: 1
     component: {fileID: 0}
@@ -649,40 +647,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &-2201441941348336236
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1241684057453767626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 628d8f9c50c13894490c3f23df09be40, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _clipName: 
---- !u!114 &-5559499234083662052
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1241684057453767626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc2aa547aac511a49a29fe0ad38074f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  thePlayer: {fileID: 0}
-  theGuide: {fileID: 0}
-  confederateOne: {fileID: 0}
-  confederateTwo: {fileID: 0}
-  playerAudio: {fileID: 0}
-  guideAudio: {fileID: 0}
-  confederateOneAudio: {fileID: 0}
-  confederateTwoAudio: {fileID: 0}
-  currentClip: {fileID: 0}
 --- !u!1 &1421275851210865147
 GameObject:
   m_ObjectHideFlags: 0
