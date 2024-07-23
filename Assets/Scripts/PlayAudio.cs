@@ -84,8 +84,8 @@ public class PlayAudio : MonoBehaviour
         if (!audioClipSyncAssigned)
             assignAudioClipSync();
 
-        // If we have shared movement components assigned (a guide and player)
-        if (sharedMovementFound) 
+        // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
+        if (sharedMovementFound || GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2"))
         {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())

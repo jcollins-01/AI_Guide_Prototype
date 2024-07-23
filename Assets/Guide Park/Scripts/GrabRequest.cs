@@ -10,6 +10,7 @@ public class GrabRequest : MonoBehaviour
     // Variables to hold scripts we need access to
     private PlayAudio m_PlayAudioScript;
     private VRHandling m_VRHandlingScript;
+    private SharedMovement m_SharedMovementScript;
 
     // Game objects and components for determining grabbing player
     private GameObject thePlayer;
@@ -19,6 +20,7 @@ public class GrabRequest : MonoBehaviour
     // Monitoring bools
     private bool playAudioFound = false;
     private bool controllersGrabbed = false;
+    private bool sharedMovementFound = false;
     private bool gripping1 = false;
     private bool gripping2 = false;
 
@@ -40,7 +42,7 @@ public class GrabRequest : MonoBehaviour
         xrGrabInteractable = GetComponent<XRGrabInteractable>();
 
         // Assign sounds from Resources
-        grabSound = Resources.Load<AudioClip>("Audio/grab");
+        grabSound = Resources.Load<AudioClip>("Audio/grabbed");
     }
 
     // Update is called once per frame
@@ -51,6 +53,8 @@ public class GrabRequest : MonoBehaviour
             getPlayAudio();
         if (!controllersGrabbed)
             getControllers();
+        if (!sharedMovementFound)
+            getSharedMovement();
 
         // Once we have all necessary components, we can check for grab requests
         if (playAudioFound && controllersGrabbed)
@@ -59,30 +63,6 @@ public class GrabRequest : MonoBehaviour
 
     private void checkGrabRequest()
     {
-        if (xrGrabInteractable.isSelected)
-        {
-            realtimeTransform.RequestOwnership();
-            grabbed = true;
-            playerAudio.clip = grabSound;
-            if (grabSoundCount == 0)
-            {
-                playerAudio.Play();
-                grabSoundCount += 1;
-            }
-
-            // Ignore collisions between Default objects (layer 0), XRRig (layer 6), Player (layer 3), Teleport Area (layer 6)
-            // Non-Teleport Obstacles (layer 7), and Interactable (layer 7)
-            //Physics.IgnoreLayerCollision(10, 6, true); // Teleportation Area
-            //Physics.IgnoreLayerCollision(10, 7, true); // Non-Teleport Objects
-            Physics.IgnoreLayerCollision(7, 0, true); // Default
-            Physics.IgnoreLayerCollision(7, 6, true); // XR Rig
-            Physics.IgnoreLayerCollision(7, 3, true); // Player
-        }
-        else
-        {
-            grabSoundCount = 0;
-        }
-
         if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue))
         {
             if (gripValue < 0.1f)
@@ -109,6 +89,29 @@ public class GrabRequest : MonoBehaviour
             Physics.IgnoreLayerCollision(7, 3, false); // Player
         }
 
+        if (xrGrabInteractable.isSelected && (gripping1 || gripping2)) // If selected AND pressing a grip button - prevents gripping from teleport ray
+        {
+            realtimeTransform.RequestOwnership();
+            grabbed = true;
+
+            playerAudio.clip = grabSound;
+            if (grabSoundCount == 0)
+            {
+                playerAudio.Play();
+                grabSoundCount += 1;
+            }
+
+            // Ignore collisions between Default objects (layer 0), XRRig (layer 6), Player (layer 3), Teleport Area (layer 6)
+            // Non-Teleport Obstacles (layer 8), and Interactable (layer 7)
+            //Physics.IgnoreLayerCollision(10, 6, true); // Teleportation Area
+            //Physics.IgnoreLayerCollision(10, 7, true); // Non-Teleport Objects
+            Physics.IgnoreLayerCollision(7, 0, true); // Default
+            Physics.IgnoreLayerCollision(7, 6, true); // XR Rig
+            Physics.IgnoreLayerCollision(7, 3, true); // Player
+        }
+        else
+            grabSoundCount = 0;
+
         // If we grabbed an object as the participant for Park 2 (scavenger hunt), transform the scale when an object is grabbed so it disappears
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("GuidePark2_Networked"))
@@ -125,7 +128,8 @@ public class GrabRequest : MonoBehaviour
         else
         {
             playerAudio = m_PlayAudioScript.playerAudio;
-            playAudioFound = true;
+            if (playerAudio != null)
+                playAudioFound = true;
         }
     }
 
@@ -138,6 +142,18 @@ public class GrabRequest : MonoBehaviour
             rightXRController = m_VRHandlingScript.rightXRController;
             leftXRController = m_VRHandlingScript.leftXRController;
             controllersGrabbed = true;
+        }
+    }
+
+    private void getSharedMovement()
+    {
+        if (m_SharedMovementScript == null)
+            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+        else
+        {
+            thePlayer = m_SharedMovementScript.thePlayer;
+            if (thePlayer != null)
+                sharedMovementFound = true;
         }
     }
 }
