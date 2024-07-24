@@ -82,7 +82,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         {
             var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
             output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
-            Debug.Log("Created audio clip of voiced result");
+            Debug.Log("Created audio clip of voiced result with voice for " + m_AIGuideScript.role);
         }
         catch (System.Exception e)
         {

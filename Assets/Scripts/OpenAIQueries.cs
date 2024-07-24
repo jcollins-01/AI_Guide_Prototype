@@ -3,6 +3,7 @@ using OpenAI.Chat;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using UnityEngine;
@@ -80,6 +81,7 @@ public class OpenAIQueries : MonoBehaviour
     public string role;
     public AudioSource audioSource;
     public AudioClip guideVoice;
+    public AudioClip streamingVoice;
 
     // Monitoring bools
     [HideInInspector]
@@ -283,6 +285,75 @@ public class OpenAIQueries : MonoBehaviour
         //targetForGuidance = null;
         targetForModification = null;
         return output;
+    }
+
+    public async Task<AudioClip> CallAlloyStreamingTTS()
+    {
+        // If the result was a GameObject for guidance, create a custom speech message
+        string[] words = result.Split(',');
+        if (words.Length == 2)
+        {
+            string secondWord = words[1].Trim();
+            Debug.Log(words[1]);
+            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
+            {
+                // Assign the first word to targetName and the second word to modeOfTransportation
+                string targetName = words[0].Trim();
+                modeOfTransportation = words[1].Trim();
+
+                targetForGuidance = GameObject.Find(targetName);
+                if (targetForGuidance != null)
+                    result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+            }
+            else // they are trying to modify
+            {
+                // Assign the first word to targetName and the second word to modification
+                string targetName = words[0].Trim();
+                modeOfModification = words[1].Trim();
+
+                targetForModification = GameObject.Find(targetName);
+                if (targetForModification != null)
+                    result = "Alright. I will add an audio beacon to " + targetForModification.name;
+            }
+        }
+
+        // Initialize speech request with default voice (Alloy)
+        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy); // Human
+
+        // Change speech request to new voices if the role calls for it
+        if (m_AIGuideScript.role == 2)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Echo); // Robot
+        else if (m_AIGuideScript.role == 3)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Onyx); // Mechanical cane
+        else if (m_AIGuideScript.role == 4)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Shimmer); // Dog
+        else if (m_AIGuideScript.role == 5)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Fable); // Mythical bird
+        else if (m_AIGuideScript.role == 6)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Nova); // Invisible
+
+
+        //AudioClip output = null;
+        try
+        {
+            Debug.Log("Creating streaming speech request");
+            var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
+            if (speechResponse != null)
+            {
+                Debug.Log("Starting to read content as a stream");
+                HttpResponseMessage response = await OpenAISpeech.CreateHttpResponseFromTuple(speechResponse);
+                var stream = await response.Content.ReadAsStreamAsync();
+                return await OpenAISpeech.ConvertStreamToAudioClip(stream);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning("Exception in CallAlloyStreamingTTS:\n" + e);
+        }
+        Debug.Log("Created audio clip of voiced result from streaming");
+        //targetForGuidance = null;
+        targetForModification = null;
+        return null;
     }
 
     private void LoadConfig()

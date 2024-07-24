@@ -43,7 +43,8 @@ public class AIGuide : MonoBehaviour
         Debug.Log("AIGuide is active!");
 
         // Line for testing role change over the network
-        InvokeRepeating("ChangeGuideRole", 0f, 10f);
+        role = 5;
+        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
     // For testing the role change over the network
@@ -143,6 +144,9 @@ public class AIGuide : MonoBehaviour
         {
             // Create the audio clip of whatever whatever output has been stored in the result variable
             var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
+
+            // Call streaming voice option
+            //callStreamingVoice();
             alloyCalls += 1;
         }
 
@@ -150,6 +154,7 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.alloyCompleted && voiceCalls == 0)
         {
             // Play the guide's response
+            Debug.Log("Playing from regular clip");
             m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
             if (!m_OpenAIQueriesScript.audioSource.isPlaying)
                 m_OpenAIQueriesScript.audioSource.Play();
@@ -217,6 +222,20 @@ public class AIGuide : MonoBehaviour
             m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
             m_OpenAIQueriesScript.targetForModification = null;
         }
+    }
+
+    private async void callStreamingVoice()
+    {
+        // Test streaming option and compare
+        Debug.Log("Calling alloy streaming TTS");
+        var speechStreamResult = await m_OpenAIQueriesScript.CallAlloyStreamingTTS();
+        AudioClip streamingVoice = speechStreamResult;
+
+        // Now you can use streamingVoice
+        Debug.Log("Playing from streaming voice");
+        m_OpenAIQueriesScript.audioSource.clip = streamingVoice;
+        if (!m_OpenAIQueriesScript.audioSource.isPlaying)
+            m_OpenAIQueriesScript.audioSource.Play();
     }
 
     private void getSharedMovement()
