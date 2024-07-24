@@ -230,6 +230,7 @@ public class OpenAIQueries : MonoBehaviour
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
+            Debug.Log("Two word response for guidance or modification");
             string secondWord = words[1].Trim();
             Debug.Log(words[1]);
             if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))

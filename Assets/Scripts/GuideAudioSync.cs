@@ -3,11 +3,13 @@ using System.Collections;
 using UnityEngine;
 using System.Threading.Tasks;
 using OpenAI;
+using System;
 
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
     private AudioSource _audioSource;
     private AIGuide m_AIGuideScript;
+    private OpenAIQueries m_openAIQueriesScript;
     private string apiKey;
 
     private void Awake()
@@ -58,8 +60,37 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private async Task<AudioClip> ConvertResultToSpeech(string result)
     {
+        // If the result was a GameObject for guidance, create a custom speech message
+        string[] words = result.Split(',');
+        if (words.Length == 2)
+        {
+            Debug.Log("Two word response for guidance or modification");
+            string secondWord = words[1].Trim();
+            Debug.Log(words[1]);
+            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
+            {
+                // Assign the first word to targetName and the second word to modeOfTransportation
+                string targetName = words[0].Trim();
+                m_openAIQueriesScript.modeOfTransportation = words[1].Trim();
+
+                m_openAIQueriesScript.targetForGuidance = GameObject.Find(targetName);
+                if (m_openAIQueriesScript.targetForGuidance != null)
+                    result = "Alright. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+            }
+            else // they are trying to modify
+            {
+                // Assign the first word to targetName and the second word to modification
+                string targetName = words[0].Trim();
+                m_openAIQueriesScript.modeOfModification = words[1].Trim();
+
+                m_openAIQueriesScript.targetForModification = GameObject.Find(targetName);
+                if (m_openAIQueriesScript.targetForModification != null)
+                    result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+            }
+        }
+
         //Debug.Log("Reached ConvertResultToSpeech");
-        var client = new OpenAIClient(apiKey); // Replace with your OpenAI API key
+        var client = new OpenAIClient(apiKey);
 
         // Initialize speech request with default voice (Alloy)
         var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy); // Human
@@ -112,6 +143,10 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     {
         if (apiKey == null)
             GetAPIKey();
+
+        if (m_openAIQueriesScript == null)
+            if (FindObjectOfType<OpenAIQueries>())
+                m_openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
     }
 
     void GetAPIKey()
