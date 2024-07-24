@@ -35,15 +35,15 @@ public class SharedMovement : MonoBehaviour
         // Checks which ones are root objects, which would make them players
         foreach (XROrigin rig in foundRigs)
         {
-            // Assign playerRig to the only rig on the XR Rig layer (layer for player's rig)
+            // Assign playerRig to the only rig on the XR Rig layer (layer for player's rig, guide's is on default)
             if (rig.gameObject.layer == 6)
                 playerRig = rig;
         }
 
         // Creates the CameraSystem for the guide to keep track of Player's Movement
-        gameObject.AddComponent<CameraSystem>(); //guideOn
+        gameObject.AddComponent<CameraSystem>();
 
-        // Ignore collisions between Player and XR Rig
+        // Ignore collisions between Player, Guide, or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
         CharacterController control = FindObjectOfType<CharacterController>();
         control.detectCollisions = true;
@@ -53,8 +53,15 @@ public class SharedMovement : MonoBehaviour
     void Update()
     {
         // Assigns roles to guide and player
-        AssignRoles(); //guideOn
+        AssignRoles();
 
+        // Enables shared movement between the player and the guide when player grabs the guide
+        if (!FindObjectOfType<ConfederateHandler>()) // Only enable SharedMovement if we aren't in the confederate client
+            ShareMovementOnGrab();
+    }
+
+    private void ShareMovementOnGrab()
+    {
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
@@ -89,7 +96,7 @@ public class SharedMovement : MonoBehaviour
             {
                 StopCoroutine(Teleport());
                 playerGrabbingGuide = false;
-            } 
+            }
         }
     }
 
@@ -147,8 +154,8 @@ public class SharedMovement : MonoBehaviour
 
         foreach (GameObject currentPlayer in foundPlayers)
         {
-            // If the found player has a SharedMovement component (is not a guide) and is using the guide set them as the main player
-            if (currentPlayer.GetComponent<SharedMovement>()) //&& currentPlayer.GetComponent<SharedMovement>().guideOn == true
+            // If the found player has a SharedMovement component (not a guide) and confederate version is false (not a confederate), set them as the player
+            if (currentPlayer.GetComponent<SharedMovement>())
                 thePlayer = currentPlayer;
         }
 
@@ -200,11 +207,16 @@ public class SharedMovement : MonoBehaviour
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on
         // If not, turn collisions off - the guide falls in this second category where we want to ignore collisions while we're grabbing it
-        XRGrabInteractable grab = other.GetComponent<XRGrabInteractable>();
-        if (grab.interactorsSelecting.Count == 1)
+        if (other.GetComponent<XRGrabInteractable>())
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
         else
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);
+
+        /*XRGrabInteractable grab = other.GetComponent<XRGrabInteractable>();
+        if (grab.interactorsSelecting.Count == 1)
+            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
+        else
+            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);*/
     }
 
     public void OnTriggerExit(Collider other)

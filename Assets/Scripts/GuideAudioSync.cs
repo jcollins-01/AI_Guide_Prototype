@@ -7,13 +7,20 @@ using OpenAI;
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
     private AudioSource _audioSource;
+    private AIGuide m_AIGuideScript;
     private string apiKey;
 
     private void Awake()
     {
         _audioSource = GetComponentInChildren<AudioSource>();
+        //_audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
+        m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
+
         if (_audioSource == null)
             Debug.LogError("AudioSource missing from this GameObject");
+
+        if (m_AIGuideScript == null)
+            Debug.LogError("AI Guide missing from this GameObject");
     }
 
     protected override void OnRealtimeModelReplaced(GuideAudioSyncModel previousModel, GuideAudioSyncModel currentModel)
@@ -54,7 +61,21 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         //Debug.Log("Reached ConvertResultToSpeech");
         var client = new OpenAIClient(apiKey); // Replace with your OpenAI API key
 
-        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy);
+        // Initialize speech request with default voice (Alloy)
+        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy); // Human
+
+        // Change speech request to new voices if the role calls for it
+        if (m_AIGuideScript.role == 2)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Echo); // Robot
+        else if (m_AIGuideScript.role == 3)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Onyx); // Mechanical cane
+        else if (m_AIGuideScript.role == 4)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Shimmer); // Dog
+        else if (m_AIGuideScript.role == 5)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Fable); // Mythical bird
+        else if (m_AIGuideScript.role == 6)
+            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Nova); // Invisible
+
         AudioClip output = null;
 
         try
@@ -95,7 +116,11 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     void GetAPIKey()
     {
-        OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
-        apiKey = aIQueries.apiKey;
+        // If there's a guide in the scene, get the api key (a confed won't have this available until a guide joins them)
+        if (GameObject.FindWithTag("Guide"))
+        {
+            OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
+            apiKey = aIQueries.apiKey;
+        }
     }
 }

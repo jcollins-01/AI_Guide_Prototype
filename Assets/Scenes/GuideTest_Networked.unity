@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 229001454}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Camera Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -167,7 +167,7 @@ GameObject:
   m_Component:
   - component: {fileID: 284250160}
   - component: {fileID: 284250161}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Right Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -461,7 +461,7 @@ GameObject:
   - component: {fileID: 714074414}
   - component: {fileID: 714074413}
   - component: {fileID: 714074412}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Tall Building
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -822,7 +822,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 850964398}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Buildings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1287,7 +1287,7 @@ GameObject:
   - component: {fileID: 1438427494}
   - component: {fileID: 1438427493}
   - component: {fileID: 1438427492}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sideways Building
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1534,9 +1534,11 @@ GameObject:
   - component: {fileID: 1770790798}
   - component: {fileID: 1770790797}
   - component: {fileID: 1770790800}
-  m_Layer: 0
+  - component: {fileID: 1770790801}
+  - component: {fileID: 1770790802}
+  m_Layer: 3
   m_Name: XR Origin (Guide Rig)
-  m_TagString: Untagged
+  m_TagString: Guide Rig
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1602,6 +1604,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   guideHeight: 0
   playerHeight: 0
+--- !u!114 &1770790801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770790796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3312afc9cf03804dab5045e2722bcbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAudio: {fileID: 0}
+  currentClip: {fileID: 0}
+--- !u!143 &1770790802
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1770790796}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1776951225
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,7 +1690,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1914637167}
   - component: {fileID: 1914637168}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Left Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1694,7 +1736,7 @@ GameObject:
   - component: {fileID: 1918080905}
   - component: {fileID: 1918080904}
   - component: {fileID: 1918080903}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Short Building
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1848,7 +1890,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 9a49dfc5315c87a4eb3646bbaedbca41, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 92e9b4ed3d1498949b8ec5867641f2a7, type: 2}
   m_BuildHeightMesh: 0
 --- !u!1 &1946504820
 GameObject:
@@ -1862,7 +1904,7 @@ GameObject:
   - component: {fileID: 1946504823}
   - component: {fileID: 1946504822}
   - component: {fileID: 1946504821}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Landmark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2074,8 +2116,8 @@ GameObject:
   - component: {fileID: 2078673631}
   - component: {fileID: 2078673634}
   - component: {fileID: 2078673632}
-  m_Layer: 0
-  m_Name: Main Camera
+  m_Layer: 3
+  m_Name: Guide Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2089,7 +2131,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2078673630}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2103,7 +2145,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2078673630}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2fadf230d1919748a9aa21d40f74619, type: 3}
   m_Name: 
@@ -2343,7 +2385,7 @@ GameObject:
   - component: {fileID: 4007864804143861841}
   m_Layer: 6
   m_Name: Main Camera
-  m_TagString: MainCamera
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2791,7 +2833,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 972060187089539768}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -3263,9 +3305,10 @@ GameObject:
   - component: {fileID: 3281081717620070587}
   - component: {fileID: 7499811818819337961}
   - component: {fileID: 7499811818819337960}
+  - component: {fileID: 7499811818819337962}
   m_Layer: 6
-  m_Name: XR Origin
-  m_TagString: Untagged
+  m_Name: XR Origin (Player Rig)
+  m_TagString: Player Rig
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3778,6 +3821,20 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7499811818819337962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950086389194246744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3312afc9cf03804dab5045e2722bcbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerAudio: {fileID: 0}
+  currentClip: {fileID: 0}
 --- !u!4 &7516463958272253097
 Transform:
   m_ObjectHideFlags: 0

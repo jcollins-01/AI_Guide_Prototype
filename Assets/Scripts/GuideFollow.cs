@@ -39,8 +39,10 @@ public class GuideFollow : MonoBehaviour
     void Update()
     {
         // Calls until the shared movement and AI Guide scripts are assigned (when we have a player and a guide)
-        getSharedMovement();
-        getAIGuide();
+        if (!sharedMovementFound)
+            getSharedMovement();
+        if (!aiGuideFound)
+            getAIGuide();
 
         // Wait to request ownership until we have all players in scene + multiplayer room is definitely instantiated
         if (sharedMovementFound)
@@ -61,7 +63,7 @@ public class GuideFollow : MonoBehaviour
                 Quaternion targetRotation = theGuide.transform.rotation;
 
                 // Humanoid follow position - trailing after the player and facing them
-                if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 2)
+                if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 2) // Human and robot
                 {
                     // Calculate the target position based on the player's position and follow distance
                     Vector3 directionToPlayer = (thePlayer.transform.position - transform.position).normalized;
@@ -74,38 +76,46 @@ public class GuideFollow : MonoBehaviour
                     transform.LookAt(thePlayer.transform);
                 }
 
+                // Dog follow position - moving at the right side of the player and facing the same direction as them
+                if (m_AIGuideScript.role == 4)
+                {
+                    // Calculate the position on the right side of the player
+                    Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
+                    targetPosition = thePlayer.transform.position + offset;
+
+                    // Rotate to face the same direction as the player
+                    targetRotation = thePlayer.transform.rotation;
+                }
+
                 // Cane follow position - moving in front of the player and facing away
                 if (m_AIGuideScript.role == 3)
                 {
                     // Calculate the position in front of the player
-                    Vector3 offset = thePlayer.transform.forward * followDistance;
+                    Vector3 offset = thePlayer.transform.forward * (followDistance * 0.5f);
                     targetPosition = thePlayer.transform.position + offset;
 
                     // Rotate to face away from the player (same direction the player is looking)
                     targetRotation = thePlayer.transform.rotation;
                 }
 
-                // Dog follow position - moving at the right side of the player and facing the same direction as them
-                if (m_AIGuideScript.role == 4)
-                {
-                    // Calculate the position on the right side of the player
-                    Vector3 offset = thePlayer.transform.right * followDistance;
-                    targetPosition = thePlayer.transform.position + offset;
-
-                    // Rotate to face the same direction as the player
-                    targetRotation = thePlayer.transform.rotation;
-                }
-
                 // Bird and invisible guide follow position - moving at the right of the player's head and facing the same direction as them
                 if (m_AIGuideScript.role == 5 || m_AIGuideScript.role == 6)
                 {
-                    // Calculate the position to the right of the player, at the appropriate height
-                    Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
-                    targetPosition = thePlayer.transform.position + offset + Vector3.up * (playerHeight + heightOffset - guideHeight / 2);
-                    transform.position = new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z);
+                    // Calculate the position on the right side of the player
+                    Vector3 offset = thePlayer.transform.right * (followDistance * 0.25f);
+                    targetPosition = thePlayer.transform.position + offset;
+                    transform.position = new Vector3(transform.position.x, transform.position.y + 0.25f, transform.position.z);
 
                     // Rotate to face the same direction as the player
                     targetRotation = thePlayer.transform.rotation;
+
+                    // Calculate the position to the right of the player, at the appropriate height
+                    //Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
+                    //targetPosition = thePlayer.transform.position + offset + Vector3.up * (playerHeight + heightOffset - guideHeight / 2);
+                    //transform.position = new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z);
+
+                    // Rotate to face the same direction as the player
+                    //targetRotation = thePlayer.transform.rotation;
                 }
 
                 if (agent.isOnNavMesh)
@@ -140,7 +150,8 @@ public class GuideFollow : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
-            sharedMovementFound = true;
+            if (theGuide != null && thePlayer != null)
+                sharedMovementFound = true;
         }
     }
 

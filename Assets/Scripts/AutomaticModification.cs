@@ -12,7 +12,7 @@ public class AutomaticModification : MonoBehaviour
     // Update is called once per frame
     void Start()
     {
-        beaconClip = Resources.Load<AudioClip>("beacon");
+        beaconClip = Resources.Load<AudioClip>("Audio/beacon");
 
         if (beaconClip == null)
             Debug.LogError("Failed to load beacon audio clip. Please ensure an audio file 'beacon' is located in the Resources folder.");

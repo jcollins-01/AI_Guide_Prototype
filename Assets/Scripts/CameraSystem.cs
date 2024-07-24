@@ -41,25 +41,58 @@ public class CameraSystem : MonoBehaviour
             {
                 // Begin capturing screenshots every 10 secs to keep guide updated on scene
                 //InvokeRepeating("CaptureScreenshot", 0f, 10f);
-                CaptureScreenshot();
+                //CaptureScreenshot(); // capture once from both cameras
+                //InvokeRepeating("CaptureWrapper", 0f, 10f);
+                //destroyBirdEyeCamera();
                 calledCamerasToStart = true;
             }
         }
+    }
+    
+    private void destroyBirdEyeCamera()
+    {
+        Destroy(birdEyeCamera.gameObject);
     }
 
     private void createBirdEyeCamera()
     {
         GameObject newCamera = new GameObject("Bird's Eye Camera");
+
         birdEyeCamera = newCamera.AddComponent<Camera>();
+
+        // If we're in the test scene, alter the birdHeight variable to be closer since the scene isn't as big
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked"))
+            birdHeight = 15f;
 
         // Camera has specified height it goes above the guide to get bird's eye view + rotation + widened field of view to look down at the scene
         birdHeight = birdHeight + transform.position.y;
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
         birdEyeCamera.transform.eulerAngles = birdRotation;
         birdEyeCamera.fieldOfView = fieldOfView;
+
+        // After the bird's eye camera is created, enable other cameras in the scene
+        //Camera guideCamera = GameObject.Find("Guide Camera").GetComponent<Camera>();
+        //enableCamera(guideCamera);
+        //enableCamera(viewpointCamera);
     }
 
-    public void CaptureScreenshot()
+
+    /*private void enableCamera(Camera camera)
+    {
+        if (birdEyeCamera != null)
+            camera.enabled = true;
+    }*/
+
+    private void CaptureWrapper()
+    {
+        CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");
+
+        refreshed = false;
+        RefreshAssets();
+    }
+
+    private void CaptureScreenshot()
     {
         // Captures screenshots from both cameras in system
         CaptureSpecificCamera(viewpointCamera, "/Resources/Screenshots/viewpointCapture.png");
@@ -115,7 +148,7 @@ public class CameraSystem : MonoBehaviour
 
     void UploadImage()
     {
-        Debug.Log("Uploading screenshot to Image Shack");
+        // Debug.Log("Uploading screenshot to Image Shack");
         // Loads the screenshots (Unity considers it a texture) from Resources
         Texture2D viewCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/viewpointCapture");
         Texture2D birdCapturedScreenshot = Resources.Load<Texture2D>("Screenshots/birdEyeCapture");
@@ -134,7 +167,7 @@ public class CameraSystem : MonoBehaviour
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
     // For resetting Image Shack account, go to Settings > Basic > Manage Exceptions > find/add imageshack.com > Delete Data
-    private string imageApiKey = "ZLMKQ3ICb1f3267dffcd71402f43c10aeca41c17";
+    private string imageApiKey = "6EHKLMNTd1353fef85ed809f9acb93b2e33f0ead";
 
     [HideInInspector]
     public string viewpointImageLink;

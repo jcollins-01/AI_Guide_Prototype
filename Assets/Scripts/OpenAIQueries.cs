@@ -28,7 +28,7 @@ public class OpenAIQueries : MonoBehaviour
     private string objectNames;
     public List<string> roles = new List<string>
     {
-        "warm, friendly, but still professional tour guide",
+        "warm, friendly, but still professional sighted guide",
         "formal and assertive assistant, who talks like a robot",
         "computer-like, succinct assistant, who gives the straight facts",
         "very friendly, excited companion, who is eager to please who you're talking to",
@@ -37,41 +37,31 @@ public class OpenAIQueries : MonoBehaviour
     };
     [HideInInspector]
     public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
-        "The other photo is the player's current perspective and what they are currently looking at in the scene.";
+        "The other photo is the player's current perspective and what they are currently looking at in the scene." +
+        "The player is going to ask you questions about the contents in these photos.";
+    [HideInInspector]
+    public string memoClassifications = "Limit your reply to 150 words or less - DO NOT GO OVER THIS WORD LIMIT. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
     public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
     {
         get
-        {
-            return "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
+        {//succintly summarize?
+            return "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
                    "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
                    "and 'guide' after a comma if they don't specify teleportation." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
+                   "Only do this if you're sure they want to go to an object." +
                    "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";
+                   "Only do this if you're sure they want to add a sound." +
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
     }
-    /*public string queryClassifications = "If the player seems like they want to describe the entire scene, then describe the scene as though you are helping the player understand the game they are in. " +
-        "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-        "If it seems like they want to to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
-        "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
-        "and 'guide' after a comma if they don't specify teleportation." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-        "Only do this is you're sure they want to go to an object - describe the scene for the player if you are unsure what they want." +
-        "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
-        "plus the word 'modify' after a comma." +
-        "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-        "Only do this is you're sure they want to add a sound - describe the scene for the player if you are unsure what they want.";*/
-    // To use later when playing with guide roles - search for guideClassification to find all places that need to be updated
-    [HideInInspector]
-    public string memoClassifications = "Limit your reply to 300 words or less. Don't mention the two photos you see when replying; speak to the player as though you are in the room next to them.";
 
     // OpenAI audio, text message, result variables
     [HideInInspector]
@@ -105,7 +95,7 @@ public class OpenAIQueries : MonoBehaviour
     {
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
-        audioSource = FindObjectOfType<AudioSource>();
+        audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadConfig();
         LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");
@@ -126,8 +116,14 @@ public class OpenAIQueries : MonoBehaviour
 
     private void getGuideRole()
     {
+        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
+        int index = m_AIGuideScript.role - 1;
+
+        if (index < 0 || index >= roles.Count)
+            return;
+        
         // The role becomes the string value contained at the index we sent over from AIGuide
-        role = roles[m_AIGuideScript.role-1];
+        role = roles[index];
     }
 
     private void getCameraSystem()
@@ -185,8 +181,8 @@ public class OpenAIQueries : MonoBehaviour
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink), // m_CameraSystemScript.birdsEyeImageLink
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink) //m_CameraSystemScript.viewpointImageLink
             //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
 
@@ -359,7 +355,7 @@ public class OpenAIQueries : MonoBehaviour
 
     public void SetNewResult(string result)
     {
-        Debug.Log("Reached SetNewResult");
+        //Debug.Log("Reached SetNewResult");
         if (m_GuideAudioSync != null)
             m_GuideAudioSync.SetResult(result);
         else

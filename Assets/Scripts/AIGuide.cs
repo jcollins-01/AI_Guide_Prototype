@@ -32,21 +32,32 @@ public class AIGuide : MonoBehaviour
     void Start()
     {
         // Find necessary components to the attached GameObject
-        m_GuideFollowScript = FindObjectOfType<GuideFollow>();
+        m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
 
         // Add necessary components to the attached GameObject
+        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
-        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
 
         Debug.Log("AIGuide is active!");
+
+        // Line for testing role change over the network
+        InvokeRepeating("ChangeGuideRole", 0f, 10f);
+    }
+
+    // For testing the role change over the network
+    private void ChangeGuideRole()
+    {
+        int randRole = Random.Range(1, 6);
+
+        role = randRole;
     }
 
     // Method to test if result is working
     public void SetNewResult(string result)
     {
-        Debug.Log("Reached SetNewResult");
+        // Debug.Log("Reached SetNewResult");
         if (m_guideAudioSync != null)
             m_guideAudioSync.SetResult(result);
         else
@@ -56,12 +67,6 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.A))
-        {
-            Debug.Log("Sent a result from the Wizard");
-            SetNewResult(result);
-        }
-
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();
@@ -114,18 +119,18 @@ public class AIGuide : MonoBehaviour
         // Checking for completion of speech transcription
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
         {
-            // Construct the query to send to GPT-4 - ADD guideClassification
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+            // Construct the query to send to GPT-4
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
-            // [DEPRECATED] If this is the first query, send all classifcations - after that, the guide should remember the player, photo, and scene contexts
+            // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
             /*if (firstQuery)
             {
-                m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.playerClassification + m_OpenAIQueriesScript.photoClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+                m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
                 firstQuery = false;
             }
             else
             {
-                m_OpenAIQueriesScript.text = "Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
+                m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
             }*/
 
             // Call the CallCompletion method with the user's recorded voice query
@@ -169,13 +174,15 @@ public class AIGuide : MonoBehaviour
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
+                        Debug.Log("Played arrival effect");
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
+                        audioSource.mute = false;
                         audioSource.Play();
                     }
-                } 
+                }
                 else
                 {
                     //Debug.Log("The mode of transit is teleport");
@@ -186,7 +193,7 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("subway_chime");
+                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
                         audioSource.Play();
                     }
                 }
