@@ -1,13 +1,9 @@
 using OpenAI;
 using OpenAI.Chat;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
-using System.Xml;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class OpenAIQueries : MonoBehaviour
 {

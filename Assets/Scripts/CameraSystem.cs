@@ -1,9 +1,171 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR;
+#if UNITY_ANDROID
+using UnityEngine.Android;
+#endif
+
+public class CameraSystem : MonoBehaviour
+{
+    // Variables to set camera parameters
+    private float birdHeight = 30f; // 15f for test scene
+    private float birdZOffset = -10f; // Moves the camera back from directly over the player to get a better angle
+    private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+    private float fieldOfView = 80f; // 60f is default
+
+    // Public camera variables for AIGuide script to access
+    public Camera birdEyeCamera;
+    public Camera viewpointCamera;
+    public string screenshotFileName = "birdEyeCapture.png";
+
+    // Variables for monitoring
+    private bool refreshed = false;
+    private bool calledCamerasToStart = false;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
+        viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+        createBirdEyeCamera();
+    }
+
+    private void Update()
+    {
+        // If there is a guide in the scene, pull the bird eye camera from it, then begin sending screenshots
+        if (GetComponent<SharedMovement>().theGuide != null && !calledCamerasToStart)
+        {
+            birdEyeCamera = GameObject.Find("Bird's Eye Camera").GetComponent<Camera>();
+
+            if (!calledCamerasToStart)
+            {
+                // Begin capturing screenshots
+                CaptureScreenshot(); // capture once from both cameras
+                calledCamerasToStart = true;
+            }
+        }
+    }
+
+    private void createBirdEyeCamera()
+    {
+        GameObject newCamera = new GameObject("Bird's Eye Camera");
+
+        birdEyeCamera = newCamera.AddComponent<Camera>();
+
+        // If we're in the test scene, alter the birdHeight variable to be closer since the scene isn't as big
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked"))
+            birdHeight = 15f;
+
+        // Camera has specified height it goes above the guide to get bird's eye view + rotation + widened field of view to look down at the scene
+        birdHeight = birdHeight + transform.position.y;
+        birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
+        birdEyeCamera.transform.eulerAngles = birdRotation;
+        birdEyeCamera.fieldOfView = fieldOfView;
+    }
+
+    private void CaptureScreenshot()
+    {
+        StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera, "view"));
+        StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera, "bird"));
+    }
+
+    private IEnumerator CaptureScreenshotCoroutine(Camera camera, string cameraType)
+    {
+        yield return new WaitForEndOfFrame();
+
+        RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        camera.targetTexture = renderTexture;
+        camera.Render();
+
+        Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        RenderTexture.active = renderTexture;
+        texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        texture.Apply();
+
+        byte[] bytes = texture.EncodeToPNG();
+        string path = Path.Combine(Application.persistentDataPath, "VR_Capture.png");
+        File.WriteAllBytes(path, bytes);
+
+        camera.targetTexture = null;
+        RenderTexture.active = null;
+        Destroy(renderTexture);
+        Destroy(texture);
+
+        Debug.Log("Screenshot saved to: " + path);
+
+        // Upload the image
+        StartCoroutine(UploadImage(bytes, cameraType));
+    }
+
+    private string imageApiKey = "6EHKLMNTd1353fef85ed809f9acb93b2e33f0ead";
+
+    [HideInInspector]
+    public string viewpointImageLink;
+    [HideInInspector]
+    public string birdsEyeImageLink;
+
+    IEnumerator UploadImage(byte[] imageData, string type)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("key", imageApiKey);
+        form.AddBinaryData("fileupload", imageData, "image.png", "image/png");
+
+        using (UnityWebRequest www = UnityWebRequest.Post("https://post.imageshack.us/upload_api.php", form))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityWebRequest.Result.Success)
+            {
+                string responseText = www.downloadHandler.text;
+                if (type == "view")
+                {
+                    viewpointImageLink = ParseXmlResponse(responseText);
+                }
+                else
+                {
+                    birdsEyeImageLink = ParseXmlResponse(responseText);
+                }
+            }
+            else
+            {
+                Debug.LogError("Upload failed: " + www.error);
+            }
+        }
+    }
+
+    string ParseXmlResponse(string xmlResponse)
+    {
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.LoadXml(xmlResponse);
+
+        XmlNamespaceManager nsManager = new XmlNamespaceManager(xmlDoc.NameTable);
+        nsManager.AddNamespace("ns", "http://ns.imageshack.us/imginfo/8/");
+
+        string imageLink = "";
+        XmlNode imageLinkNode = xmlDoc.SelectSingleNode("//ns:links/ns:image_link", nsManager);
+
+        if (imageLinkNode != null)
+        {
+            imageLink = imageLinkNode.InnerText;
+        }
+        else
+        {
+            Debug.LogError("image_link not found in the XML.");
+        }
+
+        return imageLink;
+    }
+}
+
+/*using System.Collections;
+using System.Xml;
+using UnityEngine;
+using UnityEngine.Networking;
 
 public class CameraSystem : MonoBehaviour
 {
@@ -70,19 +232,7 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
         birdEyeCamera.transform.eulerAngles = birdRotation;
         birdEyeCamera.fieldOfView = fieldOfView;
-
-        // After the bird's eye camera is created, enable other cameras in the scene
-        //Camera guideCamera = GameObject.Find("Guide Camera").GetComponent<Camera>();
-        //enableCamera(guideCamera);
-        //enableCamera(viewpointCamera);
     }
-
-
-    /*private void enableCamera(Camera camera)
-    {
-        if (birdEyeCamera != null)
-            camera.enabled = true;
-    }*/
 
     private void CaptureWrapper()
     {
@@ -239,3 +389,4 @@ public class CameraSystem : MonoBehaviour
         return imageLink;
     }
 }
+*/
