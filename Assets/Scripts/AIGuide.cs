@@ -73,6 +73,213 @@ public class AIGuide : MonoBehaviour
         getSharedMovement();
         getAudioSync();
 
+        // Check for space button or A button press from user
+        checkUserInput();
+
+        // Send recorded input to Whisper
+        sendUserInput();
+
+        // Take transcribed input as query and send to GPT-4
+        sendQueryToGPT();
+
+        // Play the response from GPT-4 as audio
+        playGuideResponse();
+
+        // Determine if guidance is required based on GPT-4 response
+        checkGuidanceRequests();
+
+        // Determine if modification is required based on GPT-4 response
+        checkModificationRequests();
+    }
+
+    private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)
+    {
+        yield return new WaitForSeconds(clip.length);
+        Debug.Log("Muting audio source");
+        source.mute = true;
+    }
+
+    private void playEffect(string clipName)
+    {
+        AudioSource audioSource = GetComponent<AudioSource>();
+
+        switch(clipName)
+        {
+            case "subway_chime":
+                {
+                    Debug.Log("Played arrival effect");
+                    audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
+                    audioSource.mute = false;
+                    audioSource.loop = false;
+                    audioSource.Play();
+                    break;
+                }
+            case "processing":
+                {
+                    Debug.Log("Playing processing sound");
+                    audioSource.clip = Resources.Load<AudioClip>("Audio/processing");
+                    audioSource.mute = false;
+                    audioSource.loop = true;
+                    audioSource.Play();
+                    break;
+                }
+            case "completion":
+                {
+                    Debug.Log("Playing completion sound");
+                    audioSource.clip = Resources.Load<AudioClip>("Audio/completion");
+                    audioSource.mute = false;
+                    audioSource.loop = false;
+                    audioSource.Play();
+                    // Mute after playing the completion effect to prevent audio doubling
+                    StartCoroutine(muteAudioSource(audioSource, audioSource.clip));
+                    break;
+                }
+        }
+    }
+
+    private void checkModificationRequests()
+    {
+        // Checking if a target GameObject was selected to be modified
+        if (m_OpenAIQueriesScript.targetForModification != null)
+        {
+            // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
+            Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
+            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
+            m_OpenAIQueriesScript.targetForModification = null;
+        }
+    }
+
+    private void checkGuidanceRequests()
+    {
+        // Checking if a target GameObject was selected to be moved to
+        if (m_OpenAIQueriesScript.targetForGuidance != null)
+        {
+            //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
+            m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
+
+            // If the player is grabbing the guide, call for the movement functions as appropriate
+            // Turn off guide follow so that the guide begins to lead the player
+            if (m_SharedMovementScript.playerGrabbingGuide)
+            {
+                m_GuideFollowScript.enabled = false;
+                if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
+                {
+                    // Debug.Log("The mode of transit is guide");
+                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    // If they reach the target, make it stop grabbing and stop moving
+                    if (!m_AutomatedGuideScript.targetActive)
+                    {
+                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                        playEffect("subway_chime");
+                    }
+                }
+                else
+                {
+                    //Debug.Log("The mode of transit is teleport");
+                    m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    // If they reach the target, make it stop grabbing and stop moving
+                    if (!m_AutomatedGuideScript.targetActive)
+                    {
+                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                        playEffect("subway_chime");
+                        //AudioSource audioSource = GetComponent<AudioSource>();
+                        //audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
+                        //audioSource.mute = false;
+                        //audioSource.Play();
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (m_SharedMovementScript != null)
+            {
+                m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+                m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+                m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
+            }
+        }
+    }
+
+    private void playGuideResponse()
+    {
+        // Checking for completion of query to GPT-4
+        if (m_OpenAIQueriesScript.completionCompleted && alloyCalls == 0)
+        {
+            // Play sound effect to indicate completion of guide's processing
+            playEffect("completion");
+
+            // Create the audio clip of whatever whatever output has been stored in the result variable
+            var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
+            alloyCalls += 1;
+        }
+
+        // Checking for completion of audio clip of the guide's response to the user query
+        if (m_OpenAIQueriesScript.alloyCompleted && voiceCalls == 0)
+        {
+            // Play the guide's response
+            Debug.Log("Playing from regular clip");
+            m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
+            if (!m_OpenAIQueriesScript.audioSource.isPlaying)
+                m_OpenAIQueriesScript.audioSource.Play();
+            voiceCalls += 1;
+        }
+    }
+
+    private void sendQueryToGPT()
+    {
+        // Checking for completion of speech transcription
+        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
+        {
+            // Start to play processing sound
+            playEffect("processing");
+
+            // Construct the query to send to GPT-4
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+
+            // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
+            /*if (firstQuery)
+            {
+                m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+                firstQuery = false;
+            }
+            else
+            {
+                m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
+            }*/
+
+            // Call the CallCompletion method with the user's recorded voice query
+            var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
+            completionCalls += 1;
+        }
+    }
+
+    private void sendUserInput()
+    {
+        // If PC user lifts finger off space, assume their query is completed
+        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)
+        {
+            m_OpenAIQueriesScript.recordingInProgress = false;
+            // Call the Whisper API to transcribe the recorded speech to text
+            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
+            whisperCalls += 1;
+        }
+
+        // If VR user lifts finger off primary button, assume their query is completed
+        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true)
+        {
+            m_OpenAIQueriesScript.recordingInProgress = false;
+            // Call the Whisper API to transcribe the recorded speech to text
+            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
+            whisperCalls += 1;
+            buttonPressed = false;
+        }
+    }
+
+    private void checkUserInput()
+    {
         // If PC user presses and holds space
         if (Input.GetKey(KeyCode.Space))
         {
@@ -97,145 +304,6 @@ public class AIGuide : MonoBehaviour
             voiceCalls = 0;
             buttonPressed = true;
         }
-
-        // If PC user lifts finger off space, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)
-        {
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-            whisperCalls += 1;
-        }
-
-        // If VR user lifts finger off primary button, assume their query is completed
-        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true)
-        {
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-            whisperCalls += 1;
-            buttonPressed = false;
-        }
-
-        // Checking for completion of speech transcription
-        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
-        {
-            // Construct the query to send to GPT-4
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
-
-            // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
-            /*if (firstQuery)
-            {
-                m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
-                firstQuery = false;
-            }
-            else
-            {
-                m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
-            }*/
-
-            // Call the CallCompletion method with the user's recorded voice query
-            var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
-            completionCalls += 1;
-        }
-
-        // Checking for completion of query to GPT-4
-        if (m_OpenAIQueriesScript.completionCompleted && alloyCalls == 0)
-        {
-            // Create the audio clip of whatever whatever output has been stored in the result variable
-            var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
-
-            // Call streaming voice option
-            //callStreamingVoice();
-            alloyCalls += 1;
-        }
-
-        // Checking for completion of audio clip of the guide's response to the user query
-        if (m_OpenAIQueriesScript.alloyCompleted && voiceCalls == 0)
-        {
-            // Play the guide's response
-            Debug.Log("Playing from regular clip");
-            m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
-            if (!m_OpenAIQueriesScript.audioSource.isPlaying)
-                m_OpenAIQueriesScript.audioSource.Play();
-            voiceCalls += 1;
-        }
-
-        // Checking if a target GameObject was selected to be moved to
-        if (m_OpenAIQueriesScript.targetForGuidance != null)
-        {
-            //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
-            m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
-
-            // If the player is grabbing the guide, call for the movement functions as appropriate
-            // Turn off guide follow so that the guide begins to lead the player
-            if (m_SharedMovementScript.playerGrabbingGuide)
-            {
-                m_GuideFollowScript.enabled = false;
-                if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
-                {
-                    // Debug.Log("The mode of transit is guide");
-                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
-                    // If they reach the target, make it stop grabbing and stop moving
-                    if (!m_AutomatedGuideScript.targetActive)
-                    {
-                        Debug.Log("Played arrival effect");
-                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                        AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
-                        audioSource.mute = false;
-                        audioSource.Play();
-                    }
-                }
-                else
-                {
-                    //Debug.Log("The mode of transit is teleport");
-                    m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
-                    // If they reach the target, make it stop grabbing and stop moving
-                    if (!m_AutomatedGuideScript.targetActive)
-                    {
-                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                        AudioSource audioSource = GetComponent<AudioSource>();
-                        audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
-                        audioSource.Play();
-                    }
-                }
-            }
-        }
-        else
-        {
-            if (m_SharedMovementScript != null)
-            {
-                m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
-            }
-        }
-
-        // Checking if a target GameObject was selected to be modified
-        if (m_OpenAIQueriesScript.targetForModification != null)
-        {
-            // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
-            Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
-            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
-            m_OpenAIQueriesScript.targetForModification = null;
-        }
-    }
-
-    private async void callStreamingVoice()
-    {
-        // Test streaming option and compare
-        Debug.Log("Calling alloy streaming TTS");
-        var speechStreamResult = await m_OpenAIQueriesScript.CallAlloyStreamingTTS();
-        AudioClip streamingVoice = speechStreamResult;
-
-        // Now you can use streamingVoice
-        Debug.Log("Playing from streaming voice");
-        m_OpenAIQueriesScript.audioSource.clip = streamingVoice;
-        if (!m_OpenAIQueriesScript.audioSource.isPlaying)
-            m_OpenAIQueriesScript.audioSource.Play();
     }
 
     private void getSharedMovement()
