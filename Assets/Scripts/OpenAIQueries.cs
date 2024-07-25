@@ -1,12 +1,9 @@
 using OpenAI;
 using OpenAI.Chat;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Xml;
 using UnityEngine;
-using UnityEngine.Networking;
 
 public class OpenAIQueries : MonoBehaviour
 {
@@ -228,6 +225,7 @@ public class OpenAIQueries : MonoBehaviour
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
+            Debug.Log("Two word response for guidance or modification");
             string secondWord = words[1].Trim();
             Debug.Log(words[1]);
             if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
