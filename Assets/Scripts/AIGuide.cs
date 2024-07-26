@@ -42,14 +42,14 @@ public class AIGuide : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("GuideTest_Networked"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
             role = 5; // bird
 
-
+        // Line to test guide changes over network
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
@@ -79,23 +79,27 @@ public class AIGuide : MonoBehaviour
         getSharedMovement();
         getAudioSync();
 
-        // Check for space button or A button press from user
-        checkUserInput();
+        // If we're in a scene run from a guide client
+        if (FindObjectOfType<GuideFollow>())
+        {
+            // Check for space button or A button press from user
+            checkUserInput();
 
-        // Send recorded input to Whisper
-        sendUserInput();
+            // Send recorded input to Whisper
+            sendUserInput();
 
-        // Take transcribed input as query and send to GPT-4
-        sendQueryToGPT();
+            // Take transcribed input as query and send to GPT-4
+            sendQueryToGPT();
 
-        // Play the response from GPT-4 as audio
-        playGuideResponse();
+            // Play the response from GPT-4 as audio
+            playGuideResponse();
 
-        // Determine if guidance is required based on GPT-4 response
-        checkGuidanceRequests();
+            // Determine if guidance is required based on GPT-4 response
+            checkGuidanceRequests();
 
-        // Determine if modification is required based on GPT-4 response
-        checkModificationRequests();
+            // Determine if modification is required based on GPT-4 response
+            checkModificationRequests();
+        }
     }
 
     private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)
