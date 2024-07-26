@@ -56,7 +56,8 @@ public class SharedMovement : MonoBehaviour
         AssignRoles();
 
         // Enables shared movement between the player and the guide when player grabs the guide
-        if (!FindObjectOfType<ConfederateHandler>()) // Only enable SharedMovement if we aren't in the confederate client
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (!FindObjectOfType<ConfederateHandler>() && !currentSceneName.Equals("Tutorial")) // Only enable SharedMovement if we aren't in the confederate client or tutorial
             ShareMovementOnGrab();
     }
 

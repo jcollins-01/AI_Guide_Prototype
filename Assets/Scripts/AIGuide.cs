@@ -49,6 +49,8 @@ public class AIGuide : MonoBehaviour
             role = 4; // dog
         else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 5; // bird
+        else
+            role = 6; // invisible - set to this for tutorial
 
         // Line to test guide changes over network
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
