@@ -44,9 +44,9 @@ public class CameraSystem : MonoBehaviour
             if (!calledCamerasToStart)
             {
                 // Begin capturing screenshots every 10 secs to keep guide updated on scene
-                //InvokeRepeating("CaptureScreenshot", 0f, 10f);
+                InvokeRepeating("CaptureScreenshot", 0f, 10f);
                 // Begin capturing screenshots
-                CaptureScreenshot(); // capture once from both cameras
+                //CaptureScreenshot(); // capture once from both cameras
                 calledCamerasToStart = true;
             }
         }

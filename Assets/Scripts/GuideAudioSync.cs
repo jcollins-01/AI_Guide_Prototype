@@ -74,7 +74,26 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
                 m_openAIQueriesScript.targetForGuidance = GameObject.Find(targetName);
                 if (m_openAIQueriesScript.targetForGuidance != null)
-                    result = "Alright. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                            break;
+                        case 2:
+                            result = "Understood. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                            break;
+                        case 3:
+                            result = "Very well. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                            break;
+                        case 4:
+                            result = "Okay. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                            break;
+                    }
+                    //result = "Alright. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
+                }
             }
             else // they are trying to modify
             {
@@ -84,7 +103,26 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
                 m_openAIQueriesScript.targetForModification = GameObject.Find(targetName);
                 if (m_openAIQueriesScript.targetForModification != null)
-                    result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 2:
+                            result = "Understood. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 3:
+                            result = "Very well. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 4:
+                            result = "Okay. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                    }
+                    //result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                }
             }
         }
 

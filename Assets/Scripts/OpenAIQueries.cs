@@ -236,7 +236,26 @@ public class OpenAIQueries : MonoBehaviour
 
                 targetForGuidance = GameObject.Find(targetName);
                 if (targetForGuidance != null)
-                    result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+                            break;
+                        case 2:
+                            result = "Understood. Grab on to me and I will take you to " + targetForGuidance.name;
+                            break;
+                        case 3:
+                            result = "Very well. Grab on to me and I will take you to " + targetForGuidance.name;
+                            break;
+                        case 4:
+                            result = "Okay. Grab on to me and I will take you to " + targetForGuidance.name;
+                            break;
+                    }
+                    //result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+                }
             }
             else // they are trying to modify
             {
@@ -246,7 +265,26 @@ public class OpenAIQueries : MonoBehaviour
 
                 targetForModification = GameObject.Find(targetName);
                 if (targetForModification != null)
-                    result = "Alright. I will add an audio beacon to " + targetForModification.name;
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. I will add an audio beacon to " + targetForModification.name;
+                            break;
+                        case 2:
+                            result = "Understood. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                        case 3:
+                            result = "Very well. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                        case 4:
+                            result = "Okay. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                    }
+                    //result = "Alright. I will add an audio beacon to " + targetForModification.name;
+                } 
             }
         }
 
