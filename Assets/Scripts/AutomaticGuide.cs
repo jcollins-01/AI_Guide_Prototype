@@ -27,6 +27,48 @@ public class AutomaticGuide : MonoBehaviour
     {
         if (m_targetObject != null)
         {
+            Debug.Log("Target is not null " + m_targetObject.name);
+            // If the target object is one of the people avatars, take user to the gameobject of one of the people
+            switch (m_targetObject.name)
+            {
+                case "Couple By Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    Debug.Log("Switching on target name Couple By Fountain");
+                    break;
+                case "Couple By Southern Gazebo":
+                    m_targetObject = GameObject.Find("5_m_Talking2");
+                    break;
+                case "Huddle of People by Gazebo":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Dancing People":
+                    m_targetObject = GameObject.Find("3_f@House Dancing");
+                    break;
+                case "Western Huddle of People":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Couple by the Platform":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    break;
+                case "Couple By Puffy Tree":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+                case "Northwest Huddle of People":
+                    m_targetObject = GameObject.Find("2_f_Talking2");
+                    break;
+                case "Couple By the Yellow-Roofed Gazebo":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    Debug.Log("Switching on target name Couple By the Yellow-Roofed Gazebo");
+                    break;
+                case "Couple By the Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    Debug.Log("Switching on target name Couple By Fountain");
+                    break;
+            }
+
+            Debug.Log("The target object is " + m_targetObject);
+            Debug.Log("The target positition destination is " + m_targetObject.transform.position);
+
             agent.SetDestination(m_targetObject.transform.position); // Set the destination of the NavMeshAgent to the position of the target's transform
             
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
@@ -43,6 +85,41 @@ public class AutomaticGuide : MonoBehaviour
     {
         if (m_targetObject != null)
         {
+            // If the target object is one of the people avatars, take user to the gameobject of one of the people
+            switch (m_targetObject.name)
+            {
+                case "Couple By Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+                case "Couple By Southern Gazebo":
+                    m_targetObject = GameObject.Find("5_m_Talking2");
+                    break;
+                case "Huddle of People by Gazebo":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Dancing People":
+                    m_targetObject = GameObject.Find("3_f@House Dancing");
+                    break;
+                case "Western Huddle of People":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Couple by the Platform":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    break;
+                case "Couple By Puffy Tree":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+                case "Northwest Huddle of People":
+                    m_targetObject = GameObject.Find("2_f_Talking2");
+                    break;
+                case "Couple By the Yellow-Roofed Gazebo":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    break;
+                case "Couple By the Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+            }
+
             agent.ResetPath(); // Reset path in case we had just set a guide destination
             var targetPosition = m_targetObject.transform.position;
             agent.transform.position = targetPosition + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
@@ -73,7 +150,6 @@ public class AutomaticGuide : MonoBehaviour
                 // Switch the targetForGuidance to null so guide will begin following player again
                 m_OpenAIQueriesScript.targetForGuidance = null;
             }
-            // Debug.Log("The target is active: " + targetActive);
         }
         else
         {
@@ -88,7 +164,41 @@ public class AutomaticGuide : MonoBehaviour
         Transform target = targetObject.transform;
         if (target != null)
         {
-            // Debug.Log("We have a target passed = " + target.position);
+            // If the target object is one of the people avatars, take user to the gameobject of one of the people
+            switch (m_targetObject.name)
+            {
+                case "Couple By Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+                case "Couple By Southern Gazebo":
+                    m_targetObject = GameObject.Find("5_m_Talking2");
+                    break;
+                case "Huddle of People by Gazebo":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Dancing People":
+                    m_targetObject = GameObject.Find("3_f@House Dancing");
+                    break;
+                case "Western Huddle of People":
+                    m_targetObject = GameObject.Find("3_f_Talking");
+                    break;
+                case "Couple by the Platform":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    break;
+                case "Couple By Puffy Tree":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+                case "Northwest Huddle of People":
+                    m_targetObject = GameObject.Find("2_f_Talking2");
+                    break;
+                case "Couple By the Yellow-Roofed Gazebo":
+                    m_targetObject = GameObject.Find("4_m_Talking1");
+                    break;
+                case "Couple By the Fountain":
+                    m_targetObject = GameObject.Find("6_m_Talking1");
+                    break;
+            }
+
             //agent.ResetPath(); // Reset path in case we had just set a guide destination
             targetActive = true;
             agent.isStopped = true;

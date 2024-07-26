@@ -103,7 +103,7 @@ public class AIGuide : MonoBehaviour
         {
             case "subway_chime":
                 {
-                    Debug.Log("Played arrival effect");
+                    //Debug.Log("Played arrival effect");
                     audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
                     audioSource.mute = false;
                     audioSource.loop = false;
@@ -112,7 +112,7 @@ public class AIGuide : MonoBehaviour
                 }
             case "processing":
                 {
-                    Debug.Log("Playing processing sound");
+                    //Debug.Log("Playing processing sound");
                     audioSource.clip = Resources.Load<AudioClip>("Audio/processing");
                     audioSource.mute = false;
                     audioSource.loop = true;
@@ -121,7 +121,7 @@ public class AIGuide : MonoBehaviour
                 }
             case "completion":
                 {
-                    Debug.Log("Playing completion sound");
+                    //Debug.Log("Playing completion sound");
                     audioSource.clip = Resources.Load<AudioClip>("Audio/completion");
                     audioSource.mute = false;
                     audioSource.loop = false;
@@ -160,7 +160,8 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    // Debug.Log("The mode of transit is guide");
+                    Debug.Log("The mode of transit is guide");
+                    Debug.Log("The target is " + m_OpenAIQueriesScript.targetForGuidance);
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
@@ -180,10 +181,6 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
-                        //AudioSource audioSource = GetComponent<AudioSource>();
-                        //audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
-                        //audioSource.mute = false;
-                        //audioSource.Play();
                     }
                 }
             }
