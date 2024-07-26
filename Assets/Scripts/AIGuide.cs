@@ -19,6 +19,7 @@ public class AIGuide : MonoBehaviour
     private int voiceCalls = 0;
     //private bool firstQuery = true;
     private bool buttonPressed = false;
+    private bool guideRoleAssigned = false;
 
     // Variables for wizard components
     public string result;
@@ -38,15 +39,15 @@ public class AIGuide : MonoBehaviour
 
         Debug.Log("AIGuide is active!");
 
-        // Set avatars to correct roles in separate scenes
+        // Set avatars to correct roles in separate scenes for the guide
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("GuideTest_Networked"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 5; // bird
 
         // Line to test guide changes over network
@@ -100,12 +101,33 @@ public class AIGuide : MonoBehaviour
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
         }
+
+        // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
+        if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssigned)
+            StartCoroutine(AssignRoleStatic());
+    }
+
+    private IEnumerator AssignRoleStatic()
+    {
+        role = 6;
+        yield return new WaitForSeconds(10f);
+        // Set avatars to correct roles in separate scenes for the guide
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
+            role = 4; // dog
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
+            role = 5; // bird
+
+        guideRoleAssigned = true;
     }
 
     private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)
     {
         yield return new WaitForSeconds(clip.length);
-        Debug.Log("Muting audio source");
         source.mute = true;
     }
 

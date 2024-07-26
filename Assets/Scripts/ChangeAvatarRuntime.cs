@@ -270,7 +270,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     public void SetRole(int role)
     {
-        //Debug.Log("Set a new role from network: " + role);
+        Debug.Log("Set a new role from network: " + role);
         _role = role;
         UpdateAvatar(_role);
     }
@@ -371,7 +371,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
         } // END OF GUIDE ROLES ----- BEGINNING OF CONFEDERATE ROLES
         else if (role == 7) // Model 1
         {
-            Debug.Log("Trying to update to role 7");
             // Enable correct confederate model
             EnableAllRenderers(model1);
             DisableAllRenderers(model2);
@@ -380,7 +379,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
         else if (role == 8) // Model 2
         {
-            Debug.Log("Trying to update to role 8");
             DisableAllRenderers(model1);
             EnableAllRenderers(model2);
             DisableAllRenderers(model3);
@@ -388,7 +386,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
         else if (role == 9) // Model 3
         {
-            Debug.Log("Trying to update to role 9");
             DisableAllRenderers(model1);
             DisableAllRenderers(model2);
             EnableAllRenderers(model3);
@@ -396,7 +393,6 @@ public class ChangeAvatarRuntime : MonoBehaviour
         }
         else if (role == 10) // Model 4
         {
-            Debug.Log("Trying to update to role 10");
             DisableAllRenderers(model1);
             DisableAllRenderers(model2);
             DisableAllRenderers(model3);

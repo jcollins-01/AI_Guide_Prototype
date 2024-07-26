@@ -21,7 +21,7 @@ public class ConfederateHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Continuously look for an AIGuide object (for a guide to join the scene)
+        // Assign our audio source to the local player audio source
         if (!audioAssigned)
             AssignConfederateAudio();
     }
