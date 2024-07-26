@@ -50,7 +50,10 @@ public class AIGuide : MonoBehaviour
         else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 5; // bird
         else
+        {
             role = 6; // invisible - set to this for tutorial
+            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
+        }
 
         // Line to test guide changes over network
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
@@ -107,6 +110,20 @@ public class AIGuide : MonoBehaviour
         // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
         if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssigned)
             StartCoroutine(AssignRoleStatic());
+    }
+
+    // Method to disable all colliders in the children of this gameObject
+    private void DisableColliders(GameObject model)
+    {
+        if (model != null)
+        {
+            // Get all the colliders in the children of this gameObject
+            Collider[] colliders = model.GetComponentsInChildren<Collider>();
+
+            // Loop through each collider and disable it
+            foreach (Collider collider in colliders)
+                collider.enabled = false;
+        }
     }
 
     private IEnumerator AssignRoleStatic()
