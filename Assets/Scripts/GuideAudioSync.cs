@@ -64,7 +64,6 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
-            Debug.Log("Two word response for guidance or modification");
             string secondWord = words[1].Trim();
             Debug.Log(words[1]);
             if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
@@ -113,7 +112,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         {
             var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
             output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
-            Debug.Log("Created audio clip of voiced result with voice for " + m_AIGuideScript.role);
+            //Debug.Log("Created audio clip of voiced result with voice for " + m_AIGuideScript.role);
         }
         catch (System.Exception e)
         {
