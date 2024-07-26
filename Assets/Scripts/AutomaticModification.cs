@@ -22,42 +22,6 @@ public class AutomaticModification : MonoBehaviour
     {
         m_targetObject = targetObject;
 
-        // If the target object is one of the people avatars, add the beacon to the gameobject of one of the people, so it doesn't get placed somewhere weird
-        switch (targetObject.name)
-        {
-            case "Couple By Fountain":
-                targetObject = GameObject.Find("6_m_Talking1");
-                break;
-            case "Couple By Southern Gazebo":
-                targetObject = GameObject.Find("5_m_Talking2");
-                break;
-            case "Huddle of People by Gazebo":
-                targetObject = GameObject.Find("3_f_Talking");
-                break;
-            case "Dancing People":
-                targetObject = GameObject.Find("3_f@House Dancing");
-                break;
-            case "Western Huddle of People":
-                targetObject = GameObject.Find("3_f_Talking");
-                break;
-            case "Couple by the Platform":
-                targetObject = GameObject.Find("4_m_Talking1");
-                break;
-            case "Couple By Puffy Tree":
-                targetObject = GameObject.Find("6_m_Talking1");
-                break;
-            case "Northwest Huddle of People":
-                targetObject = GameObject.Find("2_f_Talking2");
-                break;
-            case "Couple By the Yellow-Roofed Gazebo":
-                targetObject = GameObject.Find("4_m_Talking1");
-                break;
-            case "Couple By the Fountain":
-                targetObject = GameObject.Find("6_m_Talking1");
-                break;
-        }
-
-        Debug.Log(targetObject + ", added audio source");
         if (targetObject != null)
         {
             AudioSource audioSource = targetObject.AddComponent<AudioSource>();

@@ -38,8 +38,18 @@ public class AIGuide : MonoBehaviour
 
         Debug.Log("AIGuide is active!");
 
-        // Line for testing role change over the network
-        role = 5;
+        // Set avatars to correct roles in separate scenes
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuideTest_Networked"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
+            role = 4; // dog
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
+            role = 5; // bird
+
+
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
@@ -160,8 +170,7 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    Debug.Log("The mode of transit is guide");
-                    Debug.Log("The target is " + m_OpenAIQueriesScript.targetForGuidance);
+                    //Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
