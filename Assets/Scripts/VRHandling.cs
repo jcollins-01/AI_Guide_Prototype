@@ -36,6 +36,10 @@ public class VRHandling : MonoBehaviour
         if (GetMutingButtonPress())
             isMutingButtonPressed = true;
 
+        // Check if the left primary button is released (to cancel muting the guide)
+        if (!GetMutingButtonPress() && isMutingButtonPressed)
+            isMutingButtonPressed = false;
+
         // Remember the button state for the next frame
         wasButtonPressedLastFrame = isButtonPressed;
     }

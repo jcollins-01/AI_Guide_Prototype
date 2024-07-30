@@ -194,6 +194,17 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         {
             if (m_VRHandlingScript.isMutingButtonPressed)
                 _audioSource.Stop();
+
+            /*if (m_VRHandlingScript.isMutingButtonPressed)
+            {
+                _audioSource.mute = true;
+                Debug.Log("Muting is true");
+            }
+            else
+            {
+                _audioSource.mute = false;
+                Debug.Log("Muting is false");
+            }*/
         }
     }
 
