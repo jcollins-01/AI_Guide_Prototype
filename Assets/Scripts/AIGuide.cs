@@ -42,17 +42,17 @@ public class AIGuide : MonoBehaviour
 
         // Set avatars to correct roles in separate scenes for the guide
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("GuideTest_Networked"))
+        if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog
         else if (currentSceneName.Equals("GuidePark3_Networked"))
-            role = 5; // bird
+            role = 2; // robot
         else
         {
-            role = 6; // invisible - set to this for tutorial
+            role = 6; // invisible - was set to this for tutorial, but now we have a guide in the tutorial
             DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
         }
 
