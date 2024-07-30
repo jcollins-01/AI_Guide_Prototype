@@ -134,7 +134,7 @@ public class SharedMovement : MonoBehaviour
         guideRigidbody.useGravity = false;
         guideRigidbody.isKinematic = true;
         guideCollider.isTrigger = true;
-        guideCollider.radius = 1.5f;
+        guideCollider.radius = 50f;
         guideCollider.height = 0.5f;
         guideCollider.center = new Vector3(0f, 1f, 0f);
     }

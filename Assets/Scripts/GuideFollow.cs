@@ -57,89 +57,92 @@ public class GuideFollow : MonoBehaviour
         if (sharedMovementFound)
         {
             if (theGuide != null && thePlayer != null) // Making sure code is not run until both player and guide are in the scene
-            {
-                // Set target position and rotation based on role
-                Vector3 targetPosition = theGuide.transform.position;
-                Quaternion targetRotation = theGuide.transform.rotation;
-
-                // Humanoid follow position - trailing after the player and facing them
-                if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 2) // Human and robot
-                {
-                    // Calculate the target position based on the player's position and follow distance
-                    Vector3 directionToPlayer = (thePlayer.transform.position - transform.position).normalized;
-                    targetPosition = thePlayer.transform.position - directionToPlayer * followDistance;
-
-                    // Move towards the target position
-                    transform.position = Vector3.MoveTowards(transform.position, targetPosition, followSpeed * Time.deltaTime);
-
-                    // Make the guide look at the player while moving
-                    transform.LookAt(thePlayer.transform);
-                }
-
-                // Dog follow position - moving at the right side of the player and facing the same direction as them
-                if (m_AIGuideScript.role == 4)
-                {
-                    // Calculate the position on the right side of the player
-                    Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
-                    targetPosition = thePlayer.transform.position + offset;
-
-                    // Rotate to face the same direction as the player
-                    targetRotation = thePlayer.transform.rotation;
-                }
-
-                // Cane follow position - moving in front of the player and facing away
-                if (m_AIGuideScript.role == 3)
-                {
-                    // Calculate the position in front of the player
-                    Vector3 offset = thePlayer.transform.forward * (followDistance * 0.5f);
-                    targetPosition = thePlayer.transform.position + offset;
-
-                    // Rotate to face away from the player (same direction the player is looking)
-                    targetRotation = thePlayer.transform.rotation;
-                }
-
-                // Bird and invisible guide follow position - moving at the right of the player's head and facing the same direction as them
-                if (m_AIGuideScript.role == 5 || m_AIGuideScript.role == 6)
-                {
-                    // Calculate the position on the right side of the player
-                    Vector3 offset = thePlayer.transform.right * (followDistance * 0.25f);
-                    targetPosition = thePlayer.transform.position + offset;
-                    transform.position = new Vector3(transform.position.x, transform.position.y + 0.25f, transform.position.z);
-
-                    // Rotate to face the same direction as the player
-                    targetRotation = thePlayer.transform.rotation;
-
-                    // Calculate the position to the right of the player, at the appropriate height
-                    //Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
-                    //targetPosition = thePlayer.transform.position + offset + Vector3.up * (playerHeight + heightOffset - guideHeight / 2);
-                    //transform.position = new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z);
-
-                    // Rotate to face the same direction as the player
-                    //targetRotation = thePlayer.transform.rotation;
-                }
-
-                if (agent.isOnNavMesh)
-                    agent.SetDestination(targetPosition);
-                else
-                {
-                    Debug.LogWarning("NavMeshAgent is not on the NavMesh. Trying to fix it.");
-
-                    // Attempt to place the agent on the NavMesh
-                    NavMeshHit hit;
-                    if (NavMesh.SamplePosition(transform.position, out hit, 1.0f, NavMesh.AllAreas))
-                    {
-                        transform.position = hit.position;
-                        agent.Warp(hit.position);
-                        agent.SetDestination(targetPosition);
-                    }
-                    else
-                        Debug.LogError("Failed to place NavMeshAgent on the NavMesh.");
-                }
-
-                // Smoothly rotate towards the target rotation
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
+                setTargetPositions();
         }
+    }
+
+    private void setTargetPositions()
+    {
+        // Set target position and rotation based on role
+        Vector3 targetPosition = theGuide.transform.position;
+        Quaternion targetRotation = theGuide.transform.rotation;
+
+        // Humanoid follow position - trailing after the player and facing them
+        if (m_AIGuideScript.role == 1 || m_AIGuideScript.role == 2) // Human and robot
+        {
+            // Calculate the target position based on the player's position and follow distance
+            Vector3 directionToPlayer = (thePlayer.transform.position - transform.position).normalized;
+            targetPosition = thePlayer.transform.position - directionToPlayer * followDistance;
+
+            // Move towards the target position
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, followSpeed * Time.deltaTime);
+
+            // Make the guide look at the player while moving
+            transform.LookAt(thePlayer.transform);
+        }
+
+        // Dog follow position - moving at the right side of the player and facing the same direction as them
+        if (m_AIGuideScript.role == 4)
+        {
+            // Calculate the position on the right side of the player
+            Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
+            targetPosition = thePlayer.transform.position + offset;
+
+            // Rotate to face the same direction as the player
+            targetRotation = thePlayer.transform.rotation;
+        }
+
+        // Cane follow position - moving in front of the player and facing away
+        if (m_AIGuideScript.role == 3)
+        {
+            // Calculate the position in front of the player
+            Vector3 offset = thePlayer.transform.forward * (followDistance * 0.5f);
+            targetPosition = thePlayer.transform.position + offset;
+
+            // Rotate to face away from the player (same direction the player is looking)
+            targetRotation = thePlayer.transform.rotation;
+        }
+
+        // Bird and invisible guide follow position - moving at the right of the player's head and facing the same direction as them
+        if (m_AIGuideScript.role == 5 || m_AIGuideScript.role == 6)
+        {
+            // Calculate the position on the right side of the player
+            Vector3 offset = thePlayer.transform.right * (followDistance * 0.25f);
+            targetPosition = thePlayer.transform.position + offset;
+            transform.position = new Vector3(transform.position.x, transform.position.y + 0.25f, transform.position.z);
+
+            // Rotate to face the same direction as the player
+            targetRotation = thePlayer.transform.rotation;
+
+            // Calculate the position to the right of the player, at the appropriate height
+            //Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
+            //targetPosition = thePlayer.transform.position + offset + Vector3.up * (playerHeight + heightOffset - guideHeight / 2);
+            //transform.position = new Vector3(transform.position.x, transform.position.y + 1f, transform.position.z);
+
+            // Rotate to face the same direction as the player
+            //targetRotation = thePlayer.transform.rotation;
+        }
+
+        if (agent.isOnNavMesh)
+            agent.SetDestination(targetPosition);
+        else
+        {
+            Debug.LogWarning("NavMeshAgent is not on the NavMesh. Trying to fix it.");
+
+            // Attempt to place the agent on the NavMesh
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(transform.position, out hit, 1.0f, NavMesh.AllAreas))
+            {
+                transform.position = hit.position;
+                agent.Warp(hit.position);
+                agent.SetDestination(targetPosition);
+            }
+            else
+                Debug.LogError("Failed to place NavMeshAgent on the NavMesh.");
+        }
+
+        // Smoothly rotate towards the target rotation
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
     private void getSharedMovement()

@@ -217,6 +217,9 @@ public class AIGuide : MonoBehaviour
                 {
                     //Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
+                    float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
+
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
@@ -224,6 +227,11 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                     }
+                    else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
+                    {
+                        m_GuideFollowScript.enabled = true; // Turn guide follow back on to make the guide return to player
+                        playEffect("subway_chime"); // Play a sound effect to let the participant know the guide has returned
+                    } 
                 }
                 else
                 {
