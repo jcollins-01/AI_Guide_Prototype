@@ -276,7 +276,6 @@ public class AIGuide : MonoBehaviour
         if (m_OpenAIQueriesScript.alloyCompleted && voiceCalls == 0)
         {
             // Play the guide's response
-            Debug.Log("Playing from regular clip");
             m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
             if (!m_OpenAIQueriesScript.audioSource.isPlaying)
                 m_OpenAIQueriesScript.audioSource.Play();
@@ -289,7 +288,6 @@ public class AIGuide : MonoBehaviour
         // Checking for completion of speech transcription and image upload
         if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0 && FindObjectOfType<CameraSystem>().uploaded)
         {
-            Debug.Log("Uploaded");
             // Start to play processing sound
             playEffect("processing");
 
