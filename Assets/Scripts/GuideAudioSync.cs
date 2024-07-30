@@ -7,15 +7,18 @@ using System;
 
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
-    private AudioSource _audioSource;
+    // Scripts we need access to
     private AIGuide m_AIGuideScript;
     private OpenAIQueries m_openAIQueriesScript;
+    private VRHandling m_VRHandlingScript;
+
+    public AudioSource _audioSource;
     private string apiKey;
 
     private void Awake()
     {
-        _audioSource = GetComponentInChildren<AudioSource>();
-        //_audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
+        //_audioSource = GetComponentInChildren<AudioSource>();
+        _audioSource = FindObjectOfType<GuideFollow>().GetComponent<AudioSource>(); // grab an audio source specifically for sharing guide voice
         m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
 
         if (_audioSource == null)
@@ -48,6 +51,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             if (guideVoice != null)
             {
                 _audioSource.clip = guideVoice;
+                _audioSource.mute = false;
                 _audioSource.Play();
                 Debug.Log("Played audio clip from guide voice");
             }
@@ -184,6 +188,13 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         if (m_openAIQueriesScript == null)
             if (FindObjectOfType<OpenAIQueries>())
                 m_openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
+
+        if (m_VRHandlingScript == null)
+            GetVRHandling();
+        else
+        {
+            // if the left primary button is pressed, mute the audio source
+        }
     }
 
     void GetAPIKey()
@@ -194,5 +205,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
             apiKey = aIQueries.apiKey;
         }
+    }
+
+    void GetVRHandling()
+    {
+        // If there's a guide in the scene, get the VR handling script from them
+        if (GameObject.FindWithTag("Guide"))
+            m_VRHandlingScript = FindObjectOfType<VRHandling>();
     }
 }

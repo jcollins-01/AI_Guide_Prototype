@@ -178,10 +178,14 @@ public class OpenAIQueries : MonoBehaviour
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink), // m_CameraSystemScript.birdsEyeImageLink
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink) //m_CameraSystemScript.viewpointImageLink
+            new Content(ContentType.ImageUrl, "https://i.postimg.cc/4dXp6TKg/park3bird.png"), // m_CameraSystemScript.birdsEyeImageLink
+            new Content(ContentType.ImageUrl, "https://i.postimg.cc/P5GyC9Mt/park3viewpoint.png") //m_CameraSystemScript.viewpointImageLink
             //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
+
+        // Park 1 https://i.postimg.cc/cLjtjhqz/park1bird.png, https://i.postimg.cc/1tSGCBwQ/park2viewpoint.png
+        // Park 2 https://i.postimg.cc/5yJmyCJf/park2bird.png, https://i.postimg.cc/3JmzRXHD/park2-NEWviewpoint.png
+        // Park 3 https://i.postimg.cc/4dXp6TKg/park3bird.png, https://i.postimg.cc/P5GyC9Mt/park3viewpoint.png
 
         // Create the message to send to the API
         var chatPrompts = new List<Message>

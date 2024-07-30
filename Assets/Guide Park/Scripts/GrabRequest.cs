@@ -63,7 +63,6 @@ public class GrabRequest : MonoBehaviour
 
     private void checkGrabRequest()
     {
-        Debug.Log("Checking grab request");
         if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue))
         {
             if (gripValue < 0.1f)
@@ -82,7 +81,6 @@ public class GrabRequest : MonoBehaviour
 
         if (gripping1 == false && gripping2 == false) // If neither controller is gripping a grabbable
         {
-            Debug.Log("Neither controller is gripping grabbable - collisions back on.");
             //Physics.IgnoreLayerCollision(10, 6, false); // Teleportation Area
             //Physics.IgnoreLayerCollision(10, 7, false); // Non-Teleport Objects
             Physics.IgnoreLayerCollision(7, 0, false); // Default
@@ -92,7 +90,6 @@ public class GrabRequest : MonoBehaviour
 
         if (xrGrabInteractable.isSelected && (gripping1 || gripping2)) // If selected AND pressing a grip button - prevents gripping from teleport ray
         {
-            Debug.Log("Selected and gripping");
             realtimeTransform.RequestOwnership();
             grabbed = true;
 
