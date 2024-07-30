@@ -15,6 +15,7 @@ public class VRHandling : MonoBehaviour
 
     // Variables for detecting button input
     public bool isButtonPressed = false;
+    public bool isMutingButtonPressed = false;
     private bool wasButtonPressedLastFrame = false;
 
     // Update is called once per frame
@@ -31,6 +32,10 @@ public class VRHandling : MonoBehaviour
         if (!GetPrimaryButtonPress() && isButtonPressed)
             isButtonPressed = false;
 
+        // Check if the left primary button (for muting the guide) is being pressed down
+        if (GetMutingButtonPress())
+            isMutingButtonPressed = true;
+
         // Remember the button state for the next frame
         wasButtonPressedLastFrame = isButtonPressed;
     }
@@ -42,6 +47,20 @@ public class VRHandling : MonoBehaviour
         {
             bool primaryButtonValue;
             if (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out primaryButtonValue))
+            {
+                return primaryButtonValue;
+            }
+        }
+        return false;
+    }
+
+    // Function to get the state of the primary button on the XR controller
+    private bool GetMutingButtonPress()
+    {
+        if (leftXRController != null)
+        {
+            bool primaryButtonValue;
+            if (leftXRController.TryGetFeatureValue(CommonUsages.primaryButton, out primaryButtonValue))
             {
                 return primaryButtonValue;
             }

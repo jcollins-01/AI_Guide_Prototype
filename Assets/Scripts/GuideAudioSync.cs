@@ -51,7 +51,6 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             if (guideVoice != null)
             {
                 _audioSource.clip = guideVoice;
-                _audioSource.mute = false;
                 _audioSource.Play();
                 Debug.Log("Played audio clip from guide voice");
             }
@@ -193,7 +192,8 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             GetVRHandling();
         else
         {
-            // if the left primary button is pressed, mute the audio source
+            if (m_VRHandlingScript.isMutingButtonPressed)
+                _audioSource.Stop();
         }
     }
 
