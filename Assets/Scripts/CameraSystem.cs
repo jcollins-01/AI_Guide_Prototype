@@ -25,6 +25,7 @@ public class CameraSystem : MonoBehaviour
     // Variables for monitoring
     private bool refreshed = false;
     private bool calledCamerasToStart = false;
+    public bool uploaded = false;
 
     // Start is called before the first frame update
     void Start()
@@ -70,8 +71,9 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.fieldOfView = fieldOfView;
     }
 
-    private void CaptureScreenshot()
+    public void CaptureScreenshot()
     {
+        uploaded = false;
         StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera, "view"));
         StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera, "bird"));
     }
@@ -104,7 +106,9 @@ public class CameraSystem : MonoBehaviour
         StartCoroutine(UploadImage(bytes, cameraType));
     }
 
-    private string imageApiKey = "6EHKLMNTd1353fef85ed809f9acb93b2e33f0ead";
+    // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
+    // For resetting Image Shack account, go to Settings > Basic > Manage Exceptions > find/add imageshack.com > Delete Data
+    private string imageApiKey = "1FHJRTUW28c28f718813fcfe846214a20fb44dde";
 
     [HideInInspector]
     public string viewpointImageLink;
@@ -132,6 +136,8 @@ public class CameraSystem : MonoBehaviour
                 {
                     birdsEyeImageLink = ParseXmlResponse(responseText);
                 }
+                uploaded = true;
+                Debug.Log("Screenshot uploaded");
             }
             else
             {

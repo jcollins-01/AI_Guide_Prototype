@@ -13,6 +13,7 @@ public class AIGuide : MonoBehaviour
     public GuideAudioSync m_guideAudioSync;
 
     // Variables for monitoring
+    private int screenshotsCaptured = 0;
     private int whisperCalls = 0;
     private int completionCalls = 0;
     private int alloyCalls = 0;
@@ -285,9 +286,10 @@ public class AIGuide : MonoBehaviour
 
     private void sendQueryToGPT()
     {
-        // Checking for completion of speech transcription
-        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0)
+        // Checking for completion of speech transcription and image upload
+        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0 && FindObjectOfType<CameraSystem>().uploaded)
         {
+            Debug.Log("Uploaded");
             // Start to play processing sound
             playEffect("processing");
 
@@ -314,18 +316,27 @@ public class AIGuide : MonoBehaviour
     private void sendUserInput()
     {
         // If PC user lifts finger off space, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)
+        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0 && screenshotsCaptured == 0)
         {
             m_OpenAIQueriesScript.recordingInProgress = false;
+            // Take screenshots and upload to ImageShack
+            FindObjectOfType<CameraSystem>().CaptureScreenshot();
+            screenshotsCaptured += 1;
+            Debug.Log("Screenshot captured");
+
             // Call the Whisper API to transcribe the recorded speech to text
             var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
             whisperCalls += 1;
         }
 
         // If VR user lifts finger off primary button, assume their query is completed
-        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true)
+        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true && screenshotsCaptured == 0)
         {
             m_OpenAIQueriesScript.recordingInProgress = false;
+            // Take screenshots and upload to ImageShack
+            FindObjectOfType<CameraSystem>().CaptureScreenshot();
+            screenshotsCaptured += 1;
+
             // Call the Whisper API to transcribe the recorded speech to text
             var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
             whisperCalls += 1;
@@ -341,6 +352,7 @@ public class AIGuide : MonoBehaviour
             m_OpenAIQueriesScript.CaptureAudio();
 
             // Reset call counters so they can each be called once more
+            screenshotsCaptured = 0;
             whisperCalls = 0;
             completionCalls = 0;
             alloyCalls = 0;
@@ -353,6 +365,7 @@ public class AIGuide : MonoBehaviour
             m_OpenAIQueriesScript.CaptureAudio();
 
             // Reset call counters so they can each be called once more
+            screenshotsCaptured = 0;
             whisperCalls = 0;
             completionCalls = 0;
             alloyCalls = 0;

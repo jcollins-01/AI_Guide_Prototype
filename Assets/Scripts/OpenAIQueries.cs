@@ -178,8 +178,8 @@ public class OpenAIQueries : MonoBehaviour
         List<Content> content = new List<Content>
         {
             new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, "https://i.postimg.cc/4dXp6TKg/park3bird.png"), // m_CameraSystemScript.birdsEyeImageLink
-            new Content(ContentType.ImageUrl, "https://i.postimg.cc/P5GyC9Mt/park3viewpoint.png") //m_CameraSystemScript.viewpointImageLink
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink), // m_CameraSystemScript.birdsEyeImageLink
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink) //m_CameraSystemScript.viewpointImageLink
             //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
         };
 
