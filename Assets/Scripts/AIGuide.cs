@@ -49,7 +49,7 @@ public class AIGuide : MonoBehaviour
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
-            role = 4; // robot
+            role = 2; // robot
         else
         {
             role = 6; // invisible - was set to this for tutorial, but now we have a guide in the tutorial
@@ -140,7 +140,7 @@ public class AIGuide : MonoBehaviour
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog, 4
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
-            role = 4; // robot, 2
+            role = 2; // robot, 2
 
         guideRoleAssigned = true;
     }
