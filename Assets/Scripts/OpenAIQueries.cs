@@ -351,9 +351,9 @@ public class OpenAIQueries : MonoBehaviour
             string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             if (descriptionData != null)
             {
-                if (currentSceneName.Equals("GuideTest_Networked"))
+                if (currentSceneName.Equals("Tutorial"))
                 {
-                    objectClassifications = descriptionData.GuideTest_Networked;
+                    objectClassifications = descriptionData.Tutorial;
                     objectNames = descriptionData.Test_Objects;
                 }
                 else if (currentSceneName.Equals("GuidePark1_Networked"))
@@ -409,7 +409,7 @@ public class OpenAIQueries : MonoBehaviour
 
     private class DescriptionsData
     {
-        public string GuideTest_Networked;
+        public string Tutorial;
         public string GuidePark1_Networked;
         public string GuidePark2_Networked;
         public string GuidePark3_Networked;
