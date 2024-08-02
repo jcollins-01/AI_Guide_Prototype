@@ -39,6 +39,9 @@ namespace Normal.Realtime {
         /// </summary>
         private bool _rebuildAudioStream;
 
+        // ADDITION: Bool added to pause the microphone when the AI guide is called and OpenAI tries to access the mic
+        public bool _isMicrophonePaused = false;
+
 #if !UNITY_EDITOR && UNITY_ANDROID
         private Coroutine _microphonePermissionCheckTask;
 #endif
@@ -46,9 +49,14 @@ namespace Normal.Realtime {
         void Update() {
             // Reconnect the audio stream if the client or stream ID changed.
             if (_rebuildAudioStream) ConnectAudioStream();
-            
+
+            // ADDITION: Send mic data only if the mic is not paused
+            if (!_isMicrophonePaused)
+                SendMicrophoneData();
+
+            // ADDITION: Commented out original command to send mic data
             // Send microphone data if needed
-            SendMicrophoneData();
+            //SendMicrophoneData();
 
             // Calculate voice volume level
             CalculateVoiceVolume();
@@ -395,6 +403,18 @@ namespace Normal.Realtime {
                 return _unityMicrophoneDeviceDataReader.GetData(audioData);
             
             return false;
+        }
+
+        // ADDITION: Method to pause sending mic data
+        public void PauseMicrophone()
+        {
+            _isMicrophonePaused = true;
+        }
+
+        // ADDITION: Method to resume sending mic data again
+        public void ResumeMicrophone()
+        {
+            _isMicrophonePaused = false;
         }
 
         void SetMute(bool mute) {

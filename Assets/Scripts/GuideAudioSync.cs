@@ -17,8 +17,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private void Awake()
     {
-        //_audioSource = GetComponentInChildren<AudioSource>();
-        _audioSource = FindObjectOfType<GuideFollow>().GetComponent<AudioSource>(); // grab an audio source specifically for sharing guide voice
+        _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>(); // grabs an audio source specifically for sharing guide voice
         m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
 
         if (_audioSource == null)
@@ -194,18 +193,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         {
             if (m_VRHandlingScript.isMutingButtonPressed)
                 _audioSource.Stop();
-
-            /*if (m_VRHandlingScript.isMutingButtonPressed)
-            {
-                _audioSource.mute = true;
-                Debug.Log("Muting is true");
-            }
-            else
-            {
-                _audioSource.mute = false;
-                Debug.Log("Muting is false");
-            }*/
         }
+
+        // If this is in a confed client and the audio source is null, grab it from a guide in the scene
+        if (FindObjectOfType<ConfederateHandler>() && _audioSource == null)
+            if (GameObject.FindWithTag("Guide"))
+                _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>();
     }
 
     void GetAPIKey()

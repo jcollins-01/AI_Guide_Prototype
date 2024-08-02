@@ -45,7 +45,7 @@ public class AIGuide : MonoBehaviour
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
-            role = 1; // human
+            role = 2; // human
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
@@ -106,11 +106,10 @@ public class AIGuide : MonoBehaviour
 
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
-        }
 
-        // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
-        if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssigned)
-            StartCoroutine(AssignRoleStatic());
+            // Check and determine if both confederates are present and send guide roles each time they are
+            BothConfederatesPresent();
+        }
     }
 
     // Method to disable all colliders in the children of this gameObject
@@ -127,16 +126,29 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    // This function makes it so that the guide role is reassigned every time we go back to having two avatars in the scene
+    private void BothConfederatesPresent()
+    {
+        if (GameObject.FindWithTag("Confederate_1") && GameObject.FindWithTag("Confederate_2"))
+        {
+            // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
+            if (!guideRoleAssigned)
+                StartCoroutine(AssignRoleStatic());
+        } 
+        else
+            guideRoleAssigned = false;
+    }
+
     private IEnumerator AssignRoleStatic()
     {
         role = 6;
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(5f);
         // Set avatars to correct roles in separate scenes for the guide
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
-            role = 1; // human
+            role = 2; // human
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog, 4
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
@@ -292,7 +304,7 @@ public class AIGuide : MonoBehaviour
             playEffect("processing");
 
             // Construct the query to send to GPT-4
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Gideon. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
             // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
             /*if (firstQuery)

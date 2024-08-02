@@ -1,3 +1,4 @@
+using Normal.Realtime;
 using OpenAI;
 using OpenAI.Chat;
 using System;
@@ -20,6 +21,8 @@ public class OpenAIQueries : MonoBehaviour
     private CameraSystem m_CameraSystemScript;
     private GuideAudioSync m_GuideAudioSync;
     private AIGuide m_AIGuideScript;
+    private RealtimeAvatarVoice _avatarVoice;
+
 
     // Variables to construct OpenAI queries
     private string objectNames;
@@ -45,7 +48,8 @@ public class OpenAIQueries : MonoBehaviour
     {
         get
         {//succintly summarize?
-            return "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
+            return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
+                   "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
                    "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
@@ -56,6 +60,7 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
+                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " + 
                    "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
     }
@@ -93,6 +98,7 @@ public class OpenAIQueries : MonoBehaviour
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
+        _avatarVoice = FindObjectOfType<RealtimeAvatarVoice>();
         LoadConfig();
         LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");
@@ -139,6 +145,14 @@ public class OpenAIQueries : MonoBehaviour
         // Records 10 secs by default
         if (!recordingInProgress)
         {
+            // Pause the microphone data being sent in Normcore
+            if (_avatarVoice != null)
+            {
+                _avatarVoice.PauseMicrophone();
+                Debug.Log("Avatar voice microphone should be back on again, so paused should be true: " + _avatarVoice._isMicrophonePaused);
+            }
+                
+
             recordingInProgress = true;
             audioSource.mute = false;
             audioSource.loop = false;
@@ -153,6 +167,13 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task<string> CallWhisper(AudioClip audioClip)
     {
+        // Resume the microphone data being sent in Normcore
+        if (_avatarVoice != null)
+        {
+            _avatarVoice.ResumeMicrophone();
+            Debug.Log("Avatar voice microphone should be back on again, so paused should be false: " + _avatarVoice._isMicrophonePaused);
+        }
+
         Debug.Log("Reached Call Whisper");
         var transcriptionRequest = new OpenAI.Audio.AudioTranscriptionRequest(audioClip, "whisper-1");
 

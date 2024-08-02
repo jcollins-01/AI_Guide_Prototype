@@ -100,7 +100,7 @@ public class CameraSystem : MonoBehaviour
         Destroy(renderTexture);
         Destroy(texture);
 
-        Debug.Log("Screenshot saved to: " + path);
+       // Debug.Log("Screenshot saved to: " + path);
 
         // Upload the image
         StartCoroutine(UploadImage(bytes, cameraType));
@@ -137,7 +137,7 @@ public class CameraSystem : MonoBehaviour
                     birdsEyeImageLink = ParseXmlResponse(responseText);
                 }
                 uploaded = true;
-                Debug.Log("Screenshot uploaded");
+                //Debug.Log("Screenshot uploaded");
             }
             else
             {
