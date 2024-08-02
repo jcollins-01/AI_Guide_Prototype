@@ -328,7 +328,11 @@ public class AIGuide : MonoBehaviour
         // If PC user lifts finger off space, assume their query is completed
         if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0 && screenshotsCaptured == 0)
         {
+            // End microphone ownership from OpenAI and mark that the recording is not in progress
+            Microphone.End(Microphone.devices[0]);
             m_OpenAIQueriesScript.recordingInProgress = false;
+            Debug.Log("Recording ended");
+
             // Take screenshots and upload to ImageShack
             FindObjectOfType<CameraSystem>().CaptureScreenshot();
             screenshotsCaptured += 1;
@@ -342,15 +346,23 @@ public class AIGuide : MonoBehaviour
         // If VR user lifts finger off primary button, assume their query is completed
         if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true && screenshotsCaptured == 0)
         {
+            // End microphone ownership from OpenAI and mark that the recording is not in progress
+            Microphone.End(Microphone.devices[0]);
             m_OpenAIQueriesScript.recordingInProgress = false;
+            Debug.Log("Recording ended");
+
             // Take screenshots and upload to ImageShack
             FindObjectOfType<CameraSystem>().CaptureScreenshot();
             screenshotsCaptured += 1;
 
             // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-            whisperCalls += 1;
-            buttonPressed = false;
+            if (!Microphone.IsRecording(Microphone.devices[0]))
+            {
+                Debug.Log("Mic not recording so we can call");
+                var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
+                whisperCalls += 1;
+                buttonPressed = false;
+            }
         }
     }
 

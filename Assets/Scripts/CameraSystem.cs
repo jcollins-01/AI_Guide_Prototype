@@ -61,7 +61,7 @@ public class CameraSystem : MonoBehaviour
 
         // If we're in the test scene, alter the birdHeight variable to be closer since the scene isn't as big
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("GuideTest_Networked"))
+        if (currentSceneName.Equals("Tutorial")) // was GuideTest_Networked
             birdHeight = 15f;
 
         // Camera has specified height it goes above the guide to get bird's eye view + rotation + widened field of view to look down at the scene
@@ -108,7 +108,7 @@ public class CameraSystem : MonoBehaviour
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
     // For resetting Image Shack account, go to Settings > Basic > Manage Exceptions > find/add imageshack.com > Delete Data
-    private string imageApiKey = "1FHJRTUW28c28f718813fcfe846214a20fb44dde";
+    private string imageApiKey = "679DMSTVc5d999923de731d0a12ed533ec51bfcc"; //1FHJRTUW28c28f718813fcfe846214a20fb44dde
 
     [HideInInspector]
     public string viewpointImageLink;

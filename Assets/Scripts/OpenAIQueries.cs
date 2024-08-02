@@ -146,12 +146,11 @@ public class OpenAIQueries : MonoBehaviour
         if (!recordingInProgress)
         {
             // Pause the microphone data being sent in Normcore
-            if (_avatarVoice != null)
+            /*if (_avatarVoice != null)
             {
                 _avatarVoice.PauseMicrophone();
                 Debug.Log("Avatar voice microphone should be back on again, so paused should be true: " + _avatarVoice._isMicrophonePaused);
-            }
-                
+            }*/
 
             recordingInProgress = true;
             audioSource.mute = false;
@@ -170,6 +169,7 @@ public class OpenAIQueries : MonoBehaviour
         // Resume the microphone data being sent in Normcore
         if (_avatarVoice != null)
         {
+            _avatarVoice.ReconnectMicrophone();
             _avatarVoice.ResumeMicrophone();
             Debug.Log("Avatar voice microphone should be back on again, so paused should be false: " + _avatarVoice._isMicrophonePaused);
         }

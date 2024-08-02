@@ -345,7 +345,8 @@ namespace Normal.Realtime {
             }
         }
 
-        void SendMicrophoneData() {
+        // ADDITION: Making this public to force it from other programs
+        public void SendMicrophoneData() {
             if (_microphoneStream == null)
                 return;
 
@@ -415,6 +416,14 @@ namespace Normal.Realtime {
         public void ResumeMicrophone()
         {
             _isMicrophonePaused = false;
+        }
+
+        // ADDITION: Method to reconnect the mic data
+        public void ReconnectMicrophone()
+        {
+            DisconnectAudioStream();
+            //ConnectLocalAudioStream();
+            ConnectAudioStream();
         }
 
         void SetMute(bool mute) {

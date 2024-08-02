@@ -75,7 +75,7 @@ GameObject:
   - component: {fileID: 2435364417261265495}
   - component: {fileID: 588574398909398467}
   m_Layer: 3
-  m_Name: Head
+  m_Name: Player Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -134,6 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd4ff7916cbc1db4dae0b06d829ff79f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isMicrophonePaused: 0
 --- !u!114 &588574398909398467
 MonoBehaviour:
   m_ObjectHideFlags: 0
