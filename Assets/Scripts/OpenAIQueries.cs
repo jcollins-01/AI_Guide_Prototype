@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.XR;
 
 public class OpenAIQueries : MonoBehaviour
 {
@@ -142,13 +143,12 @@ public class OpenAIQueries : MonoBehaviour
         completionCompleted = false;
         alloyCompleted = false;
 
+        // Trying to disconnect the mic
+        //_avatarVoice.DisconnectAudioStream();
+
         // Records 10 secs by default
         if (!recordingInProgress)
         {
-            // Pause the microphone data being sent in Normcore
-            _avatarVoice.PauseMicrophone();
-            //_avatarVoice.mute = true;
-
             recordingInProgress = true;
             audioSource.mute = false;
             audioSource.loop = false;
@@ -164,12 +164,8 @@ public class OpenAIQueries : MonoBehaviour
     public async Task<string> CallWhisper(AudioClip audioClip)
     {
         // Resume the microphone data being sent in Normcore
-        if (_avatarVoice != null)
-        {
-            _avatarVoice.ReconnectMicrophone();
-            _avatarVoice.ResumeMicrophone();
-            //_avatarVoice.mute = false;
-        }
+        //_avatarVoice.ConnectAudioStream();
+        _avatarVoice._rebuildAudioStream = true;
 
         Debug.Log("Reached Call Whisper");
         var transcriptionRequest = new OpenAI.Audio.AudioTranscriptionRequest(audioClip, "whisper-1");
@@ -236,8 +232,6 @@ public class OpenAIQueries : MonoBehaviour
         {
             GetComponent<AudioSource>().mute = false;
         }
-            
-
         return output;
     }
 

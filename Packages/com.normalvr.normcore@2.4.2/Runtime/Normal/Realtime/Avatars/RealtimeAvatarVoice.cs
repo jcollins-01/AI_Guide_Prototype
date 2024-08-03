@@ -37,10 +37,7 @@ namespace Normal.Realtime {
         /// True if we need to rebuild the audio stream because the model changed. This is cached as a bool so we can
         /// handle the audio stream connection during Update instead of the model change event handlers.
         /// </summary>
-        private bool _rebuildAudioStream;
-
-        // ADDITION: Bool added to pause the microphone when the AI guide is called and OpenAI tries to access the mic
-        public bool _isMicrophonePaused = false;
+        public bool _rebuildAudioStream; // ADDITION: Made this public to trigger it ourselves
 
 #if !UNITY_EDITOR && UNITY_ANDROID
         private Coroutine _microphonePermissionCheckTask;
@@ -50,13 +47,8 @@ namespace Normal.Realtime {
             // Reconnect the audio stream if the client or stream ID changed.
             if (_rebuildAudioStream) ConnectAudioStream();
 
-            // ADDITION: Send mic data only if the mic is not paused
-            if (!_isMicrophonePaused)
-                SendMicrophoneData();
-
-            // ADDITION: Commented out original command to send mic data
             // Send microphone data if needed
-            //SendMicrophoneData();
+            SendMicrophoneData();
 
             // Calculate voice volume level
             CalculateVoiceVolume();
@@ -120,7 +112,8 @@ namespace Normal.Realtime {
 
         #region Connect Audio Stream
         
-        private void ConnectAudioStream() {
+        // ADDITION: Made this public to use from other scripts
+        public void ConnectAudioStream() {
             DisconnectAudioStream();
 
             if (model == null) return;
@@ -299,7 +292,8 @@ namespace Normal.Realtime {
         
         #endregion
 
-        private void DisconnectAudioStream() {
+        // ADDITION: Made this public to use from other scripts
+        public void DisconnectAudioStream() {
             if (_microphoneStream != null) {
                 // Destroy AudioPreprocessorPlaybackListener
                 if (_audioPreprocessorPlaybackListener != null) {
@@ -345,8 +339,7 @@ namespace Normal.Realtime {
             }
         }
 
-        // ADDITION: Making this public to force it from other programs
-        public void SendMicrophoneData() {
+        private void SendMicrophoneData() {
             if (_microphoneStream == null)
                 return;
 
@@ -404,26 +397,6 @@ namespace Normal.Realtime {
                 return _unityMicrophoneDeviceDataReader.GetData(audioData);
             
             return false;
-        }
-
-        // ADDITION: Method to pause sending mic data
-        public void PauseMicrophone()
-        {
-            _isMicrophonePaused = true;
-        }
-
-        // ADDITION: Method to resume sending mic data again
-        public void ResumeMicrophone()
-        {
-            _isMicrophonePaused = false;
-        }
-
-        // ADDITION: Method to reconnect the mic data
-        public void ReconnectMicrophone()
-        {
-            DisconnectAudioStream();
-            ConnectLocalAudioStream();
-            //ConnectAudioStream();
         }
 
         void SetMute(bool mute) {
