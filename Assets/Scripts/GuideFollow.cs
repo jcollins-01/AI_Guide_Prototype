@@ -57,7 +57,42 @@ public class GuideFollow : MonoBehaviour
         if (sharedMovementFound)
         {
             if (theGuide != null && thePlayer != null) // Making sure code is not run until both player and guide are in the scene
+            {
                 setTargetPositions();
+                returnIfDistant();
+            }
+                
+        }
+    }
+
+    private void returnIfDistant()
+    {
+        // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
+        float distance = Vector3.Distance(transform.position, thePlayer.transform.position);
+
+        // If the guide and participant got separated at some point and are standing more than an arm's reach away
+        if (distance > 5f) 
+        {
+            // Creates a series of directional movements that work relative to world space
+            Vector3 backRelative = transform.TransformDirection(Vector3.back);
+            Vector3 downRelative = transform.TransformDirection(Vector3.down);
+            Vector3 rightRelative = transform.TransformDirection(Vector3.right);
+
+            // Uses position of the guide as local space for directional movements
+            // to create an offset of distance between the player and the guide when teleporting
+            var playerGuideOffset = thePlayer.transform.position + (rightRelative) / 2 + (backRelative) / 2;
+            transform.position = playerGuideOffset;
+
+            // Grabs the forward vector of the player (direction the player is facing)
+            Vector3 forward = thePlayer.transform.forward;
+            // Zero out the y component of the forward vector to only keep the directions in the X, Z planes
+            forward.y = 0;
+            float headingAngle = Quaternion.LookRotation(forward).eulerAngles.y;
+            // Applies new rotation angle so the player faces the same direction as the guide
+            transform.rotation = Quaternion.Euler(0.0f, headingAngle, 0.0f);
+
+            // Go back to appropriate target position after teleporting
+            setTargetPositions();
         }
     }
 

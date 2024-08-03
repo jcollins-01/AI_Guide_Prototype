@@ -21,6 +21,7 @@ public class AIGuide : MonoBehaviour
     //private bool firstQuery = true;
     private bool buttonPressed = false;
     private bool guideRoleAssigned = false;
+    private bool guideRoleAssignedStart = false;
 
     // Variables for wizard components
     public string result;
@@ -45,7 +46,7 @@ public class AIGuide : MonoBehaviour
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
-            role = 2; // human
+            role = 4; // human
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
@@ -107,7 +108,10 @@ public class AIGuide : MonoBehaviour
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
 
-            // Check and determine if both confederates are present and send guide roles each time they are
+            // If any confederate is present at the start of the scene, assign the guide
+            AssignSingleConfederate();
+
+            // Check if both confederates are present and send guide roles each time they are (in case of confederates leaving and coming back)
             BothConfederatesPresent();
         }
     }
@@ -126,15 +130,22 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
+    private void AssignSingleConfederate()
+    {
+        if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssignedStart)
+            StartCoroutine(AssignRoleStatic());
+    }
+    
     // This function makes it so that the guide role is reassigned every time we go back to having two avatars in the scene
     private void BothConfederatesPresent()
     {
+        // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
         if (GameObject.FindWithTag("Confederate_1") && GameObject.FindWithTag("Confederate_2"))
         {
-            // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
             if (!guideRoleAssigned)
                 StartCoroutine(AssignRoleStatic());
-        } 
+        }
         else
             guideRoleAssigned = false;
     }
@@ -148,13 +159,14 @@ public class AIGuide : MonoBehaviour
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
         else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
-            role = 2; // human
+            role = 4; // human
         else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
             role = 4; // dog, 4
         else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
             role = 2; // robot, 2
 
         guideRoleAssigned = true;
+        guideRoleAssignedStart = true; // Stops assigning guide role for a single confed client
     }
 
     private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)

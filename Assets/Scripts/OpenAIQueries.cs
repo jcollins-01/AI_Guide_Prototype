@@ -21,7 +21,7 @@ public class OpenAIQueries : MonoBehaviour
     private CameraSystem m_CameraSystemScript;
     private GuideAudioSync m_GuideAudioSync;
     private AIGuide m_AIGuideScript;
-    private RealtimeAvatarVoice _avatarVoice;
+    public RealtimeAvatarVoice _avatarVoice;
 
 
     // Variables to construct OpenAI queries
@@ -98,7 +98,7 @@ public class OpenAIQueries : MonoBehaviour
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
-        _avatarVoice = FindObjectOfType<RealtimeAvatarVoice>();
+        _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
         LoadConfig();
         LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");
@@ -146,11 +146,8 @@ public class OpenAIQueries : MonoBehaviour
         if (!recordingInProgress)
         {
             // Pause the microphone data being sent in Normcore
-            /*if (_avatarVoice != null)
-            {
-                _avatarVoice.PauseMicrophone();
-                Debug.Log("Avatar voice microphone should be back on again, so paused should be true: " + _avatarVoice._isMicrophonePaused);
-            }*/
+            _avatarVoice.PauseMicrophone();
+            //_avatarVoice.mute = true;
 
             recordingInProgress = true;
             audioSource.mute = false;
@@ -171,7 +168,7 @@ public class OpenAIQueries : MonoBehaviour
         {
             _avatarVoice.ReconnectMicrophone();
             _avatarVoice.ResumeMicrophone();
-            Debug.Log("Avatar voice microphone should be back on again, so paused should be false: " + _avatarVoice._isMicrophonePaused);
+            //_avatarVoice.mute = false;
         }
 
         Debug.Log("Reached Call Whisper");

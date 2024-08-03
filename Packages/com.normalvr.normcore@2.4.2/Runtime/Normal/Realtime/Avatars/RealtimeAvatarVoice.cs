@@ -422,8 +422,8 @@ namespace Normal.Realtime {
         public void ReconnectMicrophone()
         {
             DisconnectAudioStream();
-            //ConnectLocalAudioStream();
-            ConnectAudioStream();
+            ConnectLocalAudioStream();
+            //ConnectAudioStream();
         }
 
         void SetMute(bool mute) {
