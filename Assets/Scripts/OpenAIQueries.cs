@@ -143,9 +143,6 @@ public class OpenAIQueries : MonoBehaviour
         completionCompleted = false;
         alloyCompleted = false;
 
-        // Trying to disconnect the mic
-        //_avatarVoice.DisconnectAudioStream();
-
         // Records 10 secs by default
         if (!recordingInProgress)
         {
@@ -163,8 +160,7 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task<string> CallWhisper(AudioClip audioClip)
     {
-        // Resume the microphone data being sent in Normcore
-        //_avatarVoice.ConnectAudioStream();
+        // Rebuild the audio stream in Normcore to send microphone data again
         _avatarVoice._rebuildAudioStream = true;
 
         Debug.Log("Reached Call Whisper");

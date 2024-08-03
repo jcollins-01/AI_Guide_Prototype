@@ -112,8 +112,7 @@ namespace Normal.Realtime {
 
         #region Connect Audio Stream
         
-        // ADDITION: Made this public to use from other scripts
-        public void ConnectAudioStream() {
+        private void ConnectAudioStream() {
             DisconnectAudioStream();
 
             if (model == null) return;
@@ -292,8 +291,7 @@ namespace Normal.Realtime {
         
         #endregion
 
-        // ADDITION: Made this public to use from other scripts
-        public void DisconnectAudioStream() {
+        private void DisconnectAudioStream() {
             if (_microphoneStream != null) {
                 // Destroy AudioPreprocessorPlaybackListener
                 if (_audioPreprocessorPlaybackListener != null) {
