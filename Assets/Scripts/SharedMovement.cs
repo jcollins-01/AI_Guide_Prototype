@@ -99,7 +99,6 @@ public class SharedMovement : MonoBehaviour
                 playerGrabbingGuide = false;
             }
         }
-        else
     }
 
     void AssignRoles()
