@@ -18,11 +18,12 @@ public class GuideFollow : MonoBehaviour
     private float heightOffset = 0.2f;
     public float guideHeight = 0f;
     public float playerHeight = 0f;
+    public float distance;
 
     // Agents and Game Objects
     private NavMeshAgent agent;
-    private GameObject theGuide;
-    private GameObject thePlayer;
+    public GameObject theGuide;
+    public GameObject thePlayer;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -58,21 +59,24 @@ public class GuideFollow : MonoBehaviour
         {
             if (theGuide != null && thePlayer != null) // Making sure code is not run until both player and guide are in the scene
             {
-                setTargetPositions();
                 returnIfDistant();
+                if (agent.isActiveAndEnabled)
+                    setTargetPositions();
             }
-                
         }
     }
 
     private void returnIfDistant()
     {
         // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
-        float distance = Vector3.Distance(transform.position, thePlayer.transform.position);
+        distance = Vector3.Distance(transform.position, thePlayer.transform.position);
 
         // If the guide and participant got separated at some point and are standing more than an arm's reach away
-        if (distance > 5f) 
+        if (distance > 5f)
         {
+            // Temporarily disable NavMeshAgent so we can move the guide unit freely
+            agent.enabled = false;
+            Debug.Log("Returned since distant " + distance);
             // Creates a series of directional movements that work relative to world space
             Vector3 backRelative = transform.TransformDirection(Vector3.back);
             Vector3 downRelative = transform.TransformDirection(Vector3.down);
@@ -89,10 +93,15 @@ public class GuideFollow : MonoBehaviour
             forward.y = 0;
             float headingAngle = Quaternion.LookRotation(forward).eulerAngles.y;
             // Applies new rotation angle so the player faces the same direction as the guide
-            transform.rotation = Quaternion.Euler(0.0f, headingAngle, 0.0f);
+            transform.position = playerGuideOffset;
 
-            // Go back to appropriate target position after teleporting
-            setTargetPositions();
+            // Set new distance
+            distance = Vector3.Distance(transform.position, thePlayer.transform.position);
+        }
+        else
+        {
+            // Re-enable NavMeshAgent to resume its ability to set target position
+            agent.enabled = true;
         }
     }
 

@@ -97,7 +97,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
                     //result = "Alright. Grab on to me and I will take you to " + m_openAIQueriesScript.targetForGuidance.name;
                 }
             }
-            else // they are trying to modify
+            else // they are trying to modify, turn this into an if for modify
             {
                 // Assign the first word to targetName and the second word to modification
                 string targetName = words[0].Trim();
@@ -126,6 +126,37 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
                     //result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
                 }
             }
+            /*else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify, turn this into an if for modify
+            {
+                // Assign the first word to targetName and the second word to modification
+                string targetName = words[0].Trim();
+                m_openAIQueriesScript.modeOfModification = words[1].Trim();
+
+                m_openAIQueriesScript.targetForModification = GameObject.Find(targetName);
+                if (m_openAIQueriesScript.targetForModification != null)
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 2:
+                            result = "Understood. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 3:
+                            result = "Very well. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                        case 4:
+                            result = "Okay. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                            break;
+                    }
+                    //result = "Alright. I will add an audio beacon to " + m_openAIQueriesScript.targetForModification.name;
+                }
+            }
+            else
+                result = "Sorry, could you repeat that?";*/
         }
 
         //Debug.Log("Reached ConvertResultToSpeech");

@@ -99,7 +99,6 @@ public class OpenAIQueries : MonoBehaviour
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
-        _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
         LoadConfig();
         LoadRoomDescriptions();
         //Debug.Log("OpenAI is ready to be queried.");
@@ -113,9 +112,16 @@ public class OpenAIQueries : MonoBehaviour
         // Calls until the camera system and audio sync scripts are assigned
         getCameraSystem();
         getAudioSync();
+        getAvatarVoice();
 
         // Calls continously to check for a role change
         getGuideRole();
+    }
+
+    private void getAvatarVoice()
+    {
+        if (_avatarVoice == null)
+            _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
     }
 
     private void getGuideRole()
@@ -161,7 +167,8 @@ public class OpenAIQueries : MonoBehaviour
     public async Task<string> CallWhisper(AudioClip audioClip)
     {
         // Rebuild the audio stream in Normcore to send microphone data again
-        _avatarVoice._rebuildAudioStream = true;
+        if (_avatarVoice != null)
+            _avatarVoice._rebuildAudioStream = true;
 
         Debug.Log("Reached Call Whisper");
         var transcriptionRequest = new OpenAI.Audio.AudioTranscriptionRequest(audioClip, "whisper-1");
@@ -269,7 +276,37 @@ public class OpenAIQueries : MonoBehaviour
                     //result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
                 }
             }
-            else // they are trying to modify
+            else // they are trying to modify, turn this into an if for modify
+            {
+                // Assign the first word to targetName and the second word to modification
+                string targetName = words[0].Trim();
+                modeOfModification = words[1].Trim();
+
+                targetForModification = GameObject.Find(targetName);
+                if (targetForModification != null)
+                {
+                    int randReply = UnityEngine.Random.Range(1, 5);
+
+                    switch (randReply)
+                    {
+                        case 1:
+                            result = "Alright. I will add an audio beacon to " + targetForModification.name;
+                            break;
+                        case 2:
+                            result = "Understood. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                        case 3:
+                            result = "Very well. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                        case 4:
+                            result = "Okay. Grab on to me and I will take you to " + targetForModification.name;
+                            break;
+                    }
+                    //result = "Alright. I will add an audio beacon to " + targetForModification.name;
+                }
+            }
+            /*
+            else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify, turn this into an if for modify
             {
                 // Assign the first word to targetName and the second word to modification
                 string targetName = words[0].Trim();
@@ -298,6 +335,9 @@ public class OpenAIQueries : MonoBehaviour
                     //result = "Alright. I will add an audio beacon to " + targetForModification.name;
                 } 
             }
+            else
+                result = "Sorry, could you repeat that?";
+            */
         }
 
         // Initialize speech request with default voice (Alloy)
