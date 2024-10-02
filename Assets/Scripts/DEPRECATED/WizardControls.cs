@@ -45,7 +45,7 @@ public class WizardControls : MonoBehaviour
             //else
                 //m_OpenAIQueriesScript.text = m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.objectClassifications + "Imagine the player said this: " + m_OpenAIQueriesScript.userQuery + ". " + m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.memoClassifications;
             // Call the CallCompletion method with your desired userInput
-            var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
+            //var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
         }
 
         if (Input.GetKey(KeyCode.M))
@@ -67,7 +67,7 @@ public class WizardControls : MonoBehaviour
         {
             Debug.Log("Wizard called to create a new audio clip of guide output");
             // Create the audio clip of whatever whatever output has been stored in the result variable
-            var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
+            //var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
         }
 
         if (Input.GetKeyDown(KeyCode.V))

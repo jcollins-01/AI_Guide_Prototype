@@ -12,9 +12,9 @@ public class ChatGPTToPlayHT : MonoBehaviour
     [HideInInspector]
     public string openAiApiKey;
     [HideInInspector]
-    public string playHTApiKey = "f61e1eb6d0024f31b3c5f721b39ba574";
+    public string playHTApiKey = "0efd0a01a9d241b2a8a4d5d2594efc42";
     [HideInInspector]
-    public string playHTUserId = "T3JXXeEXYZcVhFPCGE6ohOj5CN22";
+    public string playHTUserId = "mSwkvjYTzoZdlQjlS8eXgl6GWLE2";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";

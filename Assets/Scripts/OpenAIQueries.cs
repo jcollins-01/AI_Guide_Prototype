@@ -20,9 +20,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "f61e1eb6d0024f31b3c5f721b39ba574";
+    public string playHTApiKey = "0efd0a01a9d241b2a8a4d5d2594efc42";
     [HideInInspector]
-    public string playHTUserId = "T3JXXeEXYZcVhFPCGE6ohOj5CN22";
+    public string playHTUserId = "mSwkvjYTzoZdlQjlS8eXgl6GWLE2";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -210,7 +210,7 @@ public class OpenAIQueries : MonoBehaviour
 
         // Call ChatGPT and stream the response
         string chatGptUrl = "https://api.openai.com/v1/chat/completions";
-        string chatGptModel = "gpt-3.5-turbo"; // Model ID
+        string chatGptModel = "gpt-3.5-turbo"; // Model ID, was gpt-4-vision-preview -- this version might work better for guide, modify
 
         // Prepare the request body for OpenAI API
         var jsonData = "{\"model\": \"" + chatGptModel + "\", \"messages\": [" +
@@ -317,6 +317,7 @@ public class OpenAIQueries : MonoBehaviour
             if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
             {
                 Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
+                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
                 yield break;
             }
             else
@@ -366,51 +367,6 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
         isPlayingAudio = false;
-    }
-
-    // Coroutine to aggregate the GPT response into a full text
-    private IEnumerator AggregateChatGptResponse(string responseText)
-    {
-        var responseLines = responseText.Split('\n');
-
-        foreach (var line in responseLines)
-        {
-            if (!string.IsNullOrWhiteSpace(line) && line.StartsWith("data:"))
-            {
-                var jsonData = line.Substring("data:".Length).Trim();
-
-                if (jsonData == "[DONE]")
-                {
-                    Debug.Log("Streaming complete.");
-                    result = fullGptResponse.ToString();
-                    Debug.Log("Response from GPT-3.5: " + result);
-                    completionCompleted = true;
-                    CheckForGuidanceOrModification(); // Check if the result is guide or modify, and choose an audio response for the guide if so
-
-                    // Sends the text over the network to sync guide's audio if the role is not 6 (invisible guide)
-                    // To prevent duplicate sound, mute the local audio source when sending to network, unmute for invisible
-                    if (m_AIGuideScript.role != 6)
-                    {
-                        audioSource.mute = true;
-                        SetNewResult(result);
-                    }
-                    else
-                        audioSource.mute = false;
-                    yield break;  // End the coroutine when the stream is done
-                }
-
-                JObject jsonObject = JObject.Parse(jsonData);
-                var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
-
-                if (!string.IsNullOrEmpty(content))
-                {
-                    //Debug.Log("Received content: " + content);
-                    fullGptResponse.Append(content);  // Aggregate the content into the full response
-                }
-            }
-
-            yield return null;  // Make sure to yield between lines to keep the coroutine responsive
-        }
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
@@ -478,91 +434,6 @@ public class OpenAIQueries : MonoBehaviour
                             break;
                     }
                 }
-            }
-        }
-    }
-
-    // Send the full GPT response to PlayHT for text-to-speech conversion
-    IEnumerator ConvertTextToAudio(string fullText)
-    {
-        string playHTUrl = "https://play.ht/api/v2/tts/stream";
-        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
-
-        // Change speech request to new voices if the role calls for it
-        if (m_AIGuideScript.role == 2)
-            voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json"; // Robot
-        else if (m_AIGuideScript.role == 3)
-            voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json"; // Mechanical cane
-        else if (m_AIGuideScript.role == 4)
-            voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json"; // Dog
-        else if (m_AIGuideScript.role == 5)
-            voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json"; // Mythical bird
-        else if (m_AIGuideScript.role == 6)
-            voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json"; // Invisible
-
-        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + fullText + "\"}";
-
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
-        {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
-            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
-
-            yield return playHTRequest.SendWebRequest();
-
-            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
-                Debug.LogError("Response Code: " + playHTRequest.responseCode);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text); // Log the response from PlayHT
-                yield break;
-            }
-            else
-            {
-                Debug.Log("PlayHT audio conversion successful!");
-
-                // Get the binary MP3 data from the response
-                byte[] mp3Data = playHTRequest.downloadHandler.data;
-
-                // Optionally, save MP3 data to a file
-                string path = Path.Combine(Application.persistentDataPath, "audio.mp3");
-                File.WriteAllBytes(path, mp3Data);
-                Debug.Log("Audio file saved to: " + path);
-
-                // Optionally, play the audio in Unity (assuming you have an AudioSource ready)
-                StartCoroutine(PlayAudioFromMp3Data(mp3Data));
-            }
-        }
-    }
-
-    // Coroutine to play audio from MP3 binary data
-    private IEnumerator PlayAudioFromMp3Data(byte[] mp3Data)
-    {
-        // Create a temporary file for the MP3 data
-        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
-        File.WriteAllBytes(tempPath, mp3Data);
-
-        // Load the audio file as an AudioClip
-        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
-        {
-            yield return audioRequest.SendWebRequest();
-
-            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError("Error loading audio: " + audioRequest.error);
-            }
-            else
-            {
-                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
-                //AudioSource audioSource = GetComponent<AudioSource>();
-                audioSource.clip = audioClip;
-                if (!audioSource.isPlaying)
-                    audioSource.Play();
-
-                Debug.Log("Playing audio from MP3 data...");
             }
         }
     }
