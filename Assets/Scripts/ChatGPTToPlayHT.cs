@@ -21,6 +21,8 @@ public class ChatGPTToPlayHT : MonoBehaviour
 
     public AudioSource audioSource; // Audio source to play the streamed audio
 
+    private StringBuilder fullGptResponse = new StringBuilder(); // To hold the full GPT response
+
     void Start()
     {
         LoadConfig();
@@ -78,9 +80,47 @@ public class ChatGPTToPlayHT : MonoBehaviour
                 //string chatGptResponseText = ExtractChatGptText(responseText);
                 // Now pass the response text to PlayHT for voice conversion
                 //StartCoroutine(ConvertTextToAudio(chatGptResponseText));
+                
+                // Version that puts the chunks in choppy audio
+                //yield return StartCoroutine(ConvertTextToAudio(StreamChatGptResponse(chatRequest.downloadHandler.text)));
 
-                yield return StartCoroutine(ConvertTextToAudio(StreamChatGptResponse(chatRequest.downloadHandler.text)));
+                // Start streaming the GPT response and aggregate it
+                yield return StartCoroutine(AggregateChatGptResponse(chatRequest.downloadHandler.text));
+
+                // After the entire response is aggregated, send it to PlayHT
+                yield return StartCoroutine(ConvertTextToAudio(fullGptResponse.ToString()));
             }
+        }
+    }
+
+    // Coroutine to aggregate the GPT response into a full text
+    private IEnumerator AggregateChatGptResponse(string responseText)
+    {
+        var responseLines = responseText.Split('\n');
+
+        foreach (var line in responseLines)
+        {
+            if (!string.IsNullOrWhiteSpace(line) && line.StartsWith("data:"))
+            {
+                var jsonData = line.Substring("data:".Length).Trim();
+
+                if (jsonData == "[DONE]")
+                {
+                    Debug.Log("Streaming complete.");
+                    yield break;  // End the coroutine when the stream is done
+                }
+
+                JObject jsonObject = JObject.Parse(jsonData);
+                var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    Debug.Log("Received content: " + content);
+                    fullGptResponse.Append(content);  // Aggregate the content into the full response
+                }
+            }
+
+            yield return null;  // Make sure to yield between lines to keep the coroutine responsive
         }
     }
 
@@ -117,7 +157,47 @@ public class ChatGPTToPlayHT : MonoBehaviour
         }
     }
 
-    IEnumerator ConvertTextToAudio(IEnumerator streamedText)
+    // Send the full GPT response to PlayHT for text-to-speech conversion
+    IEnumerator ConvertTextToAudio(string fullText)
+    {
+        string playHTUrl = "https://play.ht/api/v2/tts/stream";
+        var playHTData = "{\"voice\":\"s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json\", \"text\":\"" + fullText + "\"}";
+
+        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
+            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
+            playHTRequest.SetRequestHeader("Content-Type", "application/json");
+            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
+            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
+
+            yield return playHTRequest.SendWebRequest();
+
+            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
+                yield break;
+            }
+            else
+            {
+                Debug.Log("PlayHT audio conversion successful!");
+
+                // Get the binary MP3 data from the response
+                byte[] mp3Data = playHTRequest.downloadHandler.data;
+
+                // Optionally, save MP3 data to a file
+                string path = Path.Combine(Application.persistentDataPath, "audio.mp3");
+                File.WriteAllBytes(path, mp3Data);
+                Debug.Log("Audio file saved to: " + path);
+
+                // Optionally, play the audio in Unity (assuming you have an AudioSource ready)
+                StartCoroutine(PlayAudioFromMp3Data(mp3Data));
+            }
+        }
+    }
+
+    /*IEnumerator ConvertTextToAudio(IEnumerator streamedText)
     {
         while (streamedText.MoveNext())
         {
@@ -163,16 +243,16 @@ public class ChatGPTToPlayHT : MonoBehaviour
                         // Optionally, play the audio in Unity (assuming you have an AudioSource ready)
                         StartCoroutine(PlayAudioFromMp3Data(mp3Data));
                         // Get the audio file URL and stream the audio
-                        /*string responseText = playHTRequest.downloadHandler.text;
-                        Debug.Log("PlayHT successful response text: " + responseText);
-                        string audioUrl = ExtractAudioUrl(responseText);
-                        Debug.Log("PlayHT successful response text: " + responseText);
-                        StartCoroutine(StreamAudio(audioUrl));*/
+                        //string responseText = playHTRequest.downloadHandler.text;
+                        //Debug.Log("PlayHT successful response text: " + responseText);
+                        //string audioUrl = ExtractAudioUrl(responseText);
+                        //Debug.Log("PlayHT successful response text: " + responseText);
+                        //StartCoroutine(StreamAudio(audioUrl));
                     }
                 }
             }
         }
-    }
+    }*/
 
     // Coroutine to play audio from MP3 binary data
     private IEnumerator PlayAudioFromMp3Data(byte[] mp3Data)
