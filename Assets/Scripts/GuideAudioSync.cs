@@ -4,6 +4,9 @@ using UnityEngine;
 using System.Threading.Tasks;
 using OpenAI;
 using System;
+using UnityEngine.Networking;
+using System.Text;
+using System.IO;
 
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
@@ -14,6 +17,10 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     public AudioSource _audioSource;
     private string apiKey;
+    [HideInInspector]
+    public string playHTApiKey = "f61e1eb6d0024f31b3c5f721b39ba574";
+    [HideInInspector]
+    public string playHTUserId = "T3JXXeEXYZcVhFPCGE6ohOj5CN22";
 
     private void Awake()
     {
@@ -46,7 +53,10 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
         if (!string.IsNullOrEmpty(result))
         {
-            AudioClip guideVoice = await ConvertResultToSpeech(result);
+            StartCoroutine(ConvertTextToAudio(result));
+            Debug.Log("Played audio clip from guide voice");
+
+            /*AudioClip guideVoice = await ConvertResultToSpeech(result);
             if (guideVoice != null)
             {
                 _audioSource.clip = guideVoice;
@@ -56,6 +66,91 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             else
             {
                 Debug.LogWarning("Failed to convert result to speech.");
+            }*/
+        }
+    }
+
+    // Send the full GPT response to PlayHT for text-to-speech conversion
+    IEnumerator ConvertTextToAudio(string fullText)
+    {
+        string playHTUrl = "https://play.ht/api/v2/tts/stream";
+        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
+
+        // Change speech request to new voices if the role calls for it
+        if (m_AIGuideScript.role == 2)
+            voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json"; // Robot
+        else if (m_AIGuideScript.role == 3)
+            voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json"; // Mechanical cane
+        else if (m_AIGuideScript.role == 4)
+            voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json"; // Dog
+        else if (m_AIGuideScript.role == 5)
+            voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json"; // Mythical bird
+        else if (m_AIGuideScript.role == 6)
+            voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json"; // Invisible
+
+        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + fullText + "\"}";
+
+        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
+            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
+            playHTRequest.SetRequestHeader("Content-Type", "application/json");
+            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
+            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
+
+            yield return playHTRequest.SendWebRequest();
+
+            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
+                Debug.LogError("Response Code: " + playHTRequest.responseCode);
+                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text); // Log the response from PlayHT
+                yield break;
+            }
+            else
+            {
+                Debug.Log("PlayHT audio conversion successful!");
+
+                // Get the binary MP3 data from the response
+                byte[] mp3Data = playHTRequest.downloadHandler.data;
+
+                // Optionally, save MP3 data to a file
+                string path = Path.Combine(Application.persistentDataPath, "audio.mp3");
+                File.WriteAllBytes(path, mp3Data);
+                Debug.Log("Audio file saved to: " + path);
+
+                // Optionally, play the audio in Unity (assuming you have an AudioSource ready)
+                StartCoroutine(PlayAudioFromMp3Data(mp3Data));
+            }
+        }
+    }
+
+    // Coroutine to play audio from MP3 binary data
+    private IEnumerator PlayAudioFromMp3Data(byte[] mp3Data)
+    {
+        // Create a temporary file for the MP3 data
+        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
+        File.WriteAllBytes(tempPath, mp3Data);
+
+        // Load the audio file as an AudioClip
+        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
+        {
+            yield return audioRequest.SendWebRequest();
+
+            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error loading audio: " + audioRequest.error);
+            }
+            else
+            {
+                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
+                //AudioSource audioSource = GetComponent<AudioSource>();
+                _audioSource.clip = audioClip;
+                // Maybe have to do a if ! is playing
+                _audioSource.Play();
+
+                Debug.Log("Playing audio from MP3 data...");
             }
         }
     }
