@@ -33,9 +33,12 @@ public class OpenAIQueries : MonoBehaviour
     private AIGuide m_AIGuideScript;
     public RealtimeAvatarVoice _avatarVoice;
 
-
     // Variables to construct OpenAI queries
     private StringBuilder fullGptResponse = new StringBuilder(); // To hold the full GPT response when streaming
+    private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to PlayHT
+    private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
+    private bool isPlayingAudio = false;
+
     private string objectNames;
     public List<string> roles = new List<string>
     {
@@ -235,13 +238,134 @@ public class OpenAIQueries : MonoBehaviour
             }
             else
             {
-                // Start streaming the GPT response and aggregate it
-                yield return StartCoroutine(AggregateChatGptResponse(chatRequest.downloadHandler.text));
-
-                // After the entire response is aggregated, send it to PlayHT
-                yield return StartCoroutine(ConvertTextToAudio(result));
+                // Stream GPT response in chunks to PlayHT
+                yield return StartCoroutine(StreamChatGptResponseToAudio(chatRequest.downloadHandler.text));
             }
         }
+    }
+
+    // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
+    private IEnumerator StreamChatGptResponseToAudio(string responseText)
+    {
+        var responseLines = responseText.Split('\n');
+
+        foreach (var line in responseLines)
+        {
+            if (!string.IsNullOrWhiteSpace(line) && line.StartsWith("data:"))
+            {
+                var jsonData = line.Substring("data:".Length).Trim();
+
+                if (jsonData == "[DONE]")
+                {
+                    Debug.Log("Streaming complete.");
+                    // Ensure we send any remaining text in the buffer when done
+                    if (textBuffer.Length > 0)
+                    {
+                        yield return StartCoroutine(StreamTextToPlayHT(textBuffer.ToString()));
+                        textBuffer.Clear();  // Clear the buffer
+                    }
+                    yield break;  // End the coroutine when the stream is done
+                }
+
+                JObject jsonObject = JObject.Parse(jsonData);
+                var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
+
+                if (!string.IsNullOrEmpty(content))
+                {
+                    textBuffer.Append(content);  // Add content to the buffer
+
+                    // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
+                    if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
+                    {
+                        //Debug.Log("Sending chunk to PlayHT: " + textBuffer.ToString());
+                        yield return StartCoroutine(StreamTextToPlayHT(textBuffer.ToString()));
+                        textBuffer.Clear();  // Clear the buffer after sending
+                    }
+                }
+            }
+            yield return null;  // Yield between lines to keep the coroutine responsive
+        }
+    }
+
+    // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
+    private IEnumerator StreamTextToPlayHT(string textChunk)
+    {
+        string playHTUrl = "https://play.ht/api/v2/tts/stream";
+        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
+
+        // Customize the voice as per the role
+        if (m_AIGuideScript.role == 2) voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json";
+        else if (m_AIGuideScript.role == 3) voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json";
+        else if (m_AIGuideScript.role == 4) voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json";
+        else if (m_AIGuideScript.role == 5) voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json";
+        else if (m_AIGuideScript.role == 6) voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json";
+
+        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + textChunk + "\"}";
+
+        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
+            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
+            playHTRequest.SetRequestHeader("Content-Type", "application/json");
+            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
+            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
+
+            // Send the request
+            yield return playHTRequest.SendWebRequest();
+
+            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
+                yield break;
+            }
+            else
+            {
+                //Debug.Log("PlayHT audio chunk conversion successful!");
+                // Get the binary MP3 data from the response and play it sequentially
+                byte[] mp3Data = playHTRequest.downloadHandler.data;
+                yield return StartCoroutine(PlayAudioSequentially(mp3Data));
+            }
+        }
+    }
+
+    // Coroutine to play audio chunks sequentially without overlapping
+    private IEnumerator PlayAudioSequentially(byte[] mp3Data)
+    {
+        // Wait until the previous audio chunk is finished
+        while (isPlayingAudio)
+            yield return null;  // Wait until the current audio has stopped
+
+        // Mark as playing
+        isPlayingAudio = true;
+
+        // Create a temporary file for the MP3 data
+        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
+        File.WriteAllBytes(tempPath, mp3Data);
+
+        // Load the audio file as an AudioClip
+        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
+        {
+            yield return audioRequest.SendWebRequest();
+
+            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
+                Debug.LogError("Error loading audio: " + audioRequest.error);
+            else
+            {
+                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
+                audioSource.clip = audioClip;
+                audioSource.loop = false;
+                audioSource.Play();
+                // Debug.Log("Playing audio chunk...");
+
+                // Wait until the audio has finished playing before allowing the next chunk
+                while (audioSource.isPlaying)
+                    yield return null;
+
+                Debug.Log("Audio chunk finished playing.");
+            }
+        }
+        isPlayingAudio = false;
     }
 
     // Coroutine to aggregate the GPT response into a full text
@@ -435,196 +559,12 @@ public class OpenAIQueries : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
                 //AudioSource audioSource = GetComponent<AudioSource>();
                 audioSource.clip = audioClip;
-                // Maybe have to do a if ! is playing
-                audioSource.Play();
+                if (!audioSource.isPlaying)
+                    audioSource.Play();
 
                 Debug.Log("Playing audio from MP3 data...");
             }
         }
-    }
-
-    public async Task<string> CallCompletion(string userInput)
-    {
-        // Create the content for the message
-        List<Content> content = new List<Content>
-        {
-            new Content(ContentType.Text, userInput),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink), // m_CameraSystemScript.birdsEyeImageLink
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink) //m_CameraSystemScript.viewpointImageLink
-            //new Content(ContentType.ImageUrl, "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png") //imageShackLink "https://i.postimg.cc/wMmyKDRz/Bird-s-Eye.png" $"data:image/png;base64,{Convert.ToBase64String(capturedScreenshot.EncodeToPNG())}"
-        };
-
-        // Park 1 https://i.postimg.cc/cLjtjhqz/park1bird.png, https://i.postimg.cc/1tSGCBwQ/park2viewpoint.png
-        // Park 2 https://i.postimg.cc/5yJmyCJf/park2bird.png, https://i.postimg.cc/3JmzRXHD/park2-NEWviewpoint.png
-        // Park 3 https://i.postimg.cc/4dXp6TKg/park3bird.png, https://i.postimg.cc/P5GyC9Mt/park3viewpoint.png
-
-        // Create the message to send to the API
-        var chatPrompts = new List<Message>
-        {
-            new(Role.User, content),
-        };
-
-        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-vision-preview", maxTokens: 300);
-        string output = "N/A";
-        try
-        {
-            var chatResponse = await client.ChatEndpoint.GetCompletionAsync(chatRequest);
-            output = chatResponse.FirstChoice.ToString();
-            Debug.Log("Response from GPT-4: " + output);
-            result = output;
-            completionCompleted = true;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("Exception in CallCompletion:\n" + e);
-        }
-        // Sends the text over the network to sync guide's audio if the role is not 6 (invisible guide)
-        // To prevent duplicate sound, mute the local audio source when sending to network, unmute for invisible
-        if (m_AIGuideScript.role != 6)
-        {
-            GetComponent<AudioSource>().mute = true;
-            SetNewResult(result);
-        }
-        else
-        {
-            GetComponent<AudioSource>().mute = false;
-        }
-        return output;
-    }
-
-    public async Task<AudioClip> CallAlloyTTS()
-    {
-        // If the result was a GameObject for guidance, create a custom speech message
-        string[] words = result.Split(',');
-        if (words.Length == 2)
-        {
-            Debug.Log("Two word response for guidance or modification");
-            string secondWord = words[1].Trim();
-            Debug.Log(words[1]);
-            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
-            {
-                // Assign the first word to targetName and the second word to modeOfTransportation
-                string targetName = words[0].Trim();
-                modeOfTransportation = words[1].Trim();
-
-                targetForGuidance = GameObject.Find(targetName);
-                if (targetForGuidance != null)
-                {
-                    int randReply = UnityEngine.Random.Range(1, 5);
-
-                    switch (randReply)
-                    {
-                        case 1:
-                            result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 2:
-                            result = "Understood. Grab on to me and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 3:
-                            result = "Very well. Grab on to me and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 4:
-                            result = "Okay. Grab on to me and I will take you to " + targetForGuidance.name;
-                            break;
-                    }
-                    //result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
-                }
-            }
-            else // they are trying to modify, turn this into an if for modify
-            {
-                // Assign the first word to targetName and the second word to modification
-                string targetName = words[0].Trim();
-                modeOfModification = words[1].Trim();
-
-                targetForModification = GameObject.Find(targetName);
-                if (targetForModification != null)
-                {
-                    int randReply = UnityEngine.Random.Range(1, 5);
-
-                    switch (randReply)
-                    {
-                        case 1:
-                            result = "Alright. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                        case 2:
-                            result = "Understood. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                        case 3:
-                            result = "Very well. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                        case 4:
-                            result = "Okay. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                    }
-                    //result = "Alright. I will add an audio beacon to " + targetForModification.name;
-                }
-            }
-            /*
-            else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify, turn this into an if for modify
-            {
-                // Assign the first word to targetName and the second word to modification
-                string targetName = words[0].Trim();
-                modeOfModification = words[1].Trim();
-
-                targetForModification = GameObject.Find(targetName);
-                if (targetForModification != null)
-                {
-                    int randReply = UnityEngine.Random.Range(1, 5);
-
-                    switch (randReply)
-                    {
-                        case 1:
-                            result = "Alright. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                        case 2:
-                            result = "Understood. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                        case 3:
-                            result = "Very well. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                        case 4:
-                            result = "Okay. Grab on to me and I will take you to " + targetForModification.name;
-                            break;
-                    }
-                    //result = "Alright. I will add an audio beacon to " + targetForModification.name;
-                } 
-            }
-            else
-                result = "Sorry, could you repeat that?";
-            */
-        }
-
-        // Initialize speech request with default voice (Alloy)
-        var speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Alloy); // Human
-
-        // Change speech request to new voices if the role calls for it
-        if (m_AIGuideScript.role == 2)
-            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Echo); // Robot
-        else if (m_AIGuideScript.role == 3)
-            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Onyx); // Mechanical cane
-        else if (m_AIGuideScript.role == 4)
-            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Shimmer); // Dog
-        else if (m_AIGuideScript.role == 5)
-            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Fable); // Mythical bird
-        else if (m_AIGuideScript.role == 6)
-            speechRequest = new OpenAI.Audio.SpeechRequest(result, "tts-1", OpenAI.Audio.SpeechVoice.Nova); // Invisible
-
-        AudioClip output = null;
-        try
-        {
-            var speechResponse = await client.AudioEndpoint.CreateSpeechAsync(speechRequest);
-            output = speechResponse.Item2; // grabs the AudioClip created in the Tuple speechResponse
-            guideVoice = output;
-            alloyCompleted = true;
-            Debug.Log("Created audio clip of voiced result");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("Exception in CallAlloyTTS:\n" + e);
-        }
-        //targetForGuidance = null;
-        targetForModification = null;
-        return output;
     }
 
     private void LoadConfig()

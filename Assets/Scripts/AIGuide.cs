@@ -99,9 +99,6 @@ public class AIGuide : MonoBehaviour
             // Take transcribed input as query and send to GPT-4
             sendQueryToGPT();
 
-            // Play the response from GPT-4 as audio
-            playGuideResponse();
-
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
 
@@ -283,31 +280,6 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    private void playGuideResponse()
-    {
-        // Checking for completion of query to GPT-4
-        if (m_OpenAIQueriesScript.completionCompleted && voiceCalls == 0) //&& alloyCalls == 0)
-        {
-            // Play sound effect to indicate completion of guide's processing
-            playEffect("completion");
-            voiceCalls += 1;
-            // WOULD REPLACE THIS CALL WITH THE AUDIO??
-
-            //var speechResult = m_OpenAIQueriesScript.CallAlloyTTS();
-            //alloyCalls += 1;
-        }
-
-        // Checking for completion of audio clip of the guide's response to the user query
-        if (m_OpenAIQueriesScript.alloyCompleted && voiceCalls == 0)
-        {
-            // Play the guide's response
-            m_OpenAIQueriesScript.audioSource.clip = m_OpenAIQueriesScript.guideVoice;
-            if (!m_OpenAIQueriesScript.audioSource.isPlaying)
-                m_OpenAIQueriesScript.audioSource.Play();
-            voiceCalls += 1;
-        }
-    }
-
     private void sendQueryToGPT()
     {
         // Checking for completion of speech transcription and image upload
@@ -335,8 +307,6 @@ public class AIGuide : MonoBehaviour
             StartCoroutine(m_OpenAIQueriesScript.CallChatGPTAndStreamAudio(m_OpenAIQueriesScript.text));
             Debug.Log("Called GPT for streaming");
 
-            // Call the CallCompletion method with the user's recorded voice query
-            //var guideResult = m_OpenAIQueriesScript.CallCompletion(m_OpenAIQueriesScript.text);
             completionCalls += 1;
         }
     }
