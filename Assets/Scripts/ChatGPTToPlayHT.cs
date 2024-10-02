@@ -149,13 +149,52 @@ public class ChatGPTToPlayHT : MonoBehaviour
                     {
                         Debug.Log("PlayHT audio conversion successful!");
 
+                        // Get the binary MP3 data from the response
+                        byte[] mp3Data = playHTRequest.downloadHandler.data;
+
+                        // Save MP3 data to a file (optional)
+                        string path = Path.Combine(Application.persistentDataPath, "audio.mp3");
+                        File.WriteAllBytes(path, mp3Data);
+                        Debug.Log("Audio file saved to: " + path);
+
+                        // Optionally, play the audio in Unity (assuming you have an AudioSource ready)
+                        StartCoroutine(PlayAudioFromMp3Data(mp3Data));
                         // Get the audio file URL and stream the audio
-                        string responseText = playHTRequest.downloadHandler.text;
+                        /*string responseText = playHTRequest.downloadHandler.text;
+                        Debug.Log("PlayHT successful response text: " + responseText);
                         string audioUrl = ExtractAudioUrl(responseText);
                         Debug.Log("PlayHT successful response text: " + responseText);
-                        StartCoroutine(StreamAudio(audioUrl));
+                        StartCoroutine(StreamAudio(audioUrl));*/
                     }
                 }
+            }
+        }
+    }
+
+    // Coroutine to play audio from MP3 binary data
+    private IEnumerator PlayAudioFromMp3Data(byte[] mp3Data)
+    {
+        // Create a temporary file for the MP3 data
+        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
+        File.WriteAllBytes(tempPath, mp3Data);
+
+        // Load the audio file as an AudioClip
+        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
+        {
+            yield return audioRequest.SendWebRequest();
+
+            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error loading audio: " + audioRequest.error);
+            }
+            else
+            {
+                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
+                AudioSource audioSource = GetComponent<AudioSource>();
+                audioSource.clip = audioClip;
+                audioSource.Play();
+
+                Debug.Log("Playing audio from MP3 data...");
             }
         }
     }
