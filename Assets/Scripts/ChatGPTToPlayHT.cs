@@ -24,6 +24,9 @@ public class ChatGPTToPlayHT : MonoBehaviour
     void Start()
     {
         LoadConfig();
+        //OpenAIQueries m_OpenAIQueriesScript = FindObjectOfType<OpenAIQueries>();
+        //m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+        //StartCoroutine(CallChatGPTAndStreamAudio(m_OpenAIQueriesScript.text));
         StartCoroutine(CallChatGPTAndStreamAudio("Tell me a joke."));
         // replace this with a string that is the m_OpenAIQueriesScript.text, line 319 in AIGuide
     }
