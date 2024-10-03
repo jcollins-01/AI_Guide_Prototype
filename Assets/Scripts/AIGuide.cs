@@ -302,9 +302,10 @@ public class AIGuide : MonoBehaviour
                 m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
             }*/
 
-            
+
             // Stream GPT response and audio with the user's recorded voice query
-            StartCoroutine(m_OpenAIQueriesScript.CallChatGPTAndStreamAudio(m_OpenAIQueriesScript.text));
+            var guideResult = m_OpenAIQueriesScript.CallChatGPTAndStreamAudioCompletions(m_OpenAIQueriesScript.text);
+            //StartCoroutine(m_OpenAIQueriesScript.CallChatGPTAndStreamAudio(m_OpenAIQueriesScript.text));
             Debug.Log("Called GPT for streaming");
 
             completionCalls += 1;

@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Normal.Realtime;
 using OpenAI;
@@ -20,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "0efd0a01a9d241b2a8a4d5d2594efc42";
+    public string playHTApiKey = "6b777884844343229443d27acff87afd";
     [HideInInspector]
-    public string playHTUserId = "mSwkvjYTzoZdlQjlS8eXgl6GWLE2";
+    public string playHTUserId = "sepOSWqUaeQ0meUXNRGThFOVB0j1";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -38,6 +39,7 @@ public class OpenAIQueries : MonoBehaviour
     private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to PlayHT
     private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
     private bool isPlayingAudio = false;
+    private bool isProcessingAudioChunk = false;
 
     private string objectNames;
     public List<string> roles = new List<string>
@@ -202,6 +204,61 @@ public class OpenAIQueries : MonoBehaviour
         return output;
     }
 
+    public async Task CallChatGPTAndStreamAudioCompletions(string prompt)
+    {
+        // Clear any previous responses
+        fullGptResponse.Clear();
+        result = string.Empty;
+
+        // Prepare the chat request body for API
+        var content = new List<Content>
+        {
+            new Content(ContentType.Text, prompt),
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
+            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
+        };
+
+        var chatPrompts = new List<Message>
+        {
+            new Message(Role.User, content)
+        };
+
+        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-vision-preview", maxTokens: 300);
+
+        // Use StreamCompletionAsync to stream the responses
+        try
+        {
+            await client.ChatEndpoint.StreamCompletionAsync(chatRequest, partialResponse =>
+            {
+                // Check if the partial response has choices and if the content is not null
+                if (partialResponse.Choices != null && partialResponse.Choices.Count > 0)
+                {
+                    var delta = partialResponse.Choices[0].Delta;
+
+                    // Make sure the delta and content are not null
+                    if (delta != null && delta.Content != null)
+                    {
+                        // Serialize the full partial response to JSON
+                        var jsonResponse = JsonConvert.SerializeObject(partialResponse);
+                        Debug.Log("the partial response is " + partialResponse);
+                        // Pass the JSON response to the audio streaming coroutine
+                        StartCoroutine(StreamChatGptResponseToAudio(jsonResponse));
+                        /*var responseText = delta.Content;  // Extract the content, converts responseText to string
+                        fullGptResponse.Append(responseText);
+
+                        // Pass each chunk of the response to the audio streaming coroutine
+                        StartCoroutine(StreamChatGptResponseToAudio(responseText));*/
+                    }
+                }
+            });
+            Debug.Log("Finished streaming GPT response.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error in streaming GPT-4 response: " + e.Message);
+        }
+    }
+
     public IEnumerator CallChatGPTAndStreamAudio(string prompt)
     {
         // Clear any previous responses before making a new call
@@ -210,13 +267,13 @@ public class OpenAIQueries : MonoBehaviour
 
         // Call ChatGPT and stream the response
         string chatGptUrl = "https://api.openai.com/v1/chat/completions";
-        string chatGptModel = "gpt-3.5-turbo"; // Model ID, was gpt-4-vision-preview -- this version might work better for guide, modify
+        string chatGptModel = "gpt-4-vision-preview"; // Model ID, was gpt-3.5-turbo -- this version doesn't work well for guide, modify
 
-        // Prepare the request body for OpenAI API
-        var jsonData = "{\"model\": \"" + chatGptModel + "\", \"messages\": [" +
-                       "{\"role\": \"user\", \"content\": \"Here is the text prompt: " + prompt + "\"}," +
-                       "{\"role\": \"user\", \"content\": \"Here are two image URLs for reference: Birds Eye View: " + m_CameraSystemScript.birdsEyeImageLink + " and Viewpoint: " + m_CameraSystemScript.viewpointImageLink + "\"}" +
-                       "], \"stream\": true}";
+        // Construct JSON request body manually as string
+        string jsonData = "{\"model\": \"" + chatGptModel + "\", \"messages\": [" +
+                          "{\"role\": \"user\", \"content\": \"" + prompt + "\"}," +
+                          "{\"role\": \"user\", \"content\": \"Here are two image URLs for reference: Bird's Eye View: " + m_CameraSystemScript.birdsEyeImageLink + " and Viewpoint: " + m_CameraSystemScript.viewpointImageLink + "\"}" +
+                          "], \"stream\": true}";
 
         using (UnityWebRequest chatRequest = new UnityWebRequest(chatGptUrl, "POST"))
         {
@@ -245,51 +302,139 @@ public class OpenAIQueries : MonoBehaviour
     }
 
     // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
-    private IEnumerator StreamChatGptResponseToAudio(string responseText)
+    private IEnumerator StreamChatGptResponseToAudio(string jsonResponse)
     {
-        var responseLines = responseText.Split('\n');
+        Debug.Log("Received JSON response: " + jsonResponse);
 
-        foreach (var line in responseLines)
+        // Parse the JSON response
+        var jsonObject = JObject.Parse(jsonResponse);
+        var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
+        var finishReason = jsonObject["choices"]?[0]?["finish_reason"]?.ToString();
+
+        // Check if content is null or empty
+        if (!string.IsNullOrEmpty(content))
         {
-            if (!string.IsNullOrWhiteSpace(line) && line.StartsWith("data:"))
+            Debug.Log("content added " + content);
+            textBuffer.Append(content); // Add the extracted content to the buffer
+
+            // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
+            if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
             {
-                var jsonData = line.Substring("data:".Length).Trim();
+                isProcessingAudioChunk = false; // If a new chunk meets the requirements, turn processing off so it can be sent
+                Debug.Log("A new chunk is ready to be added " + content);
+                // Don't send the next chunk until the previous one is done
+                while (isProcessingAudioChunk)
+                    yield return null;
 
-                if (jsonData == "[DONE]")
+                isProcessingAudioChunk = true;  // Mark that we're processing a chunk
+
+                string textToSend = textBuffer.ToString().Trim();
+
+                if (!string.IsNullOrEmpty(textToSend))
                 {
-                    Debug.Log("Streaming complete.");
-                    // Ensure we send any remaining text in the buffer when done
-                    if (textBuffer.Length > 0)
+                    Debug.Log("Sending chunk to PlayHT: " + textToSend);
+                    /*if (m_AIGuideScript.role != 6)
                     {
-                        yield return StartCoroutine(StreamTextToPlayHT(textBuffer.ToString()));
-                        textBuffer.Clear();  // Clear the buffer
+                        audioSource.mute = true;
+                        SetNewResult(textToSend);
                     }
-                    yield break;  // End the coroutine when the stream is done
+                    else
+                        audioSource.mute = false;*/
+
+                    // Call the coroutine to send text to PlayHT and convert it to audio
+                    Debug.Log("text buffer " + textBuffer);
+                    //yield return StartCoroutine(StreamTextToPlayHT(textToSend));
+                    textBuffer.Clear();
+                    Debug.Log("text buffer " + textBuffer);
                 }
-
-                JObject jsonObject = JObject.Parse(jsonData);
-                var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
-
-                if (!string.IsNullOrEmpty(content))
-                {
-                    textBuffer.Append(content);  // Add content to the buffer
-
-                    // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
-                    if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
-                    {
-                        //Debug.Log("Sending chunk to PlayHT: " + textBuffer.ToString());
-                        yield return StartCoroutine(StreamTextToPlayHT(textBuffer.ToString()));
-                        textBuffer.Clear();  // Clear the buffer after sending
-                    }
-                }
+                isProcessingAudioChunk = false;  // Mark the chunk processing as complete
             }
-            yield return null;  // Yield between lines to keep the coroutine responsive
         }
+
+        // Handle the case where finish_reason is "stop" and the message finished without meeting one of the above requirements
+        if (finishReason == "stop")
+        {
+            if (textBuffer.Length > 0) // Check if there's any remaining content in the buffer to process
+            {
+                // Don't send the final chunk until the previous one is done
+                while (isProcessingAudioChunk)
+                    yield return null;
+
+                isProcessingAudioChunk = true;
+
+                string remainingText = textBuffer.ToString().Trim();
+
+                // Process the final chunk
+                if (!string.IsNullOrEmpty(remainingText))
+                {
+                    // Probably check guide or modify here
+                    Debug.Log("Sending final chunk to PlayHT: " + remainingText);
+                    //yield return StartCoroutine(StreamTextToPlayHT(remainingText));
+                    textBuffer.Clear();  // Clear the buffer after processing the final chunk
+                }
+
+                isProcessingAudioChunk = false;
+            }
+
+            Debug.Log("Streaming complete.");
+            yield break;  // End the coroutine when the stream is done
+        }
+
+        yield return null; // Yield to keep the coroutine responsive
+    }
+
+    // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
+    private IEnumerator StreamChatGptResponseToAudioPlainText(string responseText)
+    {
+        Debug.Log("Received response text: " + responseText);
+        // Add the received response text to the buffer
+        textBuffer.Append(responseText);
+
+        // Process the buffered text if it meets the chunk size or ends with a sentence
+        if (textBuffer.Length >= chunkSizeThreshold || textBuffer.ToString().EndsWith(".") || textBuffer.ToString().EndsWith("!")) // was if (textBuffer.Length >= chunkSizeThreshold || responseText.EndsWith(".") || responseText.EndsWith("!"))
+        {
+            // Don't send the next chunk until the previous one is done
+            while (isProcessingAudioChunk)
+                yield return null;
+
+            isProcessingAudioChunk = true;  // Mark that we're processing a chunk
+            // Prepare the text to send, ensuring it's not empty
+            string textToSend = textBuffer.ToString().Trim();
+
+            if (!string.IsNullOrEmpty(textToSend))
+            {
+                Debug.Log("Sending chunk to PlayHT: " + textToSend);
+
+                if (m_AIGuideScript.role != 6)
+                {
+                    //audioSource.mute = true; // Optionally mute for other roles'
+                    //SetNewResult(textToSend);
+                }
+                else
+                    audioSource.mute = false;
+
+                // Call the coroutine to send text to PlayHT and convert it to audio
+                yield return StartCoroutine(StreamTextToPlayHT(textToSend));
+                textBuffer.Clear();
+            }
+            else
+                Debug.LogWarning("Text to send is empty, skipping...");
+
+            isProcessingAudioChunk = false;  // Mark the chunk processing as complete
+
+            // Wait a little bit before sending the next chunk (to avoid spamming PlayHT)
+            yield return new WaitForSeconds(0.2f);  // Adjust the delay based on PlayHT limits
+        }
+        else
+            Debug.Log("Shouldn't sent to PlayHT yet");
+
+        yield return null; // Yield to keep the coroutine responsive
     }
 
     // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
     private IEnumerator StreamTextToPlayHT(string textChunk)
     {
+        Debug.Log("Started coroutine for audio");
         string playHTUrl = "https://play.ht/api/v2/tts/stream";
         string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
 

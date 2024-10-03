@@ -16,6 +16,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private VRHandling m_VRHandlingScript;
 
     public AudioSource _audioSource;
+    private bool isPlayingAudio;
     private string apiKey;
     [HideInInspector]
     public string playHTApiKey = "f61e1eb6d0024f31b3c5f721b39ba574";
@@ -53,10 +54,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
         if (!string.IsNullOrEmpty(result))
         {
-            StartCoroutine(ConvertTextToAudio(result));
-            Debug.Log("Played audio clip from guide voice");
+            StartCoroutine(StreamTextToPlayHT(result));
 
-            /*AudioClip guideVoice = await ConvertResultToSpeech(result);
+            //StartCoroutine(ConvertTextToAudio(result));
+
+            /*Debug.Log("Played audio clip from guide voice");
+            AudioClip guideVoice = await ConvertResultToSpeech(result);
             if (guideVoice != null)
             {
                 _audioSource.clip = guideVoice;
@@ -68,6 +71,88 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
                 Debug.LogWarning("Failed to convert result to speech.");
             }*/
         }
+    }
+
+    // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
+    private IEnumerator StreamTextToPlayHT(string textChunk)
+    {
+        string playHTUrl = "https://play.ht/api/v2/tts/stream";
+        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
+
+        // Customize the voice as per the role
+        if (m_AIGuideScript.role == 2) voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json";
+        else if (m_AIGuideScript.role == 3) voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json";
+        else if (m_AIGuideScript.role == 4) voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json";
+        else if (m_AIGuideScript.role == 5) voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json";
+        else if (m_AIGuideScript.role == 6) voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json";
+
+        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + textChunk + "\"}";
+
+        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
+            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
+            playHTRequest.SetRequestHeader("Content-Type", "application/json");
+            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
+            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
+
+            // Send the request
+            yield return playHTRequest.SendWebRequest();
+
+            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
+                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
+                yield break;
+            }
+            else
+            {
+                //Debug.Log("PlayHT audio chunk conversion successful!");
+                // Get the binary MP3 data from the response and play it sequentially
+                byte[] mp3Data = playHTRequest.downloadHandler.data;
+                yield return StartCoroutine(PlayAudioSequentially(mp3Data));
+            }
+        }
+    }
+
+    // Coroutine to play audio chunks sequentially without overlapping
+    private IEnumerator PlayAudioSequentially(byte[] mp3Data)
+    {
+        // Wait until the previous audio chunk is finished
+        while (isPlayingAudio)
+            yield return null;  // Wait until the current audio has stopped
+
+        // Mark as playing
+        isPlayingAudio = true;
+
+        // Create a temporary file for the MP3 data
+        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
+        File.WriteAllBytes(tempPath, mp3Data);
+
+        // Load the audio file as an AudioClip
+        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
+        {
+            yield return audioRequest.SendWebRequest();
+
+            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
+                Debug.LogError("Error loading audio: " + audioRequest.error);
+            else
+            {
+                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
+                _audioSource.clip = audioClip;
+                _audioSource.loop = false;
+                _audioSource.Play();
+                // Debug.Log("Playing audio chunk...");
+
+                // Wait until the audio has finished playing before allowing the next chunk
+                while (_audioSource.isPlaying)
+                    yield return null;
+
+                Debug.Log("Audio chunk finished playing.");
+            }
+        }
+        isPlayingAudio = false;
     }
 
     // Send the full GPT response to PlayHT for text-to-speech conversion
