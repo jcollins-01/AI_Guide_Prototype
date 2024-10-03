@@ -50,7 +50,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private async void ResultDidChange(GuideAudioSyncModel model, string result)
     {
-        //Debug.Log("Detected that the result did change: " + result);
+        Debug.Log("Detected that the result did change: " + result);
 
         if (!string.IsNullOrEmpty(result))
             StartCoroutine(StreamTextToPlayHT(result));
@@ -59,7 +59,6 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
     private IEnumerator StreamTextToPlayHT(string textChunk)
     {
-        Debug.Log("Started coroutine for audio");
         string playHTUrl = "https://play.ht/api/v2/tts/stream";
         string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
 
@@ -133,7 +132,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
                 while (_audioSource.isPlaying)
                     yield return null;
 
-                Debug.Log("Audio chunk finished playing.");
+                Debug.Log("Audio chunk finished playing in GuideAudioSync.");
             }
         }
         isPlayingAudio = false;

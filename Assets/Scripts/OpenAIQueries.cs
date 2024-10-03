@@ -35,7 +35,6 @@ public class OpenAIQueries : MonoBehaviour
     public RealtimeAvatarVoice _avatarVoice;
 
     // Variables to construct OpenAI queries
-    private StringBuilder fullGptResponse = new StringBuilder(); // To hold the full GPT response when streaming
     private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to PlayHT
     private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
     private bool isPlayingAudio = false;
@@ -206,10 +205,6 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task CallChatGPTAndStreamAudioCompletions(string prompt)
     {
-        // Clear any previous responses
-        fullGptResponse.Clear();
-        //result = string.Empty;
-
         // Prepare the chat request body for API
         var content = new List<Content>
         {
@@ -240,14 +235,8 @@ public class OpenAIQueries : MonoBehaviour
                     {
                         // Serialize the full partial response to JSON
                         var jsonResponse = JsonConvert.SerializeObject(partialResponse);
-                        Debug.Log("the partial response is " + partialResponse);
                         // Pass the JSON response to the audio streaming coroutine
                         StartCoroutine(StreamChatGptResponseToAudio(jsonResponse));
-                        /*var responseText = delta.Content;  // Extract the content, converts responseText to string
-                        fullGptResponse.Append(responseText);
-
-                        // Pass each chunk of the response to the audio streaming coroutine
-                        StartCoroutine(StreamChatGptResponseToAudio(responseText));*/
                     }
                 }
             });
@@ -259,53 +248,10 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
-    private IEnumerator CallChatGPTAndStreamAudio(string prompt)
-    {
-        // Clear any previous responses before making a new call
-        fullGptResponse.Clear();
-        //result = string.Empty;
-
-        // Call ChatGPT and stream the response
-        string chatGptUrl = "https://api.openai.com/v1/chat/completions";
-        string chatGptModel = "gpt-4-vision-preview"; // Model ID, was gpt-3.5-turbo -- this version doesn't work well for guide, modify
-
-        // Construct JSON request body manually as string
-        string jsonData = "{\"model\": \"" + chatGptModel + "\", \"messages\": [" +
-                          "{\"role\": \"user\", \"content\": \"" + prompt + "\"}," +
-                          "{\"role\": \"user\", \"content\": \"Here are two image URLs for reference: Bird's Eye View: " + m_CameraSystemScript.birdsEyeImageLink + " and Viewpoint: " + m_CameraSystemScript.viewpointImageLink + "\"}" +
-                          "], \"stream\": true}";
-
-        using (UnityWebRequest chatRequest = new UnityWebRequest(chatGptUrl, "POST"))
-        {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
-            chatRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            chatRequest.downloadHandler = new DownloadHandlerBuffer();
-            chatRequest.SetRequestHeader("Content-Type", "application/json");
-            chatRequest.SetRequestHeader("Authorization", "Bearer " + apiKey);
-
-            // Send the request
-            yield return chatRequest.SendWebRequest();
-
-            if (chatRequest.result == UnityWebRequest.Result.ConnectionError || chatRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError("Error calling ChatGPT: " + chatRequest.error);
-                Debug.LogError("Response Code: " + chatRequest.responseCode);
-                Debug.LogError("Response Text: " + chatRequest.downloadHandler.text); // Log the response from PlayHT
-                yield break;
-            }
-            else
-            {
-                // Stream GPT response in chunks to PlayHT
-                yield return StartCoroutine(StreamChatGptResponseToAudio(chatRequest.downloadHandler.text));
-            }
-        }
-    }
-
     // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
     private IEnumerator StreamChatGptResponseToAudio(string jsonResponse)
     {
-        Debug.Log("Received JSON response: " + jsonResponse);
-
+        //Debug.Log("Received JSON response: " + jsonResponse);
         // Parse the JSON response
         var jsonObject = JObject.Parse(jsonResponse);
         var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
@@ -314,14 +260,12 @@ public class OpenAIQueries : MonoBehaviour
         // Check if content is null or empty
         if (!string.IsNullOrEmpty(content))
         {
-            Debug.Log("content added " + content);
+            //Debug.Log("content added " + content);
             textBuffer.Append(content); // Add the extracted content to the buffer
 
             // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
             if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
             {
-                //isProcessingAudioChunk = false; // If a new chunk meets the requirements, turn processing off so it can be sent
-                Debug.Log("A new chunk is ready to be added " + content);
                 string textToSend = textBuffer.ToString().Trim();
                 if (!string.IsNullOrEmpty(textToSend))
                 {
@@ -345,9 +289,6 @@ public class OpenAIQueries : MonoBehaviour
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
-
-            Debug.Log("Streaming complete.");
-            //yield break;  // End the coroutine when the stream is done
         }
 
         // Start processing the chunks in the queue (if not already processing)
@@ -356,7 +297,6 @@ public class OpenAIQueries : MonoBehaviour
             Debug.Log("Starting chunk processing...");
             StartCoroutine(ProcessChunkQueue());
         }
-
         yield return null; // Yield to keep the coroutine responsive
     }
 
@@ -380,7 +320,6 @@ public class OpenAIQueries : MonoBehaviour
             // Wait for a short delay between chunks (optional)
             yield return new WaitForSeconds(0.1f);  // Adjust the delay as needed
         }
-
         Debug.Log("All chunks processed.");
     }
 
@@ -455,7 +394,6 @@ public class OpenAIQueries : MonoBehaviour
                 audioSource.clip = audioClip;
                 audioSource.loop = false;
                 audioSource.Play();
-                // Debug.Log("Playing audio chunk...");
 
                 // Wait until the audio has finished playing before allowing the next chunk
                 while (audioSource.isPlaying)
@@ -471,8 +409,8 @@ public class OpenAIQueries : MonoBehaviour
     {
         if (m_AIGuideScript.role != 6)
         {
-            //audioSource.mute = true;
-            //SetNewResult(response);
+            audioSource.mute = true;
+            SetNewResult(response);
         }
         else
             audioSource.mute = false;
