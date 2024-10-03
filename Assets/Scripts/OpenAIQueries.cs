@@ -332,13 +332,7 @@ public class OpenAIQueries : MonoBehaviour
                 if (!string.IsNullOrEmpty(textToSend))
                 {
                     Debug.Log("Sending chunk to PlayHT: " + textToSend);
-                    /*if (m_AIGuideScript.role != 6)
-                    {
-                        audioSource.mute = true;
-                        SetNewResult(textToSend);
-                    }
-                    else
-                        audioSource.mute = false;*/
+                    ShareResponseBasedOnRole(textToSend);
 
                     // Call the coroutine to send text to PlayHT and convert it to audio
                     Debug.Log("text buffer " + textBuffer);
@@ -368,6 +362,7 @@ public class OpenAIQueries : MonoBehaviour
                 {
                     // Checks if the final chunk is a guide or modify chunk, assigns an appropriate response if so, leaves chunk as is if not
                     Debug.Log("Sending final chunk to PlayHT: " + CheckForGuidanceOrModification(remainingText));
+                    ShareResponseBasedOnRole(remainingText);
                     //yield return StartCoroutine(StreamTextToPlayHT(remainingText));
                     textBuffer.Clear();  // Clear the buffer after processing the final chunk
                 }
@@ -511,6 +506,17 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
         isPlayingAudio = false;
+    }
+
+    private void ShareResponseBasedOnRole(string response)
+    {
+        if (m_AIGuideScript.role != 6)
+        {
+            //audioSource.mute = true;
+            //SetNewResult(response);
+        }
+        else
+            audioSource.mute = false;
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
