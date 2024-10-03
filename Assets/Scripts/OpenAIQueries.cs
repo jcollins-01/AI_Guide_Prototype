@@ -94,7 +94,6 @@ public class OpenAIQueries : MonoBehaviour
     public string modeOfModification;
 
     public string query;
-    public string result;
     public string role;
     public AudioSource audioSource;
     public AudioClip guideVoice;
@@ -208,7 +207,7 @@ public class OpenAIQueries : MonoBehaviour
     {
         // Clear any previous responses
         fullGptResponse.Clear();
-        result = string.Empty;
+        //result = string.Empty;
 
         // Prepare the chat request body for API
         var content = new List<Content>
@@ -263,7 +262,7 @@ public class OpenAIQueries : MonoBehaviour
     {
         // Clear any previous responses before making a new call
         fullGptResponse.Clear();
-        result = string.Empty;
+        //result = string.Empty;
 
         // Call ChatGPT and stream the response
         string chatGptUrl = "https://api.openai.com/v1/chat/completions";
@@ -367,8 +366,8 @@ public class OpenAIQueries : MonoBehaviour
                 // Process the final chunk
                 if (!string.IsNullOrEmpty(remainingText))
                 {
-                    // Probably check guide or modify here
-                    Debug.Log("Sending final chunk to PlayHT: " + remainingText);
+                    // Checks if the final chunk is a guide or modify chunk, assigns an appropriate response if so, leaves chunk as is if not
+                    Debug.Log("Sending final chunk to PlayHT: " + CheckForGuidanceOrModification(remainingText));
                     //yield return StartCoroutine(StreamTextToPlayHT(remainingText));
                     textBuffer.Clear();  // Clear the buffer after processing the final chunk
                 }
@@ -515,7 +514,7 @@ public class OpenAIQueries : MonoBehaviour
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
-    private void CheckForGuidanceOrModification()
+    private string CheckForGuidanceOrModification(string result)
     {
         // If the result was a GameObject for guidance, create a custom speech message
         string[] words = result.Split(',');
@@ -581,6 +580,7 @@ public class OpenAIQueries : MonoBehaviour
                 }
             }
         }
+        return result;
     }
 
     private void LoadConfig()
