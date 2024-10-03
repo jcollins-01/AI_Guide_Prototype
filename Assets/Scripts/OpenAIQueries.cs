@@ -21,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "6b777884844343229443d27acff87afd";
+    public string playHTApiKey = "7383355b145a4a7da7fddd1d398623e8";
     [HideInInspector]
-    public string playHTUserId = "sepOSWqUaeQ0meUXNRGThFOVB0j1";
+    public string playHTUserId = "AqJJD3LlqFUIDYg2ZM9QMnN2Wll2";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -40,6 +40,7 @@ public class OpenAIQueries : MonoBehaviour
     private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
     private bool isPlayingAudio = false;
     private bool isProcessingAudioChunk = false;
+    private Queue<string> chunkQueue = new Queue<string>();
 
     private string objectNames;
     public List<string> roles = new List<string>
@@ -258,7 +259,7 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
-    public IEnumerator CallChatGPTAndStreamAudio(string prompt)
+    private IEnumerator CallChatGPTAndStreamAudio(string prompt)
     {
         // Clear any previous responses before making a new call
         fullGptResponse.Clear();
@@ -319,28 +320,15 @@ public class OpenAIQueries : MonoBehaviour
             // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
             if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
             {
-                isProcessingAudioChunk = false; // If a new chunk meets the requirements, turn processing off so it can be sent
+                //isProcessingAudioChunk = false; // If a new chunk meets the requirements, turn processing off so it can be sent
                 Debug.Log("A new chunk is ready to be added " + content);
-                // Don't send the next chunk until the previous one is done
-                while (isProcessingAudioChunk)
-                    yield return null;
-
-                isProcessingAudioChunk = true;  // Mark that we're processing a chunk
-
                 string textToSend = textBuffer.ToString().Trim();
-
                 if (!string.IsNullOrEmpty(textToSend))
                 {
-                    Debug.Log("Sending chunk to PlayHT: " + textToSend);
-                    ShareResponseBasedOnRole(textToSend);
-
-                    // Call the coroutine to send text to PlayHT and convert it to audio
-                    Debug.Log("text buffer " + textBuffer);
-                    //yield return StartCoroutine(StreamTextToPlayHT(textToSend));
-                    textBuffer.Clear();
-                    Debug.Log("text buffer " + textBuffer);
+                    Debug.Log("Queuing chunk for PlayHT: " + textToSend);
+                    chunkQueue.Enqueue(textToSend);  // Add the chunk to the queue
+                    textBuffer.Clear();  // Clear the buffer after queuing
                 }
-                isProcessingAudioChunk = false;  // Mark the chunk processing as complete
             }
         }
 
@@ -349,80 +337,51 @@ public class OpenAIQueries : MonoBehaviour
         {
             if (textBuffer.Length > 0) // Check if there's any remaining content in the buffer to process
             {
-                // Don't send the final chunk until the previous one is done
-                while (isProcessingAudioChunk)
-                    yield return null;
-
-                isProcessingAudioChunk = true;
-
                 string remainingText = textBuffer.ToString().Trim();
-
-                // Process the final chunk
                 if (!string.IsNullOrEmpty(remainingText))
                 {
-                    // Checks if the final chunk is a guide or modify chunk, assigns an appropriate response if so, leaves chunk as is if not
-                    Debug.Log("Sending final chunk to PlayHT: " + CheckForGuidanceOrModification(remainingText));
-                    ShareResponseBasedOnRole(remainingText);
-                    //yield return StartCoroutine(StreamTextToPlayHT(remainingText));
-                    textBuffer.Clear();  // Clear the buffer after processing the final chunk
+                    Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
+                    chunkQueue.Enqueue(CheckForGuidanceOrModification(remainingText));  // Add the final chunk to the queue
+                    textBuffer.Clear();  // Clear the buffer after queuing
                 }
-
-                isProcessingAudioChunk = false;
             }
 
             Debug.Log("Streaming complete.");
-            yield break;  // End the coroutine when the stream is done
+            //yield break;  // End the coroutine when the stream is done
+        }
+
+        // Start processing the chunks in the queue (if not already processing)
+        if (!isProcessingAudioChunk && chunkQueue.Count > 0)
+        {
+            Debug.Log("Starting chunk processing...");
+            StartCoroutine(ProcessChunkQueue());
         }
 
         yield return null; // Yield to keep the coroutine responsive
     }
 
-    // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
-    private IEnumerator StreamChatGptResponseToAudioPlainText(string responseText)
+    // Coroutine to process the chunk queue one by one
+    private IEnumerator ProcessChunkQueue()
     {
-        Debug.Log("Received response text: " + responseText);
-        // Add the received response text to the buffer
-        textBuffer.Append(responseText);
-
-        // Process the buffered text if it meets the chunk size or ends with a sentence
-        if (textBuffer.Length >= chunkSizeThreshold || textBuffer.ToString().EndsWith(".") || textBuffer.ToString().EndsWith("!")) // was if (textBuffer.Length >= chunkSizeThreshold || responseText.EndsWith(".") || responseText.EndsWith("!"))
+        while (chunkQueue.Count > 0)
         {
-            // Don't send the next chunk until the previous one is done
-            while (isProcessingAudioChunk)
-                yield return null;
+            // Wait until the previous chunk is processed before sending the next one
+            isProcessingAudioChunk = true;
 
-            isProcessingAudioChunk = true;  // Mark that we're processing a chunk
-            // Prepare the text to send, ensuring it's not empty
-            string textToSend = textBuffer.ToString().Trim();
+            string textToSend = chunkQueue.Dequeue();  // Get the next chunk from the queue
+            Debug.Log("Sending chunk to PlayHT: " + textToSend);
+            ShareResponseBasedOnRole(textToSend);  // Process based on role if necessary
 
-            if (!string.IsNullOrEmpty(textToSend))
-            {
-                Debug.Log("Sending chunk to PlayHT: " + textToSend);
-
-                if (m_AIGuideScript.role != 6)
-                {
-                    //audioSource.mute = true; // Optionally mute for other roles'
-                    //SetNewResult(textToSend);
-                }
-                else
-                    audioSource.mute = false;
-
-                // Call the coroutine to send text to PlayHT and convert it to audio
-                yield return StartCoroutine(StreamTextToPlayHT(textToSend));
-                textBuffer.Clear();
-            }
-            else
-                Debug.LogWarning("Text to send is empty, skipping...");
+            // Call the coroutine to send text to PlayHT and convert it to audio
+            //yield return StartCoroutine(StreamTextToPlayHT(textToSend));
 
             isProcessingAudioChunk = false;  // Mark the chunk processing as complete
 
-            // Wait a little bit before sending the next chunk (to avoid spamming PlayHT)
-            yield return new WaitForSeconds(0.2f);  // Adjust the delay based on PlayHT limits
+            // Wait for a short delay between chunks (optional)
+            yield return new WaitForSeconds(0.1f);  // Adjust the delay as needed
         }
-        else
-            Debug.Log("Shouldn't sent to PlayHT yet");
 
-        yield return null; // Yield to keep the coroutine responsive
+        Debug.Log("All chunks processed.");
     }
 
     // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
