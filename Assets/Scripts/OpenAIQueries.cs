@@ -373,7 +373,7 @@ public class OpenAIQueries : MonoBehaviour
             ShareResponseBasedOnRole(textToSend);  // Process based on role if necessary
 
             // Call the coroutine to send text to PlayHT and convert it to audio
-            //yield return StartCoroutine(StreamTextToPlayHT(textToSend));
+            yield return StartCoroutine(StreamTextToPlayHT(textToSend));
 
             isProcessingAudioChunk = false;  // Mark the chunk processing as complete
 
