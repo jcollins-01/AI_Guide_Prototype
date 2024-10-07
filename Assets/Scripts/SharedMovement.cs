@@ -68,8 +68,8 @@ public class SharedMovement : MonoBehaviour
         {
             if (playerGrabbingGuide)
             {
-                rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
-                leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
+                leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
                 StartCoroutine(Teleport());
                 StartCoroutine(Teleport());
             }
@@ -81,32 +81,14 @@ public class SharedMovement : MonoBehaviour
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
                 if (gripValue > 0.1f)
-                {
-                    //StartCoroutine(Teleport());
                     playerGrabbingGuide = true;
-                }
-            }
-            else
-            {
-                // Originally placed here to ensure player had to hold onto guide entire time
-                //StopCoroutine(Teleport());
-                //playerGrabbingGuide = false; 
             }
 
 
             if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
             {
                 if (gripValue2 > 0.1f)
-                {
-                    //StartCoroutine(Teleport());
                     playerGrabbingGuide = true;
-                }
-            }
-            else
-            {
-                // Originally placed here to ensure player had to hold onto guide entire time
-                //StopCoroutine(Teleport());
-                //playerGrabbingGuide = false;
             }
         }
     }
