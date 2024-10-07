@@ -248,11 +248,11 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
+                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on to make the guide return to player
-                        playEffect("subway_chime"); // Play a sound effect to let the participant know the guide has returned
                     } 
                 }
                 else
@@ -265,6 +265,7 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
+                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
                     }
                 }
             }

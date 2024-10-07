@@ -66,21 +66,31 @@ public class SharedMovement : MonoBehaviour
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
+            if (playerGrabbingGuide)
+            {
+                rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                StartCoroutine(Teleport());
+                StartCoroutine(Teleport());
+            }
+            else
+                StopCoroutine(Teleport());
+
             // Debug.Log("Trigger is " + enteredTrigger);
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
                 if (gripValue > 0.1f)
                 {
-                    StartCoroutine(Teleport());
-                    rightXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                    //StartCoroutine(Teleport());
                     playerGrabbingGuide = true;
                 }
             }
             else
             {
-                StopCoroutine(Teleport());
-                playerGrabbingGuide = false;
+                // Originally placed here to ensure player had to hold onto guide entire time
+                //StopCoroutine(Teleport());
+                //playerGrabbingGuide = false; 
             }
 
 
@@ -88,15 +98,15 @@ public class SharedMovement : MonoBehaviour
             {
                 if (gripValue2 > 0.1f)
                 {
-                    StartCoroutine(Teleport());
-                    leftXRController.SendHapticImpulse(1u, 0.25f, 1f);
+                    //StartCoroutine(Teleport());
                     playerGrabbingGuide = true;
                 }
             }
             else
             {
-                StopCoroutine(Teleport());
-                playerGrabbingGuide = false;
+                // Originally placed here to ensure player had to hold onto guide entire time
+                //StopCoroutine(Teleport());
+                //playerGrabbingGuide = false;
             }
         }
     }

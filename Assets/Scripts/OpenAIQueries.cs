@@ -447,16 +447,16 @@ public class OpenAIQueries : MonoBehaviour
                     switch (randReply)
                     {
                         case 1:
-                            result = "Alright. Grab on to me and I will take you to " + targetForGuidance.name;
+                            result = "Alright. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
                             break;
                         case 2:
-                            result = "Understood. Grab on to me and I will take you to " + targetForGuidance.name;
+                            result = "Understood. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
                             break;
                         case 3:
-                            result = "Very well. Grab on to me and I will take you to " + targetForGuidance.name;
+                            result = "Very well. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
                             break;
                         case 4:
-                            result = "Okay. Grab on to me and I will take you to " + targetForGuidance.name;
+                            result = "Okay. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
                             break;
                     }
                 }
@@ -478,13 +478,13 @@ public class OpenAIQueries : MonoBehaviour
                             result = "Alright. I will add an audio beacon to " + targetForModification.name;
                             break;
                         case 2:
-                            result = "Understood. Grab on to me and I will take you to " + targetForModification.name;
+                            result = "Understood. I will add an audio beacon to " + targetForModification.name;
                             break;
                         case 3:
-                            result = "Very well. Grab on to me and I will take you to " + targetForModification.name;
+                            result = "Very well. I will add an audio beacon to " + targetForModification.name;
                             break;
                         case 4:
-                            result = "Okay. Grab on to me and I will take you to " + targetForModification.name;
+                            result = "Okay. I will add an audio beacon to " + targetForModification.name;
                             break;
                     }
                 }

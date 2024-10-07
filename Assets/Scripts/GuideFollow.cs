@@ -125,11 +125,11 @@ public class GuideFollow : MonoBehaviour
             transform.LookAt(thePlayer.transform);
         }
 
-        // Dog follow position - moving at the right side of the player and facing the same direction as them
+        // Dog follow position - moving at the left side of the player and facing the same direction as them
         if (m_AIGuideScript.role == 4)
         {
-            // Calculate the position on the right side of the player
-            Vector3 offset = thePlayer.transform.right * (followDistance * 0.5f);
+            // Calculate the position on the left side of the player
+            Vector3 offset = -thePlayer.transform.right * (followDistance * 0.5f);
             targetPosition = thePlayer.transform.position + offset;
 
             // Rotate to face the same direction as the player
