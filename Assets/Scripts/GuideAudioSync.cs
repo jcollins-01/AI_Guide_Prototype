@@ -19,12 +19,16 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private bool isPlayingAudio;
     private string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "f61e1eb6d0024f31b3c5f721b39ba574";
+    public string playHTApiKey;
     [HideInInspector]
-    public string playHTUserId = "T3JXXeEXYZcVhFPCGE6ohOj5CN22";
+    public string playHTUserId;
 
     private void Awake()
     {
+        // Explicitly set the values here since old ones are being cached
+        playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
+        playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
+        //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
         _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>(); // grabs an audio source specifically for sharing guide voice
         m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
 
@@ -51,6 +55,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private async void ResultDidChange(GuideAudioSyncModel model, string result)
     {
         Debug.Log("Detected that the result did change: " + result);
+        Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
 
         if (!string.IsNullOrEmpty(result))
             StartCoroutine(StreamTextToPlayHT(result));

@@ -21,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "768d1450572a41babc9dbf29c64482e9";
+    public string playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
     [HideInInspector]
-    public string playHTUserId = "URigAsmWLgYZQBsgMfSImC4rK8d2";
+    public string playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -286,6 +286,7 @@ public class OpenAIQueries : MonoBehaviour
                 {
                     Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
                     chunkQueue.Enqueue(CheckForGuidanceOrModification(remainingText));  // Add the final chunk to the queue
+                    Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -310,11 +311,12 @@ public class OpenAIQueries : MonoBehaviour
 
             string textToSend = chunkQueue.Dequeue();  // Get the next chunk from the queue
             Debug.Log("Sending chunk to PlayHT: " + textToSend);
-            ShareResponseBasedOnRole(textToSend);  // Process based on role if necessary
 
-            // Call the coroutine to send text to PlayHT and convert it to audio
-            yield return StartCoroutine(StreamTextToPlayHT(textToSend));
+            // If the response needs to be shared over network, use GuideAudioSync to share audio; if local, start the coroutine locally
+            if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
+                yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
 
+            // Regardless of output above, we should factor in a delay so we don't send calls overlapping over the network or locally
             isProcessingAudioChunk = false;  // Mark the chunk processing as complete
 
             // Wait for a short delay between chunks (optional)
@@ -405,15 +407,20 @@ public class OpenAIQueries : MonoBehaviour
         isPlayingAudio = false;
     }
 
-    private void ShareResponseBasedOnRole(string response)
+    // Determines if the response needs to be shared and played over the network or just locally
+    private bool ShareResponseBasedOnRole(string response)
     {
         if (m_AIGuideScript.role != 6)
         {
             audioSource.mute = true;
             SetNewResult(response);
+            return true; // Needs to share over network
         }
         else
+        {
             audioSource.mute = false;
+            return false; // Needs to only play locally
+        }
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
