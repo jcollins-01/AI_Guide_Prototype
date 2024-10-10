@@ -11,10 +11,10 @@ public class TeleportationHandler : MonoBehaviour
     public float activationThreshold = 0.2f;
 
     private XRInteractorLineVisual leftRay;
-    private GameObject leftReticle;
+    public GameObject leftReticle;
 
     private XRInteractorLineVisual rightRay;
-    private GameObject rightReticle;
+    public GameObject rightReticle;
 
     private TeleportationProvider teleport;
     private CharacterController characterController;
