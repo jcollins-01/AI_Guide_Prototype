@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class VRScreenreader : MonoBehaviour
 {
     // Variables to hold scripts we need access to
     private VRHandling m_VRHandlingScript;
     private SharedMovement m_SharedMovementScript;
+
+    // Components to grab from scripts
+    private TeleportationProvider teleport;
 
     // Variables to access XR Controllers
     private InputDevice rightXRController;
@@ -18,6 +22,7 @@ public class VRScreenreader : MonoBehaviour
     // Variables to hold reader references we need globally
     List<GameObject> readerReferences = new List<GameObject>();
     List<GameObject> environmentCues = new List<GameObject>();
+    Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
 
     // Variables for reader reticles and raycast
     public LayerMask raycastLayerMask;
@@ -35,24 +40,31 @@ public class VRScreenreader : MonoBehaviour
 
         leftReaderReticle = Resources.Load<GameObject>("Screenreader/Left Reader Reticle");
         rightReaderReticle = Resources.Load<GameObject>("Screenreader/Right Reader Reticle");
+        teleport = FindObjectOfType<TeleportationProvider>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        // Get needed components that couldn't be grabbed at Start
         if (!controllersGrabbed)
             AssignHandling();
 
         if (!sharedMovementFound)
             getSharedMovement();
 
+        // Activate audio screenreader functions
         if (controllersGrabbed)
         {
             // Perform raycast for left and right controllers
             ShootRaycast(leftXRController, leftReaderReticle);
             ShootRaycast(rightXRController, rightReaderReticle);
+
+            if (teleport && sharedMovementFound)
+                PlayReferenceAudioPostTeleport();
         }
 
+        // Activate haptic screenreader functions
         if (sharedMovementFound)
             PlayHapticsNearingObstacles();
     }
@@ -140,6 +152,36 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
+    private void PlayReferenceAudioPostTeleport()
+    {
+        AudioSource selectedAudio;
+
+        // If the action of teleportation has completed
+        if (teleport.locomotionPhase == LocomotionPhase.Done)
+        {
+            // Check the location of the player, find the nearest reader reference that is an environment object, play its label
+            // If the value of distance attached to the given reference matches the smallestDistance
+            float smallestDistance = CheckSmallestReferenceDistance();
+
+            foreach (GameObject reference in referencesAndDistances.Keys)
+            {
+                // If the value of distance attached to the given reference matches the smallestDistance
+                if (referencesAndDistances[reference] == smallestDistance)
+                {
+                    Debug.Log("Closest environmental object is " + reference.name);
+                    // If this is an environment object WITH a label (ex. Floor but not Wall), play its label to tell the reader the name of the environment their reticle is on
+                    if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip != null)
+                    {
+                        selectedAudio = reference.transform.Find("Environment Label").GetComponent<AudioSource>();
+                        if (!selectedAudio.isPlaying)
+                            selectedAudio.Play();
+                        Debug.Log("Now playing from " + selectedAudio);
+                    }
+                }
+            }
+        }
+    }
+
     void GetReaderReferences()
     {
         // Get all reader reference objects in scene
@@ -149,7 +191,7 @@ public class VRScreenreader : MonoBehaviour
         {
             readerReferences.Add(reference);
 
-            // If on any of the layers Interactable, Obstacles, Entrance, Wall, Person, NPC
+            // If on any of the layers Interactable, Obstacles, Entrance, Floor or Wall, Person, NPC
             if (reference.layer == 7 || reference.layer == 8 || reference.layer == 9 || reference.layer == 10 || reference.layer == 11 || reference.layer == 12)
             {
                 environmentCues.Add(reference);
@@ -190,22 +232,7 @@ public class VRScreenreader : MonoBehaviour
 
     void PlayHapticsNearingObstacles()
     {
-        Debug.Log("Checking for nearby obstacles");
-        
-        float distance;
-        float smallestDistance;
-        List<float> distancesToReferences = new List<float>();
-        Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
-
-        // Calculate the distance between the player and each object in environmentCues
-        foreach(GameObject reference in environmentCues)
-        {
-            distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
-            distancesToReferences.Add(distance);
-            referencesAndDistances.Add(reference, distance);
-        }
-
-        smallestDistance = distancesToReferences.Min();
+        float smallestDistance = CheckSmallestReferenceDistance();
 
         // If the player is getting too close within a certain range of an object, play warning impulses at various strengths
         if (smallestDistance < 5f && smallestDistance > 2f)
@@ -226,16 +253,25 @@ public class VRScreenreader : MonoBehaviour
             rightXRController.SendHapticImpulse(1u, 1f, 1f);
             leftXRController.SendHapticImpulse(1u, 1f, 1f);
         }
+    }
 
-        // This isn't necessary...I just don't want to delete my pretty Dictionary yet...
-        foreach (GameObject reference in referencesAndDistances.Keys)
+    private float CheckSmallestReferenceDistance()
+    {
+        Debug.Log("Checking for nearby obstacles");
+
+        float distance;
+        List<float> distancesToReferences = new List<float>();
+        referencesAndDistances.Clear(); // Reset dict values with each check
+
+        // Calculate the distance between the player and each object in environmentCues
+        foreach (GameObject reference in environmentCues)
         {
-            // If the value of distance attached to the given reference matches the smallestDistance
-            if (referencesAndDistances[reference] == smallestDistance)
-            {
-                Debug.Log("Closest object is " + reference.name);
-            }
+            distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
+            distancesToReferences.Add(distance);
+            referencesAndDistances.Add(reference, distance);
         }
+
+        return distancesToReferences.Min();
     }
 
     private void AssignHandling()
