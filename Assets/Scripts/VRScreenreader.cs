@@ -30,6 +30,7 @@ public class VRScreenreader : MonoBehaviour
     GameObject leftReaderReticle;
     GameObject rightReaderReticle;
     GameObject thePlayer;
+    Material glowMaterial;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -45,6 +46,7 @@ public class VRScreenreader : MonoBehaviour
         rightReaderReticle = Resources.Load<GameObject>("Screenreader/Right Reader Reticle");
         leftReaderReticle = Instantiate(leftReaderReticle);
         rightReaderReticle = Instantiate(rightReaderReticle);
+        glowMaterial = Resources.Load<Material>("Screenreader/Glow");
 
         Debug.Log("leftReaderReticle is " + leftReaderReticle);
         Debug.Log("rightReaderReticle is " + rightReaderReticle);
@@ -97,7 +99,10 @@ public class VRScreenreader : MonoBehaviour
                 //Debug.Log("Reader reticle is hitting a reader reference with an environment cue on layer " + hit.layer);
                 selectedAudio = hit.transform.Find("Environment Cue").GetComponent<AudioSource>();
                 if (!selectedAudio.isPlaying)
+                {
                     selectedAudio.Play(); // Play the sound automatically as it is hit
+                    HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                } 
                 Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
             }
 
@@ -110,7 +115,10 @@ public class VRScreenreader : MonoBehaviour
                     //Debug.Log("Reader reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
                     selectedAudio = hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying)
-                        selectedAudio.Play();
+                    {
+                        selectedAudio.Play(); // Play the sound automatically as it is hit
+                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    }
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
                 // If this is a key item object, play its label and description
@@ -119,7 +127,10 @@ public class VRScreenreader : MonoBehaviour
                     //Debug.Log("Reader reticle is hitting a reader reference with an object label + description on layer " + hit.layer);
                     selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying)
-                        selectedAudio.Play();
+                    {
+                        selectedAudio.Play(); // Play the sound automatically as it is hit
+                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    }
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
@@ -133,7 +144,10 @@ public class VRScreenreader : MonoBehaviour
                     //Debug.Log("Reader reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
                     selectedAudio = hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying)
-                        selectedAudio.Play();
+                    {
+                        selectedAudio.Play(); // Play the sound automatically as it is hit
+                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    }
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
                 // If this is a key item object, play its label and description
@@ -142,7 +156,10 @@ public class VRScreenreader : MonoBehaviour
                     //Debug.Log("Reader reticle is hitting a reader reference with an object label + description on layer " + hit.layer);
                     selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying)
-                        selectedAudio.Play();
+                    {
+                        selectedAudio.Play(); // Play the sound automatically as it is hit
+                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    }
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
@@ -163,7 +180,10 @@ public class VRScreenreader : MonoBehaviour
                 //Debug.Log("Teleport reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
                 selectedAudio = hit.transform.Find("Environment Label").GetComponent<AudioSource>();
                 if (!selectedAudio.isPlaying)
-                    selectedAudio.Play();
+                {
+                    selectedAudio.Play(); // Play the sound automatically as it is hit
+                    HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                }
                 Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
             }
         }
@@ -265,6 +285,26 @@ public class VRScreenreader : MonoBehaviour
                 reticle.SetActive(false);
             }
         }
+    }
+
+    void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)
+    {
+        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
+
+        // Add a glow around the selectedReference + brighten its color
+        selectedReference.GetComponent<Renderer>().material = glowMaterial;
+
+        // Return selectedReference renderers to normal after coroutine finishes
+        StartCoroutine(WaitForAudioToEnd(selectedReference, selectedAudio, previousMaterial));
+    }
+
+    IEnumerator WaitForAudioToEnd(GameObject selectedReference, AudioSource selectedAudio, Material previousMaterial)
+    {
+        // Wait until the audio finishes
+        yield return new WaitWhile(() => selectedAudio.isPlaying);
+
+        // Restore the original material
+        selectedReference.GetComponent<Renderer>().material = previousMaterial;
     }
 
     void PlayHapticsNearingObstacles()

@@ -75,7 +75,8 @@ public class TeleportationHandler : MonoBehaviour
         Ray raycast = new Ray(ray.transform.position, ray.transform.forward);
 
         // Perform raycast to detect objects in the teleportableLayerMask
-        if (Physics.Raycast(raycast, out hit, Mathf.Infinity, Physics.AllLayers))
+        int layerMask = ~LayerMask.GetMask("Ignore Raycast");
+        if (Physics.Raycast(raycast, out hit, Mathf.Infinity, layerMask))
         {
             // Check if the reticle hit a teleportable surface
             if (hit.collider != null)
