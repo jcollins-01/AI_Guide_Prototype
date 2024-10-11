@@ -82,8 +82,8 @@ public class VRScreenreader : MonoBehaviour
         }
 
         // Activate haptic screenreader functions
-        //if (sharedMovementFound)
-            //PlayHapticsNearingObstacles();
+        if (sharedMovementFound)
+            PlayHapticsNearingObstacles();
     }
 
     public void ReaderCheckReferenceAndPlayAudio(GameObject hit)
@@ -312,23 +312,23 @@ public class VRScreenreader : MonoBehaviour
         float smallestDistance = CheckSmallestReferenceDistance("haptics");
 
         // If the player is getting too close within a certain range of an object, play warning impulses at various strengths
-        if (smallestDistance < 5f && smallestDistance > 2f)
+        if (smallestDistance < 3f && smallestDistance > 2.5f)
         {
-            Debug.Log("Within 5f of potential obstacle");
-            rightXRController.SendHapticImpulse(1u, 1f, 0.25f);
-            leftXRController.SendHapticImpulse(1u, 1f, 0.25f);
+            Debug.Log("Within 3f of potential obstacle - approaching");
+            rightXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
+            leftXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
         }
-        else if (smallestDistance < 2f && smallestDistance > 0.1f)
+        else if (smallestDistance < 2.5f && smallestDistance > 1.7f)
         {
-            Debug.Log("Within 2f of potential obstacle");
-            rightXRController.SendHapticImpulse(1u, 1f, 0.5f);
-            leftXRController.SendHapticImpulse(1u, 1f, 0.5f);
+            Debug.Log("Within 2.5f of potential obstacle - even closer");
+            rightXRController.SendHapticImpulse(1u, 0.5f, 0.25f);
+            leftXRController.SendHapticImpulse(1u, 0.5f, 0.25f);
         }
-        else if (smallestDistance < 0.1f)
+        else if (smallestDistance < 1.7f) // This one gets rid of haptics since it could be bothersome while standing beside an object
         {
-            Debug.Log("Within 0.1f of potential obstacle");
-            rightXRController.SendHapticImpulse(1u, 1f, 1f);
-            leftXRController.SendHapticImpulse(1u, 1f, 1f);
+            Debug.Log("Within 1.7f of potential obstacle - right next to");
+            rightXRController.StopHaptics();
+            leftXRController.StopHaptics();
         }
     }
 
@@ -357,9 +357,13 @@ public class VRScreenreader : MonoBehaviour
             // Calculate the distance between the player and each object in environmentCues
             foreach (GameObject reference in environmentCues)
             {
-                distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
-                distancesToReferences.Add(distance);
-                referencesAndDistances.Add(reference, distance);
+                // If the reference has a null environment label (is NOT part of the floor spaces)
+                if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip == null)
+                {
+                    distance = Vector3.Distance(reference.transform.parent.gameObject.transform.position, thePlayer.transform.position);
+                    distancesToReferences.Add(distance);
+                    referencesAndDistances.Add(reference, distance);
+                }
             }
         }
 
