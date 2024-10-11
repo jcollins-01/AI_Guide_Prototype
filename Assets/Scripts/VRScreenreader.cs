@@ -179,7 +179,7 @@ public class VRScreenreader : MonoBehaviour
         {
             // Check the location of the player, find the nearest reader reference that is an environment object, play its label
             // If the value of distance attached to the given reference matches the smallestDistance
-            float smallestDistance = CheckSmallestReferenceDistance();
+            float smallestDistance = CheckSmallestReferenceDistance("teleport");
             Debug.Log("After checking in post teleport, smallestDistance is " + smallestDistance);
 
             foreach (GameObject reference in referencesAndDistances.Keys)
@@ -269,7 +269,7 @@ public class VRScreenreader : MonoBehaviour
 
     void PlayHapticsNearingObstacles()
     {
-        float smallestDistance = CheckSmallestReferenceDistance();
+        float smallestDistance = CheckSmallestReferenceDistance("haptics");
 
         // If the player is getting too close within a certain range of an object, play warning impulses at various strengths
         if (smallestDistance < 5f && smallestDistance > 2f)
@@ -292,19 +292,37 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    private float CheckSmallestReferenceDistance()
+    private float CheckSmallestReferenceDistance(string version)
     {
         float distance;
         List<float> distancesToReferences = new List<float>();
         referencesAndDistances.Clear(); // Reset dict values with each check
 
-        // Calculate the distance between the player and each object in environmentCues
-        foreach (GameObject reference in environmentCues)
+        if (version.Equals("teleport"))
         {
-            distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
-            distancesToReferences.Add(distance);
-            referencesAndDistances.Add(reference, distance);
+            // Calculate the distance between the player and each object in environmentCues
+            foreach (GameObject reference in environmentCues)
+            {
+                // If the reference has an environment label (is part of the floor spaces)
+                if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip != null)
+                {
+                    distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
+                    distancesToReferences.Add(distance);
+                    referencesAndDistances.Add(reference, distance);
+                }
+            }
         }
+        else
+        {
+            // Calculate the distance between the player and each object in environmentCues
+            foreach (GameObject reference in environmentCues)
+            {
+                distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
+                distancesToReferences.Add(distance);
+                referencesAndDistances.Add(reference, distance);
+            }
+        }
+
         Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
     }
