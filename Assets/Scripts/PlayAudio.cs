@@ -582,7 +582,15 @@ public class PlayAudio : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
-            if (theGuide != null && thePlayer != null)
+            if (theGuide != null && thePlayer != null && !FindObjectOfType<VRScreenreader>())
+            {
+                // Assign playerAudio component after we have access to thePlayer
+                if (playerAudio == null)
+                    playerAudio = thePlayer.GetComponentInParent<AudioSource>();
+
+                sharedMovementFound = true;
+            }
+            else if (thePlayer != null && FindObjectOfType<VRScreenreader>()) // Look for only player if we're in screenreader mode
             {
                 // Assign playerAudio component after we have access to thePlayer
                 if (playerAudio == null)

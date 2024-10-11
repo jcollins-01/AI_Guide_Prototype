@@ -76,40 +76,22 @@ public class VRHandling : MonoBehaviour
     {
         if (!rightControllerGrabbed || !leftControllerGrabbed)
         {
-            // Makes a list for input devices + fills it with devices that match the characteristics we give in the Unity editor
-            // Narrows devices list using characteristics to just the controller we want to use
+            // Get the right and left controllers
             List<InputDevice> devices = new List<InputDevice>();
-
-            InputDeviceCharacteristics rightController = InputDeviceCharacteristics.HeldInHand & InputDeviceCharacteristics.Right;
-            InputDevices.GetDevicesWithCharacteristics(rightController, devices);
-
-            InputDeviceCharacteristics leftController = InputDeviceCharacteristics.HeldInHand & InputDeviceCharacteristics.Left;
-            InputDevices.GetDevicesWithCharacteristics(leftController, devices);
-
-            // Debug.Log("Found devices " + devices);
-
-            // If we have more than an XR headset connected, search for controllers
-            if (devices.Count > 1)
+            InputDevices.GetDevicesAtXRNode(XRNode.RightHand, devices);
+            if (devices.Count > 0)
             {
-                if (!rightControllerGrabbed)
-                    rightXRController = devices[2]; //attached to right controller
-                if (!leftControllerGrabbed)
-                    leftXRController = devices[1]; // attached to left controller
+                rightXRController = devices[0];
+                Debug.Log("Grabbed right controller successfully");
+                rightControllerGrabbed = true;
+            }
 
-                if (devices[2] != null) // rightXRController
-                {
-                    Debug.Log("Grabbed right controller successfully");
-                    rightControllerGrabbed = true;
-                    //Debug.Log("The right controller is " + rightXRController.characteristics);
-                    
-                }
-
-                if (devices[1] != null) // leftXRController
-                {
-                    Debug.Log("Grabbed left controller successfully");
-                    leftControllerGrabbed = true;
-                    //Debug.Log("The left controller is " + leftXRController.characteristics);
-                }
+            InputDevices.GetDevicesAtXRNode(XRNode.LeftHand, devices);
+            if (devices.Count > 0)
+            {
+                leftXRController = devices[0];
+                Debug.Log("Grabbed left controller successfully");
+                leftControllerGrabbed = true;
             }
         }
     }
