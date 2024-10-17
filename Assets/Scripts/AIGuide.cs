@@ -130,7 +130,7 @@ public class AIGuide : MonoBehaviour
     // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
     private void AssignSingleConfederate()
     {
-        if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssignedStart)
+        if (GameObject.FindWithTag("Confederate") && !guideRoleAssignedStart)
             StartCoroutine(AssignRoleStatic());
     }
     
@@ -138,11 +138,10 @@ public class AIGuide : MonoBehaviour
     private void BothConfederatesPresent()
     {
         // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
-        if (GameObject.FindWithTag("Confederate_1") && GameObject.FindWithTag("Confederate_2"))
-        {
-            if (!guideRoleAssigned)
-                StartCoroutine(AssignRoleStatic());
-        }
+        var confederates = GameObject.FindGameObjectsWithTag("Confederate");
+
+        if (confederates.Length == 2 && !guideRoleAssigned)
+            StartCoroutine(AssignRoleStatic());
         else
             guideRoleAssigned = false;
     }
@@ -155,11 +154,11 @@ public class AIGuide : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog, 4
-        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot, 2
 
         guideRoleAssigned = true;
