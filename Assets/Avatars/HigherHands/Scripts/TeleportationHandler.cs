@@ -24,6 +24,9 @@ public class TeleportationHandler : MonoBehaviour
     // Variables to hold scripts we need access to
     private VRScreenreader m_VRScreenreaderScript;
 
+    // Bools to control for screenreader/guide switch
+    private bool screenreaderActive = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,6 +42,8 @@ public class TeleportationHandler : MonoBehaviour
         characterControllerHeight = 1.6f;
 
         m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
+        if (m_VRScreenreaderScript && m_VRScreenreaderScript.gameObject.activeInHierarchy)
+            screenreaderActive = true;
     }
 
     // Update is called once per frame
@@ -47,12 +52,14 @@ public class TeleportationHandler : MonoBehaviour
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
-        CheckForReticleHit(leftTarget, leftRay);
+        if (screenreaderActive)
+            CheckForReticleHit(leftTarget, leftRay);
 
         bool rightIsPressed = CheckIfButtonDown(rightTarget);
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
-        CheckForReticleHit(rightTarget, rightRay);
+        if (screenreaderActive)
+            CheckForReticleHit(rightTarget, rightRay);
 
         // If the action of teleportation has completed
         if (teleport.locomotionPhase == LocomotionPhase.Done)

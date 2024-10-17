@@ -239,6 +239,40 @@ public class VRScreenreader : MonoBehaviour
         }
 
         Debug.Log("Reader refs size is " + readerReferences.Count + " and environment cues size is " + environmentCues.Count);
+        ResizeReaderReferences();
+    }
+
+    private void ResizeReaderReferences()
+    {
+        foreach(GameObject reference in readerReferences)
+        {
+            // Get the parent of the readerReference
+            Transform parentTransform = reference.transform.parent;
+            if (parentTransform != null)
+            {
+                // Get the MeshFilter of the parent to find the shape
+                MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
+                if (parentMeshFilter != null)
+                {
+                    // Temporarily detach from parent to apply world scale correctly
+                    Transform originalParent = reference.transform.parent;
+                    reference.transform.SetParent(null); // Detach to set global scale
+
+                    // Set position, rotation, and scale directly from the parent
+                    reference.transform.position = parentTransform.position;
+                    reference.transform.rotation = parentTransform.rotation;
+                    reference.transform.localScale = parentTransform.localScale;
+
+                    // Reattach to the original parent
+                    reference.transform.SetParent(originalParent);
+
+                    // If readerReference also has a MeshFilter, replace its mesh with the parent's
+                    MeshFilter referenceMeshFilter = reference.GetComponent<MeshFilter>();
+                    if (referenceMeshFilter != null)
+                        referenceMeshFilter.sharedMesh = parentMeshFilter.sharedMesh;
+                }
+            }
+        }
     }
 
     private void ShootRaycast(InputDevice controller, GameObject reticle, GameObject parentController)
@@ -367,7 +401,7 @@ public class VRScreenreader : MonoBehaviour
             }
         }
 
-        Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
+        //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
     }
 
