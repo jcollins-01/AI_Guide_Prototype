@@ -272,25 +272,25 @@ public class VRScreenreader : MonoBehaviour
                     if (referenceCollider != null)
                         Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
 
-                    // Add the same type of collider as the parent collider
+                    // Add the same type of collider as the parent collider and make it slightly larger
                     if (parentCollider is BoxCollider parentBoxCollider)
                     {
                         BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
                         newBoxCollider.center = parentBoxCollider.center;
-                        newBoxCollider.size = parentBoxCollider.size;
+                        newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
                     }
                     else if (parentCollider is SphereCollider parentSphereCollider)
                     {
                         SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
                         newSphereCollider.center = parentSphereCollider.center;
-                        newSphereCollider.radius = parentSphereCollider.radius;
+                        newSphereCollider.radius = parentSphereCollider.radius * 1.05f; // Increase radius by 5%
                     }
                     else if (parentCollider is CapsuleCollider parentCapsuleCollider)
                     {
                         CapsuleCollider newCapsuleCollider = reference.gameObject.AddComponent<CapsuleCollider>();
                         newCapsuleCollider.center = parentCapsuleCollider.center;
-                        newCapsuleCollider.radius = parentCapsuleCollider.radius;
-                        newCapsuleCollider.height = parentCapsuleCollider.height;
+                        newCapsuleCollider.radius = parentCapsuleCollider.radius * 1.05f; // Increase radius by 5%
+                        newCapsuleCollider.height = parentCapsuleCollider.height * 1.05f; // Increase height by 5%
                         newCapsuleCollider.direction = parentCapsuleCollider.direction;
                     }
                     else if (parentCollider is MeshCollider parentMeshCollider)
@@ -298,6 +298,7 @@ public class VRScreenreader : MonoBehaviour
                         MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
                         newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
                         newMeshCollider.convex = parentMeshCollider.convex;
+                        // Cannot uniformly "enlarge" a MeshCollider easily
                     }
 
                     // Reattach to the original parent

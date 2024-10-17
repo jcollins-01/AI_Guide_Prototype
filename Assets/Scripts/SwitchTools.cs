@@ -34,21 +34,6 @@ public class SwitchTools : MonoBehaviour
         GameObject guide = FindObjectOfType<GuideFollow>().gameObject;
         guide.SetActive(false); // disable XR Origin (Guide Rig)
 
-        // Get all components attached to the GameObject
-        Component[] components = guide.GetComponents<Component>();
-
-        // Loop through each component
-        /*foreach (Component component in components)
-        {
-            //if (component == guide.GetComponent<UnityEngine.XR.Interaction.Toolkit.Inputs.InputActionManager>())
-                //continue;
-
-            // Disable components that have the 'enabled' property
-            var enabledField = component.GetType().GetProperty("enabled");
-            if (enabledField != null)
-                enabledField.SetValue(component, false);
-        }*/
-
         // Find all RealtimeAvatarManagers, if they have "Guide Avatar" assigned, deactivate them
         var managers = FindObjectsOfType<RealtimeAvatarManager>();
         foreach (RealtimeAvatarManager manager in managers)
