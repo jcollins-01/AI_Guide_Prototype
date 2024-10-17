@@ -223,6 +223,7 @@ public class AIGuide : MonoBehaviour
 
     void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)
     {
+        Debug.Log("Should highlight object");
         Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
 
         // Add a glow around the selectedReference + brighten its color

@@ -254,7 +254,8 @@ public class VRScreenreader : MonoBehaviour
             {
                 // Get the MeshFilter of the parent to find the shape
                 MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
-                if (parentMeshFilter != null)
+                Collider parentCollider = parentTransform.GetComponent<Collider>();
+                if (parentMeshFilter != null && parentCollider != null)
                 {
                     // Temporarily detach from parent to apply world scale correctly
                     Transform originalParent = reference.transform.parent;
@@ -264,6 +265,40 @@ public class VRScreenreader : MonoBehaviour
                     reference.transform.position = parentTransform.position;
                     reference.transform.rotation = parentTransform.rotation;
                     reference.transform.localScale = parentTransform.localScale;
+
+                    // Match the collider dimensions and type
+                    Collider referenceCollider = reference.GetComponent<Collider>();
+
+                    if (referenceCollider != null)
+                        Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
+
+                    // Add the same type of collider as the parent collider
+                    if (parentCollider is BoxCollider parentBoxCollider)
+                    {
+                        BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
+                        newBoxCollider.center = parentBoxCollider.center;
+                        newBoxCollider.size = parentBoxCollider.size;
+                    }
+                    else if (parentCollider is SphereCollider parentSphereCollider)
+                    {
+                        SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
+                        newSphereCollider.center = parentSphereCollider.center;
+                        newSphereCollider.radius = parentSphereCollider.radius;
+                    }
+                    else if (parentCollider is CapsuleCollider parentCapsuleCollider)
+                    {
+                        CapsuleCollider newCapsuleCollider = reference.gameObject.AddComponent<CapsuleCollider>();
+                        newCapsuleCollider.center = parentCapsuleCollider.center;
+                        newCapsuleCollider.radius = parentCapsuleCollider.radius;
+                        newCapsuleCollider.height = parentCapsuleCollider.height;
+                        newCapsuleCollider.direction = parentCapsuleCollider.direction;
+                    }
+                    else if (parentCollider is MeshCollider parentMeshCollider)
+                    {
+                        MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
+                        newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
+                        newMeshCollider.convex = parentMeshCollider.convex;
+                    }
 
                     // Reattach to the original parent
                     reference.transform.SetParent(originalParent);

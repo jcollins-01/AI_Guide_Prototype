@@ -275,7 +275,7 @@ public class OpenAIQueries : MonoBehaviour
                 if (!string.IsNullOrEmpty(textToSend))
                 {
                     Debug.Log("Queuing chunk for PlayHT: " + textToSend);
-                    chunkQueue.Enqueue(textToSend);  // Add the chunk to the queue
+                    chunkQueue.Enqueue(CheckForGuidanceOrModification(textToSend));  // Add the chunk to the queue
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -496,6 +496,7 @@ public class OpenAIQueries : MonoBehaviour
             }
             else if (secondWord.Equals("describe", StringComparison.OrdinalIgnoreCase))
             {
+                Debug.Log("reached describe");
                 // Assign the first word to targetName and the second word to description
                 string targetName = words[0].Trim();
 
