@@ -45,11 +45,11 @@ public class AIGuide : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot
         else
         {

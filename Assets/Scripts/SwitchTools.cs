@@ -14,28 +14,54 @@ public class SwitchTools : MonoBehaviour
     {
         // If the guide is meant to be active in the scene
         if (VRGuideActive)
-        {
             FindObjectOfType<VRScreenreader>().gameObject.SetActive(false); // disable screenreader
-        }
 
         // If the screenreader is meant to be active in the scene
         if (VRScreenreaderActive)
-        {
-            FindObjectOfType<GuideFollow>().gameObject.SetActive(false); // disable XR Origin (Guide Rig)
+            DisableGuide();
 
-            // Find all RealtimeAvatarManagers, if they have "Guide Avatar" assigned, deactivate them
-            var managers = FindObjectsOfType<RealtimeAvatarManager>();
-            foreach (RealtimeAvatarManager manager in managers)
-            {
-                if (manager.localAvatarPrefab.name == "Guide Avatar")
-                    manager.enabled = false;
-            }
+        // If neither tool is active, apply confederate settings
+        if (!VRGuideActive && !VRScreenreaderActive)
+        {
+            FindObjectOfType<VRScreenreader>().gameObject.SetActive(false); // disable screenreader
+            DisableGuide();
+            ApplyRandomConfederateAvatar();
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void DisableGuide()
     {
-        
+        FindObjectOfType<GuideFollow>().gameObject.SetActive(false); // disable XR Origin (Guide Rig)
+
+        // Find all RealtimeAvatarManagers, if they have "Guide Avatar" assigned, deactivate them
+        var managers = FindObjectsOfType<RealtimeAvatarManager>();
+        foreach (RealtimeAvatarManager manager in managers)
+        {
+            if (manager.localAvatarPrefab.name == "Guide Avatar")
+                manager.enabled = false;
+        }
+    }
+
+    private void ApplyRandomConfederateAvatar()
+    {
+        // Find all RealtimeAvatarManagers, if they have "Guide Avatar" assigned, deactivate them
+        var managers = FindObjectsOfType<RealtimeAvatarManager>();
+        foreach (RealtimeAvatarManager manager in managers)
+        {
+            if (manager.localAvatarPrefab.name == "Player Avatar")
+            {
+                int randConfed = Random.Range(1, 3);
+
+                switch(randConfed)
+                {
+                    case 1:
+                        manager.localAvatarPrefab = Resources.Load<GameObject>("Confederate_One Avatar");
+                        break;
+                    case 2:
+                        manager.localAvatarPrefab = Resources.Load<GameObject>("Confederate_Two Avatar");
+                        break;
+                }
+            }
+        }
     }
 }

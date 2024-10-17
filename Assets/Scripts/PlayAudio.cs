@@ -85,15 +85,15 @@ public class PlayAudio : MonoBehaviour
             assignAudioClipSync();
 
         // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
-        if (sharedMovementFound || GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2"))
+        if (sharedMovementFound || GameObject.FindWithTag("Confederate"))
         {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())
                 playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>(); // Ensure we grab the audio source for Play Audio, not Open AI
 
-            // If we're calling Audio from a PlayAudio component on a confederate rig, use the confederate's audio source
-            //if (GetComponent<ConfederateHandler>())
-                //playerAudio = GameObject.Find("Confederate").GetComponentInChildren<AudioSource>();
+            // If we're calling Audio from a PlayAudio component on a confederate, use the confederate's audio source
+            if (GameObject.FindWithTag("Confederate"))
+                playerAudio = GameObject.FindWithTag("Confederate").GetComponentInChildren<AudioSource>();
 
             if (playerAudio.isPlaying)
                 currentClip = playerAudio.clip;

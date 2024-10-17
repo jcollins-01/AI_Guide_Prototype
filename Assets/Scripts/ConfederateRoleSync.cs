@@ -38,8 +38,8 @@ public class ConfederateRoleSync : RealtimeComponent<ConfederateRoleModel>
 
         if (currentModel != null)
         {
-            if (currentModel.isFreshModel)
-                currentModel.role = _changeAvatarRuntime.GetConfederateCurrentRole();
+            //if (currentModel.isFreshModel)
+                //currentModel.role = _changeAvatarRuntime.GetConfederateCurrentRole();
 
             currentModel.roleDidChange += RoleDidChange;
         }
@@ -48,7 +48,7 @@ public class ConfederateRoleSync : RealtimeComponent<ConfederateRoleModel>
     private void RoleDidChange(ConfederateRoleModel model, int value)
     {
         Debug.Log("Detected a confederate role change over the network, role is " + value);
-        _changeAvatarRuntime.SetConfederateRole(value);
+        //_changeAvatarRuntime.SetConfederateRole(value);
     }
 
     public void SetConfederateRole(int role)

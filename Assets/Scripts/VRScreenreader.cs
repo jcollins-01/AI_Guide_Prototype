@@ -34,6 +34,7 @@ public class VRScreenreader : MonoBehaviour
 
     // Monitoring bools
     private bool sharedMovementFound = false;
+    private bool referencesFound = false;
 
     // Start is called before the first frame update
     void Start()
@@ -47,9 +48,6 @@ public class VRScreenreader : MonoBehaviour
         leftReaderReticle = Instantiate(leftReaderReticle);
         rightReaderReticle = Instantiate(rightReaderReticle);
         glowMaterial = Resources.Load<Material>("Screenreader/Glow");
-
-        Debug.Log("leftReaderReticle is " + leftReaderReticle);
-        Debug.Log("rightReaderReticle is " + rightReaderReticle);
 
         // Ensure the reticles are active and initially hidden
         leftReaderReticle.SetActive(false);
@@ -71,7 +69,7 @@ public class VRScreenreader : MonoBehaviour
             getSharedMovement();
 
         // Activate audio screenreader functions
-        if (controllersGrabbed)
+        if (controllersGrabbed && referencesFound)
         {
             // Perform raycast for left and right controllers
             ShootRaycast(leftXRController, leftReaderReticle, leftParentController);
@@ -82,7 +80,7 @@ public class VRScreenreader : MonoBehaviour
         }
 
         // Activate haptic screenreader functions
-        if (sharedMovementFound)
+        if (sharedMovementFound && referencesFound)
             PlayHapticsNearingObstacles();
     }
 
@@ -239,7 +237,11 @@ public class VRScreenreader : MonoBehaviour
         }
 
         Debug.Log("Reader refs size is " + readerReferences.Count + " and environment cues size is " + environmentCues.Count);
-        ResizeReaderReferences();
+        if (readerReferences.Count > 0)
+        {
+            referencesFound = true;
+            ResizeReaderReferences();
+        }
     }
 
     private void ResizeReaderReferences()
