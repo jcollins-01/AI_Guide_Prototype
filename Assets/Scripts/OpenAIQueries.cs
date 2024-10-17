@@ -66,8 +66,10 @@ public class OpenAIQueries : MonoBehaviour
         {//succintly summarize?
             return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
                    "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
-                   "If the player seems like they want to describe a particular object in the scene, first state the name of the object from this list: " + objectNames + ", " +
-                   "then describe the object in the image they are referring to. " +
+                   "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
+                   "Then, in the last sentence you provide, tell me only the name of the object in the image they would be referring to, " +
+                   "plus the word 'describe' after a comma." +
+                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
                    "and 'guide' after a comma if they don't specify teleportation." +
@@ -93,6 +95,8 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject targetForModification;
     //[HideInInspector]
     public string modeOfModification;
+    [HideInInspector]
+    public GameObject targetForDescription;
 
     public string query;
     public string role;
@@ -462,7 +466,7 @@ public class OpenAIQueries : MonoBehaviour
                     }
                 }
             }
-            else // they are trying to modify, turn this into an if for modify
+            else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify
             {
                 // Assign the first word to targetName and the second word to modification
                 string targetName = words[0].Trim();
@@ -488,6 +492,17 @@ public class OpenAIQueries : MonoBehaviour
                             result = "Okay. I will add an audio beacon to " + targetForModification.name;
                             break;
                     }
+                }
+            }
+            else if (secondWord.Equals("describe", StringComparison.OrdinalIgnoreCase))
+            {
+                // Assign the first word to targetName and the second word to description
+                string targetName = words[0].Trim();
+
+                targetForDescription = GameObject.Find(targetName);
+                if (targetForDescription != null)
+                {
+                    result = ""; // Don't return the chunk that says name + describe -- end guide response
                 }
             }
         }

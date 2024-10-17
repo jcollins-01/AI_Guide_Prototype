@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class AutomaticModification : MonoBehaviour
 {
+    public AudioSource audioSource;
     public GameObject m_targetObject; // The target game object to modify
     public AudioClip beaconClip;
     private float lifespan = 10f; // Time in seconds before the audioSource is destroyed
@@ -24,7 +25,7 @@ public class AutomaticModification : MonoBehaviour
 
         if (targetObject != null)
         {
-            AudioSource audioSource = targetObject.AddComponent<AudioSource>();
+            audioSource = targetObject.AddComponent<AudioSource>();
             audioSource.clip = beaconClip;
             audioSource.loop = true;
             audioSource.spatialBlend = 1;
