@@ -222,18 +222,13 @@ public class AIGuide : MonoBehaviour
 
             // If the guide is invisible, see if the local audio player has stopped - else, check the networked one
             if (!isHighlighted)
-            {
-                if (role == 6)
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription, m_OpenAIQueriesScript.audioSource);
-                else
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription, m_guideAudioSync._audioSource);
-            }
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription);
 
             m_OpenAIQueriesScript.targetForDescription = null;
         }
     }
 
-    void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)
+    void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
         Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
@@ -242,7 +237,6 @@ public class AIGuide : MonoBehaviour
 
         // Return selectedReference renderers to normal after coroutine finishes
         StartCoroutine(WaitForTenSeconds(selectedReference, previousMaterial));
-        //StartCoroutine(WaitForAudioToEnd(selectedReference, selectedAudio, previousMaterial));
     }
 
     IEnumerator WaitForTenSeconds(GameObject selectedReference, Material previousMaterial)
@@ -251,15 +245,6 @@ public class AIGuide : MonoBehaviour
 
         selectedReference.GetComponent<Renderer>().material = previousMaterial;
         isHighlighted = false;
-    }
-
-    IEnumerator WaitForAudioToEnd(GameObject selectedReference, AudioSource selectedAudio, Material previousMaterial) // was Material[] previousMaterial
-    {
-        // Wait until the audio finishes
-        yield return new WaitWhile(() => selectedAudio.isPlaying);
-
-        // Restore the original material
-        selectedReference.GetComponent<Renderer>().material = previousMaterial; // was selectedReference.GetComponent<Renderer>().materials = previousMaterial
     }
 
     private void checkModificationRequests()
@@ -272,12 +257,7 @@ public class AIGuide : MonoBehaviour
             Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
             m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
             if (!isHighlighted)
-            {
-                if (role == 6)
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification, m_OpenAIQueriesScript.audioSource);
-                else
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification, m_guideAudioSync._audioSource);
-            }
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification);
 
             m_OpenAIQueriesScript.targetForModification = null;
         }
@@ -290,12 +270,7 @@ public class AIGuide : MonoBehaviour
         {
             // Calls to highlight the object
             if (!isHighlighted)
-            {
-                if (role == 6)
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance, m_OpenAIQueriesScript.audioSource);
-                else
-                    HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance, m_guideAudioSync._audioSource);
-            }
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);
 
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
