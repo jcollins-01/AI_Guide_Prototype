@@ -272,6 +272,7 @@ public class OpenAIQueries : MonoBehaviour
                 if (!string.IsNullOrEmpty(textToSend))
                 {
                     Debug.Log("Queuing chunk for PlayHT: " + textToSend);
+                    chunkQueue.Enqueue(textToSend);
                     CheckForTargetForDescription(textToSend);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
@@ -397,11 +398,24 @@ public class OpenAIQueries : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
                 audioSource.clip = audioClip;
                 audioSource.loop = false;
+                float startTime = Time.time;  // Capture the time when the audio starts
+                float clipLength = audioSource.clip.length;
                 audioSource.Play();
 
                 // Wait until the audio has finished playing before allowing the next chunk
-                while (audioSource.isPlaying)
+                while (audioSource.isPlaying) // was just yield return null in the while loop
+                {
+                    float elapsedTime = Time.time - startTime;
+                    // If the audio has reached a not playing state, or the time it is active is longer than the length of the clip, manually stop it
+                    // For highlights
+                    if (elapsedTime >= clipLength)
+                    {
+                        audioSource.Stop();  // Force stop if it somehow keeps playing
+                        Debug.Log("Audio manually stopped.");
+                        break;
+                    }
                     yield return null;
+                }
 
                 Debug.Log("Audio chunk finished playing.");
             }
