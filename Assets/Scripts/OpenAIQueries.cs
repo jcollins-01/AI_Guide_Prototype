@@ -76,7 +76,7 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
-                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " + 
+                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
                    "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
     }
@@ -92,6 +92,8 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject targetForModification;
     //[HideInInspector]
     public string modeOfModification;
+    [HideInInspector]
+    public GameObject targetForDescription;
 
     public string query;
     public string role;
@@ -270,7 +272,8 @@ public class OpenAIQueries : MonoBehaviour
                 if (!string.IsNullOrEmpty(textToSend))
                 {
                     Debug.Log("Queuing chunk for PlayHT: " + textToSend);
-                    chunkQueue.Enqueue(textToSend);  // Add the chunk to the queue
+                    chunkQueue.Enqueue(textToSend);
+                    CheckForTargetForDescription(textToSend);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -395,11 +398,24 @@ public class OpenAIQueries : MonoBehaviour
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
                 audioSource.clip = audioClip;
                 audioSource.loop = false;
+                float startTime = Time.time;  // Capture the time when the audio starts
+                float clipLength = audioSource.clip.length;
                 audioSource.Play();
 
                 // Wait until the audio has finished playing before allowing the next chunk
-                while (audioSource.isPlaying)
+                while (audioSource.isPlaying) // was just yield return null in the while loop
+                {
+                    float elapsedTime = Time.time - startTime;
+                    // If the audio has reached a not playing state, or the time it is active is longer than the length of the clip, manually stop it
+                    // For highlights
+                    if (elapsedTime >= clipLength)
+                    {
+                        audioSource.Stop();  // Force stop if it somehow keeps playing
+                        Debug.Log("Audio manually stopped.");
+                        break;
+                    }
                     yield return null;
+                }
 
                 Debug.Log("Audio chunk finished playing.");
             }
@@ -461,7 +477,7 @@ public class OpenAIQueries : MonoBehaviour
                     }
                 }
             }
-            else // they are trying to modify, turn this into an if for modify
+            else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify
             {
                 // Assign the first word to targetName and the second word to modification
                 string targetName = words[0].Trim();
@@ -491,6 +507,25 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
         return result;
+    }
+
+    private void CheckForTargetForDescription(string textToSend)
+    {
+        // Split objectNames by commas into an array
+        string[] names = objectNames.Split(',');
+
+        // Loop through each name in the array
+        foreach (string name in names)
+        {
+            string trimmedName = name.Trim();
+
+            if (textToSend.Contains(trimmedName))
+            {
+                targetForDescription = GameObject.Find(trimmedName);
+                Debug.Log("Found and set target: " + trimmedName);
+            }
+        }
+        Debug.Log("No matching object found in the text.");
     }
 
     private void LoadConfig()

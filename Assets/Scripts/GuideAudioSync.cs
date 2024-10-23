@@ -105,6 +105,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     }
 
     // Coroutine to play audio chunks sequentially without overlapping
+    // Coroutine to play audio chunks sequentially without overlapping
     private IEnumerator PlayAudioSequentially(byte[] mp3Data)
     {
         // Wait until the previous audio chunk is finished
@@ -130,14 +131,26 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
                 AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
                 _audioSource.clip = audioClip;
                 _audioSource.loop = false;
+                float startTime = Time.time;  // Capture the time when the audio starts
+                float clipLength = _audioSource.clip.length;
                 _audioSource.Play();
-                // Debug.Log("Playing audio chunk...");
 
                 // Wait until the audio has finished playing before allowing the next chunk
-                while (_audioSource.isPlaying)
+                while (_audioSource.isPlaying) // was just yield return null in the while loop
+                {
+                    float elapsedTime = Time.time - startTime;
+                    // If the audio has reached a not playing state, or the time it is active is longer than the length of the clip, manually stop it
+                    // For highlights
+                    if (elapsedTime >= clipLength)
+                    {
+                        _audioSource.Stop();  // Force stop if it somehow keeps playing
+                        Debug.Log("Audio manually stopped in guide audio sync.");
+                        break;
+                    }
                     yield return null;
+                }
 
-                Debug.Log("Audio chunk finished playing in GuideAudioSync.");
+                Debug.Log("Audio chunk finished playing.");
             }
         }
         isPlayingAudio = false;
