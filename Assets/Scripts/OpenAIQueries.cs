@@ -67,9 +67,6 @@ public class OpenAIQueries : MonoBehaviour
             return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
                    "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
                    "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-                   "Then, in the last sentence you provide, tell me only the name of the object in the image they would be referring to, " +
-                   "plus the word 'describe' after a comma." +
-                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
                    "and 'guide' after a comma if they don't specify teleportation." +
@@ -79,7 +76,7 @@ public class OpenAIQueries : MonoBehaviour
                    "plus the word 'modify' after a comma." +
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
-                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " + 
+                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
                    "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
     }
@@ -275,7 +272,7 @@ public class OpenAIQueries : MonoBehaviour
                 if (!string.IsNullOrEmpty(textToSend))
                 {
                     Debug.Log("Queuing chunk for PlayHT: " + textToSend);
-                    chunkQueue.Enqueue(CheckForGuidanceOrModification(textToSend));  // Add the chunk to the queue
+                    CheckForTargetForDescription(textToSend);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -494,20 +491,27 @@ public class OpenAIQueries : MonoBehaviour
                     }
                 }
             }
-            else if (secondWord.Equals("describe", StringComparison.OrdinalIgnoreCase))
-            {
-                Debug.Log("reached describe");
-                // Assign the first word to targetName and the second word to description
-                string targetName = words[0].Trim();
-
-                targetForDescription = GameObject.Find(targetName);
-                if (targetForDescription != null)
-                {
-                    result = ""; // Don't return the chunk that says name + describe -- end guide response
-                }
-            }
         }
         return result;
+    }
+
+    private void CheckForTargetForDescription(string textToSend)
+    {
+        // Split objectNames by commas into an array
+        string[] names = objectNames.Split(',');
+
+        // Loop through each name in the array
+        foreach (string name in names)
+        {
+            string trimmedName = name.Trim();
+
+            if (textToSend.Contains(trimmedName))
+            {
+                targetForDescription = GameObject.Find(trimmedName);
+                Debug.Log("Found and set target: " + trimmedName);
+            }
+        }
+        Debug.Log("No matching object found in the text.");
     }
 
     private void LoadConfig()
