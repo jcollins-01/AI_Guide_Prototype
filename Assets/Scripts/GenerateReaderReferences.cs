@@ -28,15 +28,19 @@ public class GenerateReaderReferences : MonoBehaviour
 
     // Variables to load PlayHT credentials + alt-text
     [HideInInspector]
-    public string playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
+    public string playHTApiKey;
     [HideInInspector]
-    public string playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
+    public string playHTUserId;
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
 
     void Start()
     {
+        // Eventually switch this to loading from config file
+        playHTApiKey = "4fd4cdadf5214f079ec4e5e448b930be";
+        playHTUserId = "CTB8g0sT4uSt69Y06LjuaFiYoVU2";
+
         // Load the Reader Reference prefab from Resources
         readerReferencePrefab = Resources.Load<GameObject>("Screenreader/Reader Reference");
         resourcesPath = Path.Combine(Application.dataPath, "Resources/GeneratedAudio");
@@ -60,14 +64,90 @@ public class GenerateReaderReferences : MonoBehaviour
             // Start the audio generation process (need to do once before playing a scene)
             StartCoroutine(GenerateAudioFilesFromConfig());
 
-            // Check that generated audio files exist and assigns them if they do
-            if (Directory.Exists(Path.GetDirectoryName(audioFilePath)))
+            // Checks that generated audio files exist and assigns them if they do
+            AssignGeneratedAudio();
+        }
+    }
+
+    // Method to load an AudioClip from a file path
+    private IEnumerator LoadAudioClipFromFile(string path, string fileName)
+    {
+        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file:///" + path, AudioType.MPEG))
+        {
+            yield return audioRequest.SendWebRequest();
+
+            if (audioRequest.result == UnityWebRequest.Result.Success)
             {
-                string[] files = Directory.GetFiles(Path.GetDirectoryName(audioFilePath));
-                if (files.Length > 0)
-                    AssignGeneratedAudio();
+                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
+
+                GameObject[] gameObjects = FindObjectsOfType<GameObject>();
+
+                foreach (GameObject currentObject in gameObjects)
+                {
+                    if (currentObject.name == fileName)
+                    {
+                        // Find the Reader Reference child and be sure to grab its AudioSource
+                        GameObject readerReference = FindChildWithTag(currentObject, "Reader Reference");
+                        if (readerReference != null)
+                        {
+                            AudioSource audioSource = readerReference.gameObject.GetComponentInChildren<AudioSource>();
+
+                            audioSource.clip = audioClip;
+                            Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {currentObject.name}");
+                        }
+                        else
+                            Debug.Log($"GameObject {currentObject.name} did not have a Reader Reference");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogError($"Failed to load AudioClip for file: {path}. Error: {audioRequest.error}");
             }
         }
+    }
+
+    private GameObject FindChildWithTag(GameObject parent, string tag)
+    {
+        foreach (Transform child in parent.transform)
+        {
+            if (child.CompareTag(tag))
+                return child.gameObject;
+        }
+
+        return null; // Return null if no child is found
+    }
+
+    private void AssignGeneratedAudio()
+    {
+        // Define the directory path where audio files are stored
+        string audioDirectoryPath = resourcesPath;
+
+        Debug.Log("Audio directory is " + audioDirectoryPath);
+
+        // Check if the directory exists and contains audio files
+        if (Directory.Exists(audioDirectoryPath))
+        {
+            string[] audioFiles = Directory.GetFiles(audioDirectoryPath, "*.mp3");
+
+            if (audioFiles.Length > 0)
+            {
+                Debug.Log("Audio files exist in this directory.");
+
+                foreach (string filePath in audioFiles)
+                {
+                    // Extract the file name without extension
+                    string fileName = Path.GetFileNameWithoutExtension(filePath);
+
+                    // Load the file as an AudioClip to be assigned to a source
+                    StartCoroutine(LoadAudioClipFromFile(filePath, fileName));
+                }
+            }
+            else
+                Debug.Log("No audio files exist in this directory.");
+        }
+        else
+            Debug.Log("Audio directory does not exist.");
     }
 
     void AddReaderReferencesToLayer(int targetLayer)
@@ -112,30 +192,6 @@ public class GenerateReaderReferences : MonoBehaviour
         File.WriteAllText(jsonPath, updatedJson);
 
         Debug.Log($"Updated {newEntryKey} in RoomDescriptions.json");
-    }
-
-    public void AssignGeneratedAudio()
-    {
-        // Get all objects with reader references
-        foreach (string name in objectNames)
-        {
-            GameObject objectToAssign = GameObject.Find(name);
-            Transform readerReference = objectToAssign.transform.Find("Reader Reference");
-            AudioSource audioSource = readerReference.GetComponentInChildren<AudioSource>();
-            audioSource.clip = LoadGeneratedAudio(name);
-        }
-    }
-
-    public AudioClip LoadGeneratedAudio(string objectName)
-    {
-        // Load the audio file as an AudioClip
-        string resourcePath = "GeneratedAudio/" + objectName; // Relative path within Resources
-        AudioClip audioClip = Resources.Load<AudioClip>(resourcePath);
-        if (audioClip != null)
-            Debug.Log($"{objectName} audio loaded successfully.");
-        else
-            Debug.LogError($"{objectName} audio could not be loaded.");
-        return audioClip;
     }
 
     // Method to read the JSON file and trigger PlayHT generation for the current scene

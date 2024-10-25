@@ -21,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
+    public string playHTApiKey = "4fd4cdadf5214f079ec4e5e448b930be";
     [HideInInspector]
-    public string playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
+    public string playHTUserId = "CTB8g0sT4uSt69Y06LjuaFiYoVU2";
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";

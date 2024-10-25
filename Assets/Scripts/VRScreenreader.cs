@@ -21,7 +21,6 @@ public class VRScreenreader : MonoBehaviour
 
     // Variables to hold reader references we need globally
     List<GameObject> readerReferences = new List<GameObject>();
-    List<GameObject> environmentCues = new List<GameObject>();
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
 
     // Variables for reader reticles and raycast
@@ -54,8 +53,6 @@ public class VRScreenreader : MonoBehaviour
         rightReaderReticle.SetActive(false);
 
         teleport = FindObjectOfType<TeleportationProvider>();
-
-        
     }
 
     // Update is called once per frame
@@ -79,89 +76,63 @@ public class VRScreenreader : MonoBehaviour
                 PlayReferenceAudioPostTeleport();
         }
 
-        // Activate haptic screenreader functions
-        if (sharedMovementFound && referencesFound)
-            PlayHapticsNearingObstacles();
+        // Activate haptic screenreader functions - not in use
+        //if (sharedMovementFound && referencesFound)
+            //PlayHapticsNearingObstacles();
     }
 
     public void ReaderCheckReferenceAndPlayAudio(GameObject hit)
     {
         //Debug.Log("Reader reticle is hitting " + hit.name);
         AudioSource selectedAudio;
+        Dictionary<GameObject, float> lastBuzzTime = new Dictionary<GameObject, float>();
+        float buzzCooldown = 1.0f; // Cooldown time in seconds
 
-        if (environmentCues.Contains(hit))
+        if (readerReferences.Contains(hit))
         {
-            // If it's a passive layout object with a cue
-            if (hit.transform.Find("Environment Cue").GetComponent<AudioSource>().clip != null)
+            if (hit.layer == 13) // If in Key Items layer
             {
-                //Debug.Log("Reader reticle is hitting a reader reference with an environment cue on layer " + hit.layer);
-                selectedAudio = hit.transform.Find("Environment Cue").GetComponent<AudioSource>();
-                if (!selectedAudio.isPlaying)
+                // Play short haptic buzz to indicate contact with item
+                float currentTime = Time.time;
+
+                // Check if it's time to play haptics again
+                if (!lastBuzzTime.ContainsKey(hit) || currentTime - lastBuzzTime[hit] > buzzCooldown)
                 {
-                    selectedAudio.Play(); // Play the sound automatically as it is hit
+                    lastBuzzTime[hit] = currentTime; // Update last buzz time
+                    PlayHapticImpulse(); // Play a short haptic impulse to signal to user that they're hitting an object
+                    Debug.Log("Buzz played on item: " + hit.name);
+                }
+
+                if (m_VRHandlingScript.isButtonPressed)
+                {
+                    // Play audio label if the button is pressed
+                    selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                    if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
+                    {
+                        selectedAudio.Play();
+                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                        Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                    }
+                }
+            }
+            else if (hit.layer == 10) // If in Floors and Walls layer
+            {
+                // Play audio label automatically as it is hit
+                selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
+                {
+                    selectedAudio.Play(); 
                     HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
-                } 
-                Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-            }
-
-            // If PC user presses and holds space
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                // If this is an environment object, play its label and description
-                if (hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>().clip != null)
-                {
-                    //Debug.Log("Reader reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
-                    selectedAudio = hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying)
-                    {
-                        selectedAudio.Play(); // Play the sound automatically as it is hit
-                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
-                    }
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                }
-                // If this is a key item object, play its label and description
-                if (hit.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
-                {
-                    //Debug.Log("Reader reticle is hitting a reader reference with an object label + description on layer " + hit.layer);
-                    selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying)
-                    {
-                        selectedAudio.Play(); // Play the sound automatically as it is hit
-                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
-                    }
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                }
-            }
-
-            // If VR user presses right primary button on an XR controller
-            if (m_VRHandlingScript.isButtonPressed)
-            {
-                // If this is an environment object, play its label and description
-                if (hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>().clip != null)
-                {
-                    //Debug.Log("Reader reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
-                    selectedAudio = hit.transform.Find("Environment Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying)
-                    {
-                        selectedAudio.Play(); // Play the sound automatically as it is hit
-                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
-                    }
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                }
-                // If this is a key item object, play its label and description
-                if (hit.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
-                {
-                    //Debug.Log("Reader reticle is hitting a reader reference with an object label + description on layer " + hit.layer);
-                    selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying)
-                    {
-                        selectedAudio.Play(); // Play the sound automatically as it is hit
-                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
-                    }
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
         }
+    }
+
+    private void PlayHapticImpulse()
+    {
+        rightXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
+        leftXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
     }
 
     public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
@@ -169,20 +140,21 @@ public class VRScreenreader : MonoBehaviour
         //Debug.Log("Teleport reticle is being checked");
         AudioSource selectedAudio;
 
-        // If the object being touched by the teleport reticle is in the readerReferences
-        if (readerReferences.Contains(hit))
+        // If the object being touched by the teleport reticle is in the readerReferences AND is a Wall and Floor layer item
+        if (readerReferences.Contains(hit) && hit.layer == 10)
         {
-            // If this is an environment object, play its label to tell the reader the name of the environment their reticle is on
-            if (hit.transform.Find("Environment Label").GetComponent<AudioSource>().clip != null)
+            // This is an environment object, so play its label to tell the reader the name of the environment their reticle is on
+            selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+            
+            if (selectedAudio.clip != null)
             {
                 //Debug.Log("Teleport reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
-                selectedAudio = hit.transform.Find("Environment Label").GetComponent<AudioSource>();
                 if (!selectedAudio.isPlaying)
                 {
                     selectedAudio.Play(); // Play the sound automatically as it is hit
                     HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
-                Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
             }
         }
     }
@@ -206,14 +178,11 @@ public class VRScreenreader : MonoBehaviour
                 if (referencesAndDistances[reference] == smallestDistance)
                 {
                     Debug.Log("Closest environmental object is " + reference.transform.parent.name);
-                    // If this is an environment object WITH a label (ex. Floor but not Wall), play its label to tell the reader the name of the environment their reticle is on
-                    if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip != null)
-                    {
-                        selectedAudio = reference.transform.Find("Environment Label").GetComponent<AudioSource>();
-                        if (!selectedAudio.isPlaying)
-                            selectedAudio.Play();
-                        Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                    }
+                    // Play the label of the closest floor / environmental object
+                    selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                    if (!selectedAudio.isPlaying)
+                        selectedAudio.Play();
+                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
         }
@@ -229,14 +198,9 @@ public class VRScreenreader : MonoBehaviour
         {
             readerReferences.Add(reference);
             Debug.Log("Found reference " + reference.transform.parent.name);
-            // If on any of the layers Interactable, Obstacles, Entrance, Floor or Wall, Person, NPC
-            if (reference.layer == 7 || reference.layer == 8 || reference.layer == 9 || reference.layer == 10 || reference.layer == 11 || reference.layer == 12)
-            {
-                environmentCues.Add(reference);
-            }
         }
 
-        Debug.Log("Reader refs size is " + readerReferences.Count + " and environment cues size is " + environmentCues.Count);
+        Debug.Log("Reader refs size is " + readerReferences.Count);
         if (readerReferences.Count > 0)
         {
             referencesFound = true;
@@ -379,6 +343,10 @@ public class VRScreenreader : MonoBehaviour
         selectedReference.GetComponent<Renderer>().material = previousMaterial;
     }
 
+    /**
+     * DEPRECATED: Not in use after switching to Owlchemy Labs baseline
+     * Could possibly be re-implemented in future versions of improved prototypes
+     */
     void PlayHapticsNearingObstacles()
     {
         float smallestDistance = CheckSmallestReferenceDistance("haptics");
@@ -413,10 +381,10 @@ public class VRScreenreader : MonoBehaviour
         if (version.Equals("teleport"))
         {
             // Calculate the distance between the player and each object in environmentCues
-            foreach (GameObject reference in environmentCues)
+            foreach (GameObject reference in readerReferences)
             {
-                // If the reference has an environment label (is part of the floor spaces)
-                if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip != null)
+                // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
+                if (reference.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
                     distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
                     distancesToReferences.Add(distance);
@@ -424,7 +392,7 @@ public class VRScreenreader : MonoBehaviour
                 }
             }
         }
-        else
+        /*else // Haptics version - no longer in use
         {
             // Calculate the distance between the player and each object in environmentCues
             foreach (GameObject reference in environmentCues)
@@ -437,7 +405,7 @@ public class VRScreenreader : MonoBehaviour
                     referencesAndDistances.Add(reference, distance);
                 }
             }
-        }
+        }*/
 
         //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();

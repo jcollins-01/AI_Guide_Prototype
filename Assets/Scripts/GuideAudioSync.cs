@@ -26,8 +26,8 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private void Awake()
     {
         // Explicitly set the values here since old ones are being cached
-        playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
-        playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
+        playHTApiKey = "4fd4cdadf5214f079ec4e5e448b930be";
+        playHTUserId = "CTB8g0sT4uSt69Y06LjuaFiYoVU2";
         //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
         _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>(); // grabs an audio source specifically for sharing guide voice
         m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
