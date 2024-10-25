@@ -337,7 +337,7 @@ public class AIGuide : MonoBehaviour
             playEffect("processing");
 
             // Construct the query to send to GPT-4
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + " The names and descriptions of key objects in the environment are as follows: " + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
             // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
             /*if (firstQuery)
