@@ -39,6 +39,7 @@ public class VRScreenreader : MonoBehaviour
     void Start()
     {
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
+        gameObject.AddComponent<GenerateReaderReferences>();
         GetReaderReferences();
 
         // Load and instantiate the reader reticles into the scene
