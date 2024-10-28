@@ -57,7 +57,7 @@ public class AIGuide : MonoBehaviour
         }
 
         // Line to test guide changes over network
-        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
+        InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
     // For testing the role change over the network
