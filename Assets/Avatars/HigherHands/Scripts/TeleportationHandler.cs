@@ -11,15 +11,21 @@ public class TeleportationHandler : MonoBehaviour
     public float activationThreshold = 0.2f;
 
     private XRInteractorLineVisual leftRay;
-    private GameObject leftReticle;
+    public GameObject leftReticle;
 
     private XRInteractorLineVisual rightRay;
-    private GameObject rightReticle;
+    public GameObject rightReticle;
 
     private TeleportationProvider teleport;
     private CharacterController characterController;
     private float characterControllerCenterY;
     private float characterControllerHeight;
+
+    // Variables to hold scripts we need access to
+    private VRScreenreader m_VRScreenreaderScript;
+
+    // Bools to control for screenreader/guide switch
+    private bool screenreaderActive = false;
 
     // Start is called before the first frame update
     void Start()
@@ -34,6 +40,10 @@ public class TeleportationHandler : MonoBehaviour
         characterController = this.gameObject.GetComponent<CharacterController>();
         characterControllerCenterY = 0.88f;
         characterControllerHeight = 1.6f;
+
+        m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
+        if (m_VRScreenreaderScript && m_VRScreenreaderScript.gameObject.activeInHierarchy)
+            screenreaderActive = true;
     }
 
     // Update is called once per frame
@@ -42,10 +52,14 @@ public class TeleportationHandler : MonoBehaviour
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
+        if (screenreaderActive)
+            CheckForReticleHit(leftTarget, leftRay);
 
         bool rightIsPressed = CheckIfButtonDown(rightTarget);
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
+        if (screenreaderActive)
+            CheckForReticleHit(rightTarget, rightRay);
 
         // If the action of teleportation has completed
         if (teleport.locomotionPhase == LocomotionPhase.Done)
@@ -59,5 +73,24 @@ public class TeleportationHandler : MonoBehaviour
     {
         InputHelpers.IsPressed(controller.inputDevice, teleportRayTrigger, out bool isPressed, activationThreshold);
         return isPressed;
+    }
+
+    // Function to check if the ray hits something
+    void CheckForReticleHit(XRController controller, XRInteractorLineVisual ray)
+    {
+        RaycastHit hit;
+        Ray raycast = new Ray(ray.transform.position, ray.transform.forward);
+
+        // Perform raycast to detect objects in the teleportableLayerMask
+        int layerMask = ~LayerMask.GetMask("Ignore Raycast");
+        if (Physics.Raycast(raycast, out hit, Mathf.Infinity, layerMask))
+        {
+            // Check if the reticle hit a teleportable surface
+            if (hit.collider != null)
+            {
+                //Debug.Log("Teleport reticle hit an object: " + hit.collider.gameObject.name);
+                m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hit.transform.gameObject);
+            }
+        }
     }
 }

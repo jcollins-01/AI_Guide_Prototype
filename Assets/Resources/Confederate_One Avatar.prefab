@@ -4487,10 +4487,9 @@ GameObject:
   - component: {fileID: 8909618232153423243}
   - component: {fileID: 7698415900411840624}
   - component: {fileID: 1444634486419631467}
-  - component: {fileID: 3489323647866154872}
   m_Layer: 3
   m_Name: Confederate_One Avatar
-  m_TagString: Confederate_1
+  m_TagString: Confederate
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4567,7 +4566,7 @@ MonoBehaviour:
   - componentID: 14
     component: {fileID: 1444634486419631467}
   - componentID: 15
-    component: {fileID: 3489323647866154872}
+    component: {fileID: 0}
   - componentID: 16
     component: {fileID: 0}
   - componentID: 17
@@ -4624,6 +4623,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4caab915be45544e97eb9d6447f2d82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _audioSource: {fileID: 0}
+  playHTApiKey: 
+  playHTUserId: 
 --- !u!114 &1444634486419631467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4634,18 +4636,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 969de85a1e7dce540aa3a129f8a53b1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3489323647866154872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2408046841447391164}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1d8f5a4e5f21774f8aedba9e9ea7df4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &2415825703758419260
@@ -9931,6 +9921,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd4ff7916cbc1db4dae0b06d829ff79f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _rebuildAudioStream: 0
 --- !u!1 &5891907428552140649
 GameObject:
   m_ObjectHideFlags: 0

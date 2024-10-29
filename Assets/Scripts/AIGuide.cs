@@ -16,12 +16,11 @@ public class AIGuide : MonoBehaviour
     private int screenshotsCaptured = 0;
     private int whisperCalls = 0;
     private int completionCalls = 0;
-    private int alloyCalls = 0;
-    private int voiceCalls = 0;
     //private bool firstQuery = true;
     private bool buttonPressed = false;
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
+    private bool isHighlighted = false;
 
     // Variables for wizard components
     public string result;
@@ -45,11 +44,11 @@ public class AIGuide : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot
         else
         {
@@ -105,6 +104,9 @@ public class AIGuide : MonoBehaviour
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
 
+            // Determine if description is required based on GPT-4 response
+            checkDescriptionRequests();
+
             // If any confederate is present at the start of the scene, assign the guide
             AssignSingleConfederate();
 
@@ -130,7 +132,7 @@ public class AIGuide : MonoBehaviour
     // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
     private void AssignSingleConfederate()
     {
-        if ((GameObject.FindWithTag("Confederate_1") || GameObject.FindWithTag("Confederate_2")) && !guideRoleAssignedStart)
+        if (GameObject.FindWithTag("Confederate") && !guideRoleAssignedStart)
             StartCoroutine(AssignRoleStatic());
     }
     
@@ -138,11 +140,10 @@ public class AIGuide : MonoBehaviour
     private void BothConfederatesPresent()
     {
         // Triggers the assignment of the avatar in static conditions (avatar set once at beginning of scene) for confederate clients
-        if (GameObject.FindWithTag("Confederate_1") && GameObject.FindWithTag("Confederate_2"))
-        {
-            if (!guideRoleAssigned)
-                StartCoroutine(AssignRoleStatic());
-        }
+        var confederates = GameObject.FindGameObjectsWithTag("Confederate");
+
+        if (confederates.Length == 2 && !guideRoleAssigned)
+            StartCoroutine(AssignRoleStatic());
         else
             guideRoleAssigned = false;
     }
@@ -155,11 +156,11 @@ public class AIGuide : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
             role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked") || currentSceneName.Equals("Con_1_Park1_Networked") || currentSceneName.Equals("Con_2_Park1_Networked"))
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
             role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked") || currentSceneName.Equals("Con_1_Park2_Networked") || currentSceneName.Equals("Con_2_Park2_Networked"))
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
             role = 4; // dog, 4
-        else if (currentSceneName.Equals("GuidePark3_Networked") || currentSceneName.Equals("Con_1_Park3_Networked") || currentSceneName.Equals("Con_2_Park3_Networked"))
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot, 2
 
         guideRoleAssigned = true;
@@ -210,14 +211,54 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    private void checkDescriptionRequests()
+    {
+        //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
+        // Checking if a target GameObject was selected to be modified
+        if (m_OpenAIQueriesScript.targetForDescription != null)
+        {
+            // Call to highlight the game object being described while the guide is talking
+            Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
+
+            // If the guide is invisible, see if the local audio player has stopped - else, check the networked one
+            if (!isHighlighted)
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription);
+
+            m_OpenAIQueriesScript.targetForDescription = null;
+        }
+    }
+
+    void HighlightSelectedReaderReference(GameObject selectedReference)
+    {
+        // Add a glow around the selectedReference + brighten its color
+        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
+        selectedReference.GetComponent<Renderer>().material = Resources.Load<Material>("Screenreader/Glow");
+        isHighlighted = true;
+
+        // Return selectedReference renderers to normal after coroutine finishes
+        StartCoroutine(WaitForTenSeconds(selectedReference, previousMaterial));
+    }
+
+    IEnumerator WaitForTenSeconds(GameObject selectedReference, Material previousMaterial)
+    {
+        yield return new WaitForSeconds(10f);
+
+        selectedReference.GetComponent<Renderer>().material = previousMaterial;
+        isHighlighted = false;
+    }
+
     private void checkModificationRequests()
     {
         // Checking if a target GameObject was selected to be modified
         if (m_OpenAIQueriesScript.targetForModification != null)
         {
             // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
+            // Also calls to highlight the object while the temporary audio beacon exists
             Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
             m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
+            if (!isHighlighted)
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification);
+
             m_OpenAIQueriesScript.targetForModification = null;
         }
     }
@@ -227,6 +268,10 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
+            // Calls to highlight the object
+            if (!isHighlighted)
+                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);
+
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
@@ -249,6 +294,7 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                         m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
+                        m_OpenAIQueriesScript.targetForGuidance = null;
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
@@ -266,6 +312,7 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                         m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
+                        m_OpenAIQueriesScript.targetForGuidance = null;
                     }
                 }
             }
@@ -367,8 +414,6 @@ public class AIGuide : MonoBehaviour
             screenshotsCaptured = 0;
             whisperCalls = 0;
             completionCalls = 0;
-            alloyCalls = 0;
-            voiceCalls = 0;
         }
 
         // If VR user presses right primary button on an XR controller
@@ -380,8 +425,6 @@ public class AIGuide : MonoBehaviour
             screenshotsCaptured = 0;
             whisperCalls = 0;
             completionCalls = 0;
-            alloyCalls = 0;
-            voiceCalls = 0;
             buttonPressed = true;
         }
     }
