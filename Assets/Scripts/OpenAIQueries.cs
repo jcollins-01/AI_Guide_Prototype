@@ -21,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "b4d84ce76bd24b2581287467a0f488a5"; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
+    public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
     [HideInInspector]
-    public string playHTUserId = "ezmtGQH4okXmZsbPisBkymKnwV73"; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
+    public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -536,6 +536,8 @@ public class OpenAIQueries : MonoBehaviour
             // Parse the JSON data from config.json and assign apiKey values accordingly
             ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
             apiKey = configData.APIKey;
+            playHTApiKey = configData.PlayHTAPIKey;
+            playHTUserId = configData.PlayHTUserID;
         }
         else
         {
@@ -594,5 +596,7 @@ public class OpenAIQueries : MonoBehaviour
     private class ConfigData
     {
         public string APIKey;
+        public string PlayHTAPIKey;
+        public string PlayHTUserID;
     }
 }

@@ -51,13 +51,14 @@ public class AIGuide : MonoBehaviour
         else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot
         else
-        {
-            role = 6; // invisible - was set to this for tutorial, but now we have a guide in the tutorial
-            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
-        }
+            role = 1; // human is default guide for all other rooms
+
+        // This line is needed if we use the invisible guide role
+        if (role == 6)
+            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject); 
 
         // Line to test guide changes over network
-        InvokeRepeating("ChangeGuideRole", 0f, 10f);
+        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
     }
 
     // For testing the role change over the network

@@ -17,6 +17,10 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     public AudioSource _audioSource;
     private bool isPlayingAudio;
+
+    // Config file to hold api keys, credentials
+    [HideInInspector]
+    private const string configFileName = "config";
     private string apiKey;
     [HideInInspector]
     public string playHTApiKey;
@@ -26,8 +30,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private void Awake()
     {
         // Explicitly set the values here since old ones are being cached
-        playHTApiKey = "b4d84ce76bd24b2581287467a0f488a5"; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
-        playHTUserId = "ezmtGQH4okXmZsbPisBkymKnwV73"; // J1wAOyXmKrak4arON6JtwT94xuA2 ----- a4acf316cf734b12b96410f11134c5d0
+        LoadConfig();
         //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
         _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>(); // grabs an audio source specifically for sharing guide voice
         m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
@@ -171,6 +174,23 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         gameObject.AddComponent<GuideController>();
     }
 
+    private void LoadConfig()
+    {
+        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
+        if (configAsset != null)
+        {
+            // Parse the JSON data from config.json and assign apiKey values accordingly
+            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
+            apiKey = configData.APIKey;
+            playHTApiKey = configData.PlayHTAPIKey;
+            playHTUserId = configData.PlayHTUserID;
+        }
+        else
+        {
+            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -210,5 +230,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         // If there's a guide in the scene, get the VR handling script from them
         if (GameObject.FindWithTag("Guide"))
             m_VRHandlingScript = FindObjectOfType<VRHandling>();
+    }
+
+    private class ConfigData
+    {
+        public string APIKey;
+        public string PlayHTAPIKey;
+        public string PlayHTUserID;
     }
 }

@@ -12,6 +12,7 @@ public class GenerateReaderReferences : MonoBehaviour
     // Variables and resources for creating Reader References
     private int floorsLayer = 10;
     private int keyItemsLayer = 13;
+    private int interactableLayer = 7;
     private GameObject readerReferencePrefab;
 
     // Variables for updating room config
@@ -37,9 +38,8 @@ public class GenerateReaderReferences : MonoBehaviour
 
     void Start()
     {
-        // Eventually switch this to loading from config file
-        playHTApiKey = "4fd4cdadf5214f079ec4e5e448b930be";
-        playHTUserId = "CTB8g0sT4uSt69Y06LjuaFiYoVU2";
+        // Load relevant credentials from config file
+        LoadConfig();
 
         // Load the Reader Reference prefab from Resources
         readerReferencePrefab = Resources.Load<GameObject>("Screenreader/Reader Reference");
@@ -55,6 +55,7 @@ public class GenerateReaderReferences : MonoBehaviour
         // Find all objects in both target layers
         AddReaderReferencesToLayer(floorsLayer);
         AddReaderReferencesToLayer(keyItemsLayer);
+        AddReaderReferencesToLayer(interactableLayer);
 
         if (objectNames.Count > 0)
         {
@@ -86,6 +87,7 @@ public class GenerateReaderReferences : MonoBehaviour
                 {
                     if (currentObject.name == fileName)
                     {
+                        Debug.Log("Found GameObject named " + currentObject.name);
                         // Find the Reader Reference child and be sure to grab its AudioSource
                         GameObject readerReference = FindChildWithTag(currentObject, "Reader Reference");
                         if (readerReference != null)
@@ -216,7 +218,7 @@ public class GenerateReaderReferences : MonoBehaviour
 
     private IEnumerator GenerateAudioForScene(string sceneName, string descriptions)
     {
-        string[] descriptionList = descriptions.Split(',');
+        string[] descriptionList = descriptions.Split('|');
 
         for (int i = 0; i < descriptionList.Length; i++)
         {
@@ -229,6 +231,24 @@ public class GenerateReaderReferences : MonoBehaviour
             if (descriptionParts.Length > 0)
             {
                 string objectName = descriptionParts[0].Trim();
+
+                // Generate the audio file path
+                string audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
+
+                // Check if the audio already exists
+                if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
+                {
+                    Debug.Log($"Audio for {objectName} already exists, skipping generation.");
+                    continue; // Skip the request to PlayHT
+                }
+
+                // Generate the audio if not cached
+                yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
+            }
+            else
+            {
+                // It is the floor object, Ex. Near Chopping Station - the name of the object should be the description
+                string objectName = description;
 
                 // Generate the audio file path
                 string audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
@@ -334,5 +354,27 @@ public class GenerateReaderReferences : MonoBehaviour
                 }
             }
         }
+    }
+    private void LoadConfig()
+    {
+        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
+        if (configAsset != null)
+        {
+            // Parse the JSON data from config.json and assign apiKey values accordingly
+            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
+            playHTApiKey = configData.PlayHTAPIKey;
+            playHTUserId = configData.PlayHTUserID;
+        }
+        else
+        {
+            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+        }
+    }
+
+    private class ConfigData
+    {
+        public string APIKey;
+        public string PlayHTAPIKey;
+        public string PlayHTUserID;
     }
 }

@@ -91,7 +91,7 @@ public class VRScreenreader : MonoBehaviour
 
         if (readerReferences.Contains(hit))
         {
-            if (hit.layer == 13) // If in Key Items layer
+            if (hit.layer == 13 || hit.layer == 7) // If in Key Items or Interactables layer
             {
                 // Play short haptic buzz to indicate contact with item
                 float currentTime = Time.time;
