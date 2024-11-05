@@ -4,10 +4,21 @@ public class FloorDivider : MonoBehaviour
 {
     public int rows = 2; // Number of rows to divide the area into
     public int columns = 2; // Number of columns to divide the area into
-    public GameObject floorPrefab; // Assign a plane prefab here if you want a custom floor object, otherwise it will create a default plane
+    [HideInInspector]
+    public GameObject floorPrefab; // Assign a plane prefab here if desired
+    public Material defaultMaterial; // Optional: assign a default material here, or it will use "Transparent"
 
-    void Start()
+    public void GenerateFloorSections()
     {
+        // Clear any existing floor sections to prevent duplicates
+        foreach (Transform child in transform)
+        {
+            if (child.name.StartsWith("Floor Section"))
+            {
+                DestroyImmediate(child.gameObject);
+            }
+        }
+
         // Find the "Bounds" object in the scene
         GameObject boundsObject = GameObject.Find("Bounds");
         if (boundsObject == null)
@@ -30,6 +41,17 @@ public class FloorDivider : MonoBehaviour
         // Calculate the size of each floor section
         float sectionWidth = boundsSize.x / columns;
         float sectionLength = boundsSize.z / rows;
+
+        // Find or assign the default material
+        if (defaultMaterial == null)
+        {
+            defaultMaterial = Resources.Load<Material>("Screenreader/Transparent");
+            if (defaultMaterial == null)
+            {
+                Debug.LogError("Default material 'Transparent' not found in Resources. Please assign it manually.");
+                return;
+            }
+        }
 
         // Loop through rows and columns to create floor sections
         for (int row = 0; row < rows; row++)
@@ -59,6 +81,13 @@ public class FloorDivider : MonoBehaviour
                 // Set the name and parent of the floor section
                 floorSection.name = $"Floor Section ({row},{col})";
                 floorSection.transform.parent = boundsObject.transform;
+
+                // Apply the default material
+                Renderer renderer = floorSection.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material = defaultMaterial;
+                }
             }
         }
     }
