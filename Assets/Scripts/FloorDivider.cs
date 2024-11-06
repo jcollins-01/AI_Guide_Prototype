@@ -19,8 +19,8 @@ public class FloorDivider : MonoBehaviour
             }
         }
 
-        // Find the "Bounds" object in the scene
-        GameObject boundsObject = GameObject.Find("Bounds");
+        // Find the "Bounds" object in the scene - should be the game object this script is on
+        GameObject boundsObject = this.gameObject; //GameObject.Find("Bounds");
         if (boundsObject == null)
         {
             Debug.LogError("Bounds object not found. Please create a GameObject named 'Bounds' in the scene.");
