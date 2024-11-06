@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class SpawnInOpenAreas : MonoBehaviour
+public class RandomTarget : MonoBehaviour
 {
+    // Variables for spawning target positions
     public GameObject prefabToSpawn;       // The prefab to spawn in open areas
     public GameObject areaReferenceObject; // The object to define the center and bounds of the area
     public LayerMask obstacleLayer;        // Layer mask for obstacles to detect
@@ -9,19 +11,86 @@ public class SpawnInOpenAreas : MonoBehaviour
     private Vector3 cellSize = new Vector3(1, 1, 1);   // Size of each cell to check
     private Vector3 areaCenter;
 
+    // Variables for short tasks with targets
+    public List<GameObject> randomTargets = new List<GameObject>();
+    private SelectedTarget m_SelectedTargetScript;
+    public int timesTargetReached = 0;
+
     void Start()
     {
         if (areaReferenceObject != null)
         {
-            // Use the center of the areaReferenceObject as the area center
-            areaCenter = areaReferenceObject.transform.position;
-            FindObstaclesAndAddColliders();
-            FindAndSpawnInOpenSpaces();
-            //FindObstaclesAndRemoveColliders();
+            areaCenter = areaReferenceObject.transform.position; // Use the center of the areaReferenceObject as the area center
+            //SetUpRandomTargets(); // Set-up now called from the ShortTaskController
         }
         else
         {
-            Debug.LogError("Area Reference Object is not assigned!");
+            Debug.LogError("Area Reference Object is not assigned! Cannot begin navigation task.");
+        }
+    }
+
+    public void SetUpRandomTargets()
+    {
+        // Set up all possible destinations for random target points
+        FindObstaclesAndAddColliders();
+        FindAndSpawnInOpenSpaces();
+        FindObstaclesAndRemoveColliders(); // Might remove later if we need to keep the obstacles for VR mode
+
+        // Assign targets to be a random target for the navigation task
+        GetNumberOfPossibleTargets();
+        RandomTargetSelection();
+    }
+
+    public void TakeDownRandomTargets()
+    {
+        // Destroy all random targets that were created during set-up
+        foreach (GameObject obj in randomTargets)
+        {
+            Destroy(obj);
+        }
+
+        randomTargets.Clear();
+    }
+
+    private void Update()
+    {
+        CheckTargetReached();
+    }
+
+    void RandomTargetSelection()
+    {
+        //Debug.Log("Select new random target");
+        int totalTargets = randomTargets.Count + 1;
+        int randomTargetIndex = Random.Range(1, totalTargets);
+        GameObject target = randomTargets[randomTargetIndex];
+
+        // Add the component to the target that is the script which determines if a player enters it
+        target.AddComponent<SelectedTarget>();
+        m_SelectedTargetScript = target.GetComponent<SelectedTarget>();
+    }
+
+    void CheckTargetReached()
+    {
+        if (m_SelectedTargetScript != null)
+        {
+            if (m_SelectedTargetScript.playerReachedTarget)
+            {
+                //Debug.Log("Player reached target - destroying SelectedTarget and choosing a new one");
+                Destroy(m_SelectedTargetScript);
+                timesTargetReached++;
+                RandomTargetSelection();
+            }
+        }
+    }
+
+    void GetNumberOfPossibleTargets()
+    {
+        GameObject[] allObjects = FindObjectsOfType<GameObject>();
+
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.tag == "Travel Target")
+                randomTargets.Add(obj);
         }
     }
 

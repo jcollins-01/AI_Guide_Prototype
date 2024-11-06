@@ -198,17 +198,6 @@ public class AIGuide : MonoBehaviour
                     audioSource.Play();
                     break;
                 }
-            case "completion":
-                {
-                    //Debug.Log("Playing completion sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/completion");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
-                    // Mute after playing the completion effect to prevent audio doubling
-                    StartCoroutine(muteAudioSource(audioSource, audioSource.clip));
-                    break;
-                }
         }
     }
 
