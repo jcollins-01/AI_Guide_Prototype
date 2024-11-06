@@ -806,7 +806,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38f6bf3d943ac7945842268c9ef1dca6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_InteractionManager: {fileID: 0}
+  m_InteractionManager: {fileID: 2705192287667906667}
   m_Colliders: []
   m_InteractionLayerMask:
     serializedVersion: 2
@@ -896,7 +896,7 @@ MonoBehaviour:
   m_OnDeactivate:
     m_PersistentCalls:
       m_Calls: []
-  m_TeleportationProvider: {fileID: 0}
+  m_TeleportationProvider: {fileID: 2705192287667906668}
   m_MatchOrientation: 0
   m_MatchDirectionalInput: 0
   m_TeleportTrigger: 0
@@ -2653,6 +2653,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+--- !u!114 &2705192287667906667 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4215317199857201527, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 2705192287667906666}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e4e6cca11330d4088d729ab4fc9d9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2705192287667906668 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 2705192287667906666}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01f69dc1cb084aa42b2f2f8cd87bc770, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3209931954047608830
 GameObject:
   m_ObjectHideFlags: 0

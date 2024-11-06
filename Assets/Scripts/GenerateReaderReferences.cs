@@ -53,9 +53,9 @@ public class GenerateReaderReferences : MonoBehaviour
         }
 
         // Find all objects in both target layers
-        AddReaderReferencesToLayer(floorsLayer);
-        AddReaderReferencesToLayer(keyItemsLayer);
-        AddReaderReferencesToLayer(interactableLayer);
+        //AddReaderReferencesToLayer(floorsLayer);
+        //AddReaderReferencesToLayer(keyItemsLayer);
+        //AddReaderReferencesToLayer(interactableLayer);
 
         if (objectNames.Count > 0)
         {
