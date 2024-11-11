@@ -22,7 +22,7 @@ public class UnloadObject : MonoBehaviour
         this.gameObject.AddComponent<GrabRequest>();
         this.gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the bag, can comment to test if unloading works
 
-        // Add a collider to the bag for detecting its bounds + rigid body for physics
+        // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
         {
             if (!bag.GetComponent<Collider>())

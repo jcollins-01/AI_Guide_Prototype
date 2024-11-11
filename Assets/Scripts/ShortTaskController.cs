@@ -15,10 +15,13 @@ public class ShortTaskController : MonoBehaviour
     private bool previousNavTaskState;
     public bool unloadingTaskActive;
     private bool previousUnloadTaskState;
+    public bool preparationTaskActive;
+    private bool previousPrepTaskState;
 
     // Scripts we need access to
     private RandomTarget m_RandomTargetScript;
-    private RandomObjectSpawner m_RandomObjectSpawnerScript;
+    private RandomObjectSpawner m_UnloadSpawnerScript;
+    private RandomObjectSpawner m_PrepareSpawnerScript;
 
     // Variables to track scores
     public bool checkScores;
@@ -35,6 +38,7 @@ public class ShortTaskController : MonoBehaviour
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
         previousUnloadTaskState = unloadingTaskActive;
+        previousPrepTaskState = preparationTaskActive;
         previousCheckScoreState = checkScores;
     }
 
@@ -42,15 +46,18 @@ public class ShortTaskController : MonoBehaviour
     void Update()
     {
         // Constantly check + update scores from tasks
-        if (m_RandomTargetScript != null && m_RandomObjectSpawnerScript != null)
+        if (m_RandomTargetScript != null && m_UnloadSpawnerScript != null)
             CheckScoreUpdates();
 
         // Check if navigation task is active or inactive
         if (m_RandomTargetScript != null)
             CheckNavigationTaskActive();
 
-        // Check if unloading task is active or inactive -- needs to be run to set up m_RandomObjectSpawnerScript
+        // Check if unloading task is active or inactive -- needs to be run to set up m_UnloadSpawnerScript
         CheckUnloadingTaskActive();
+
+        // Check if prerpation task is active or inactive -- needs to be run to set up m_PrepareSpawnerScript
+        CheckPreparationTaskActive();
     }
 
     private void CheckNavigationTaskActive()
@@ -93,20 +100,69 @@ public class ShortTaskController : MonoBehaviour
         }
     }
 
+    private void CheckPreparationTaskActive()
+    {
+        if (preparationTaskActive != previousPrepTaskState)
+        {
+            if (preparationTaskActive)
+            {
+                Debug.Log("Setting up preparation task");
+                SetUpPrepareSpawner();
+            }
+            else
+            {
+                Debug.Log("Taking down preparation task");
+                TakeDownPrepareSpawner();
+            }
+
+            // Update previousPrepTaskState to match the new state of preparationTaskActive
+            previousPrepTaskState = preparationTaskActive;
+        }
+    }
+
+    private void SetUpPrepareSpawner()
+    {
+        if (interactionTable != null)
+        {
+            taskName = "Preparation"; // Set task name as Preparatino to guide Spawner
+
+            if (m_PrepareSpawnerScript == null) // First time running the preparation task
+            {
+                interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
+                m_PrepareSpawnerScript.SpawnRandomObject();
+            }
+            else
+                m_PrepareSpawnerScript.SpawnRandomObject(); // All other times, the table should already have the spawner added
+        }
+    }
+
+    private void TakeDownPrepareSpawner()
+    {
+        if (interactionTable != null)
+        {
+            if (m_PrepareSpawnerScript != null) // If the table has had a RandomObjectSpawner added (the task had begun at some point)
+            {
+                if (m_PrepareSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from preparation
+                    Destroy(m_PrepareSpawnerScript.spawnedObject);
+            }
+        }
+    }
+
     private void SetUpUnloadSpawner()
     {
         if (unloadingBag != null)
         {
-            taskName = "Unloading"; // Set task name as Unloading to guide Unload Spawner
+            taskName = "Unloading"; // Set task name as Unloading to guide Spawner
 
-            if (m_RandomObjectSpawnerScript == null) // First time running the unloading task
+            if (m_UnloadSpawnerScript == null) // First time running the unloading task
             {
-                unloadingBag.AddComponent<RandomObjectSpawner>(); // Add an unload spawner
-                m_RandomObjectSpawnerScript = unloadingBag.GetComponent<RandomObjectSpawner>();
-                m_RandomObjectSpawnerScript.SpawnRandomObject();
+                unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                m_UnloadSpawnerScript = unloadingBag.GetComponent<RandomObjectSpawner>();
+                m_UnloadSpawnerScript.SpawnRandomObject();
             }
             else
-                m_RandomObjectSpawnerScript.SpawnRandomObject(); // All other times, the bag should already have the spawner added
+                m_UnloadSpawnerScript.SpawnRandomObject(); // All other times, the bag should already have the spawner added
         }
     }
 
@@ -114,10 +170,10 @@ public class ShortTaskController : MonoBehaviour
     {
         if (unloadingBag != null)
         {
-            if (m_RandomObjectSpawnerScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+            if (m_UnloadSpawnerScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
             {
-                if (m_RandomObjectSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
-                    Destroy(m_RandomObjectSpawnerScript.spawnedObject);
+                if (m_UnloadSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
+                    Destroy(m_UnloadSpawnerScript.spawnedObject);
             }
         }
     }
@@ -126,7 +182,7 @@ public class ShortTaskController : MonoBehaviour
     {
         // Pull latest scores from scripts
         navigationTaskScore = m_RandomTargetScript.timesTargetReached;
-        unloadingTaskScore = m_RandomObjectSpawnerScript.timesObjectUnloaded;
+        unloadingTaskScore = m_UnloadSpawnerScript.timesObjectUnloaded;
 
         // Display scores in editor if checkScores is true
         if (checkScores != previousCheckScoreState)

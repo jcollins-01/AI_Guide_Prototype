@@ -10,6 +10,10 @@ public class RandomObjectSpawner : MonoBehaviour
     public GameObject spawnSource;
     public int timesObjectUnloaded = 0;
 
+    // Components for audio
+    private AudioSource audioSource;
+    private AudioClip unloaded;
+
     // Scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
 
@@ -18,6 +22,10 @@ public class RandomObjectSpawner : MonoBehaviour
         // Assign spawnSource to be the GameObject this script is on
         spawnSource = this.gameObject;
         m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
+
+        // Assign audio components for indicating an object has been unloaded / prepared
+        audioSource = this.gameObject.AddComponent<AudioSource>();
+        unloaded = Resources.Load<AudioClip>("Audio/completion");
     }
 
     private void Update()
@@ -68,6 +76,11 @@ public class RandomObjectSpawner : MonoBehaviour
             spawnedObject.AddComponent<UnloadObject>();
             spawnedObject.GetComponent<UnloadObject>().AssignBag(spawnSource);
         }
+        else // Task is Preparation
+        {
+            spawnedObject.AddComponent<PrepareObject>();
+            spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
+        }
     }
 
     void CheckObjectUnloaded()
@@ -82,6 +95,8 @@ public class RandomObjectSpawner : MonoBehaviour
                     Debug.Log("Player unloaded object - destroying object and spawning a new one");
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
                     timesObjectUnloaded++;
+                    audioSource.clip = unloaded;
+                    audioSource.Play();
                     SpawnRandomObject();
                 }
             }
