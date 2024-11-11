@@ -28,6 +28,7 @@ public class ShortTaskController : MonoBehaviour
     private bool previousCheckScoreState;
     private int navigationTaskScore = 0;
     private int unloadingTaskScore = 0;
+    private int preparationTaskScore = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -46,7 +47,7 @@ public class ShortTaskController : MonoBehaviour
     void Update()
     {
         // Constantly check + update scores from tasks
-        if (m_RandomTargetScript != null && m_UnloadSpawnerScript != null)
+        if (m_RandomTargetScript != null && m_UnloadSpawnerScript != null && m_PrepareSpawnerScript != null)
             CheckScoreUpdates();
 
         // Check if navigation task is active or inactive
@@ -183,6 +184,7 @@ public class ShortTaskController : MonoBehaviour
         // Pull latest scores from scripts
         navigationTaskScore = m_RandomTargetScript.timesTargetReached;
         unloadingTaskScore = m_UnloadSpawnerScript.timesObjectUnloaded;
+        preparationTaskScore = m_PrepareSpawnerScript.timesObjectPrepared;
 
         // Display scores in editor if checkScores is true
         if (checkScores != previousCheckScoreState)
@@ -191,6 +193,7 @@ public class ShortTaskController : MonoBehaviour
             {
                 Debug.Log("Navigation task score is: " + navigationTaskScore);
                 Debug.Log("Unloading task score is: " + unloadingTaskScore);
+                Debug.Log("Preparation task score is: " + preparationTaskScore);
             }
             previousCheckScoreState = checkScores;
         }

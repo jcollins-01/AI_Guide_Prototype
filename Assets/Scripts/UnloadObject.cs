@@ -11,6 +11,9 @@ public class UnloadObject : MonoBehaviour
     private bool isGrabbed = false;
     private bool trackingStarted = false;
 
+    // Variables for scripts we need access to
+    private ShortTaskController m_ShortTaskControllerScript;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -21,6 +24,8 @@ public class UnloadObject : MonoBehaviour
         this.gameObject.AddComponent<XRGrabInteractable>();
         this.gameObject.AddComponent<GrabRequest>();
         this.gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the bag, can comment to test if unloading works
+        // Sets the collider with a larger y to ensure it stays in the bounds of the bag - if it's too small of an object, it will pass through and count as an unload
+        this.gameObject.GetComponent<BoxCollider>().size = new Vector3(this.gameObject.GetComponent<BoxCollider>().size.x, this.gameObject.GetComponent<BoxCollider>().size.y * 2, this.gameObject.GetComponent<BoxCollider>().size.z);
 
         // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
@@ -29,6 +34,13 @@ public class UnloadObject : MonoBehaviour
                 bagBounds = bag.AddComponent<BoxCollider>();
             else
                 bagBounds = bag.GetComponent<Collider>();
+
+            bag.GetComponent<Collider>().isTrigger = true; // To prevent objects from spawning on top of bag or flying out of it by colliding with it
+
+            // Grab the interaction table prefab from the task controller, and add a collider to prevent the object from falling to the floor
+            m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
+            if (!m_ShortTaskControllerScript.interactionTable.GetComponent<Collider>())
+                m_ShortTaskControllerScript.interactionTable.AddComponent<BoxCollider>();
 
             if (bagBounds != null)
                 StartCoroutine(StartUnloadCheckAfterDelay()); // Start the unload check with a delay to avoid immediate triggering

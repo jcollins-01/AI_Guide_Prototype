@@ -72,12 +72,8 @@ public class RandomObjectSpawner : MonoBehaviour
         // Select a random prefab from the loaded objects
         GameObject randomPrefab = (GameObject)objects[Random.Range(0, objects.Length)];
 
-        float yHeight = 1f;
-        if (spawnSource.name == "Bag") // For spawning objects out of the bags
-            yHeight = 0.25f; // Sets the height lower so it appears the object is inside the bag
-
         // Get the position and rotation of the spawnSource
-        Vector3 spawnPosition = spawnSource.transform.position + new Vector3(0, yHeight, 0); // Adjust Y position as needed to place it on top of the spawnSource
+        Vector3 spawnPosition = spawnSource.transform.position + new Vector3(0, 1f, 0); // Can adjust Y position to make  it fall from a higher place above spawnSource
         Quaternion spawnRotation = Quaternion.identity;
 
         // Instantiate the random prefab on top of the spawnSource
