@@ -6,6 +6,7 @@ using UnityEngine.XR;
 public class PrepareObject : MonoBehaviour
 {
     public bool playerPreparedObject = false;
+    public bool playerMidPreparation = false;
    
     private GameObject table;
     private GameObject prepTool;
@@ -80,7 +81,7 @@ public class PrepareObject : MonoBehaviour
 
         if (isToolNearby && isButtonPressed)
         {
-            // Play mid-preparation audio effect, or send signal to RandomObjectSpawner to do so
+            playerMidPreparation = true;
             holdTime += Time.deltaTime;
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
@@ -89,8 +90,10 @@ public class PrepareObject : MonoBehaviour
             }
         }
         else
+        {
             holdTime = 0.0f; // Reset hold time if button is released or tool is not nearby
-            // Cut off audio that is playing to include mid-preparation
+            playerMidPreparation = false;
+        }
     }
 
     private void OnTriggerEnter(Collider other)

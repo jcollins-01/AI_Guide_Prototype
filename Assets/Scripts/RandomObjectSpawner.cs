@@ -14,6 +14,7 @@ public class RandomObjectSpawner : MonoBehaviour
     // Components for audio
     private AudioSource audioSource;
     private AudioClip unloaded;
+    private AudioClip preparing;
 
     // Scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
@@ -27,11 +28,13 @@ public class RandomObjectSpawner : MonoBehaviour
         // Assign audio components for indicating an object has been unloaded / prepared
         audioSource = this.gameObject.AddComponent<AudioSource>();
         unloaded = Resources.Load<AudioClip>("Audio/completion");
+        preparing = Resources.Load<AudioClip>("Audio/completion");
     }
 
     private void Update()
     {
         CheckObjectUnloaded();
+        CheckObjectPrepared();
     }
 
     public void SpawnRandomObject()
@@ -111,6 +114,20 @@ public class RandomObjectSpawner : MonoBehaviour
         {
             if (spawnedObject.GetComponent<PrepareObject>())
             {
+                // If player is mid-preparation
+                if (spawnedObject.GetComponent<PrepareObject>().playerMidPreparation)
+                {
+                    Debug.Log("Player starting preparing object");
+                    audioSource.clip = preparing;
+                    audioSource.Play();
+                }
+                else // If player stops preparation or finishes preparing, stop playing this AudioClip
+                {
+                    if (audioSource.clip == preparing) // If the last clip playing was the mid-preparation one
+                        audioSource.Stop();
+                }
+
+                // If player has finished preparing object
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
