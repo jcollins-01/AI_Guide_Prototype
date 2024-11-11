@@ -9,6 +9,7 @@ public class RandomObjectSpawner : MonoBehaviour
     [HideInInspector]
     public GameObject spawnSource;
     public int timesObjectUnloaded = 0;
+    public int timesObjectPrepared = 0;
 
     // Components for audio
     private AudioSource audioSource;
@@ -103,5 +104,23 @@ public class RandomObjectSpawner : MonoBehaviour
         }
     }
 
-    // Maybe have another one for CheckObjectPrepared()
+    void CheckObjectPrepared()
+    {
+        // If the object has a PrepareObject component added to it by the task controller
+        if (spawnedObject != null)
+        {
+            if (spawnedObject.GetComponent<PrepareObject>())
+            {
+                if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
+                {
+                    Debug.Log("Player prepared object - destroying object and spawning a new one");
+                    Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
+                    timesObjectPrepared++;
+                    audioSource.clip = unloaded;
+                    audioSource.Play();
+                    SpawnRandomObject();
+                }
+            }
+        }
+    }
 }
