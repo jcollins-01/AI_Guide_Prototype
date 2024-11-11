@@ -27,8 +27,17 @@ public class RandomObjectSpawner : MonoBehaviour
 
         // Assign audio components for indicating an object has been unloaded / prepared
         audioSource = this.gameObject.AddComponent<AudioSource>();
-        unloaded = Resources.Load<AudioClip>("Audio/completion");
-        preparing = Resources.Load<AudioClip>("Audio/completion");
+        unloaded = Resources.Load<AudioClip>("Audio/completion"); 
+        string sceneName = SceneManager.GetActiveScene().name;
+        switch (sceneName)
+        {
+            case "Kitchen":
+                preparing = Resources.Load<AudioClip>("Audio/chop");
+                break;
+            case "Alien Spaceship Repair Shop":
+                preparing = Resources.Load<AudioClip>("Audio/repair");
+                break;
+        }
     }
 
     private void Update()
@@ -118,6 +127,7 @@ public class RandomObjectSpawner : MonoBehaviour
                 if (spawnedObject.GetComponent<PrepareObject>().playerMidPreparation)
                 {
                     Debug.Log("Player starting preparing object");
+                    audioSource.loop = true;
                     audioSource.clip = preparing;
                     audioSource.Play();
                 }
@@ -133,6 +143,7 @@ public class RandomObjectSpawner : MonoBehaviour
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
                     timesObjectPrepared++;
+                    audioSource.loop = false;
                     audioSource.clip = unloaded;
                     audioSource.Play();
                     SpawnRandomObject();
