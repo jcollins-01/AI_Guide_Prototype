@@ -30,7 +30,8 @@ public class GrabRequest : MonoBehaviour
 
     // Bools and components for handling grabbing audio
     private int grabSoundCount = 0;
-    private bool grabbed = false;
+    [HideInInspector]
+    public bool grabbed = false;
     private AudioSource playerAudio;
     private AudioClip grabSound;
     
@@ -38,7 +39,8 @@ public class GrabRequest : MonoBehaviour
     void Start()
     {
         // Grab necessary components on the game object being grabbed
-        realtimeTransform = GetComponent<RealtimeTransform>();
+        if (GetComponent<RealtimeTransform>() != null) // Grab a Realtime Transform if the object is set up for being grabbed over a network
+            realtimeTransform = GetComponent<RealtimeTransform>();
         xrGrabInteractable = GetComponent<XRGrabInteractable>();
 
         // Assign sounds from Resources
@@ -81,8 +83,6 @@ public class GrabRequest : MonoBehaviour
 
         if (gripping1 == false && gripping2 == false) // If neither controller is gripping a grabbable
         {
-            //Physics.IgnoreLayerCollision(10, 6, false); // Teleportation Area
-            //Physics.IgnoreLayerCollision(10, 7, false); // Non-Teleport Objects
             Physics.IgnoreLayerCollision(7, 0, false); // Default
             Physics.IgnoreLayerCollision(7, 6, false); // XR Rig
             Physics.IgnoreLayerCollision(7, 3, false); // Player
@@ -90,7 +90,8 @@ public class GrabRequest : MonoBehaviour
 
         if (xrGrabInteractable.isSelected && (gripping1 || gripping2)) // If selected AND pressing a grip button - prevents gripping from teleport ray
         {
-            realtimeTransform.RequestOwnership();
+            if (realtimeTransform != null)
+                realtimeTransform.RequestOwnership();
             grabbed = true;
 
             playerAudio.clip = grabSound;
@@ -100,24 +101,19 @@ public class GrabRequest : MonoBehaviour
                 grabSoundCount += 1;
             }
 
-            // Ignore collisions between Default objects (layer 0), XRRig (layer 6), Player (layer 3), Teleport Area (layer 6)
-            // Non-Teleport Obstacles (layer 8), and Interactable (layer 7)
-            //Physics.IgnoreLayerCollision(10, 6, true); // Teleportation Area
-            //Physics.IgnoreLayerCollision(10, 7, true); // Non-Teleport Objects
+            // Ignore collisions between Default objects (layer 0), XRRig (layer 6), Player (layer 3), and Interactable (layer 7)
             Physics.IgnoreLayerCollision(7, 0, true); // Default
             Physics.IgnoreLayerCollision(7, 6, true); // XR Rig
             Physics.IgnoreLayerCollision(7, 3, true); // Player
         }
         else
-            grabSoundCount = 0;
-
-        // If we grabbed an object as the participant for Park 2 (scavenger hunt), transform the scale when an object is grabbed so it disappears
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("GuidePark2_Networked"))
         {
-            if (grabbed == true && thePlayer.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy)
-                xrGrabInteractable.transform.localScale = new Vector3(0, 0, 0);
+            grabSoundCount = 0;
+            grabbed = false;
         }
+            
+
+        GuideParkFunctions();
     }
 
     private void getPlayAudio()
@@ -153,6 +149,17 @@ public class GrabRequest : MonoBehaviour
             thePlayer = m_SharedMovementScript.thePlayer;
             if (thePlayer != null)
                 sharedMovementFound = true;
+        }
+    }
+
+    private void GuideParkFunctions()
+    {
+        // If we grabbed an object as the participant for Park 2 (scavenger hunt), transform the scale when an object is grabbed so it disappears
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuidePark2_Networked"))
+        {
+            if (grabbed == true && thePlayer.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy)
+                xrGrabInteractable.transform.localScale = new Vector3(0, 0, 0);
         }
     }
 }

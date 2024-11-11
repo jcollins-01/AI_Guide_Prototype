@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class FloorDivider : MonoBehaviour
 {
@@ -74,6 +75,8 @@ public class FloorDivider : MonoBehaviour
                 else
                 {
                     floorSection = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                    floorSection.layer = 10; // Set layer to Walls and Floors so that a Reader Reference will be added to it
+                    floorSection.AddComponent<TeleportationArea>(); // Add teleportation area to each bounds so that they don't block movement
                     floorSection.transform.position = sectionPosition;
                     floorSection.transform.localScale = new Vector3(sectionWidth / 10, 1, sectionLength / 10); // Adjust scale to match section size
                 }
