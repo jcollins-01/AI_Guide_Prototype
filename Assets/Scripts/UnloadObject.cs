@@ -25,7 +25,7 @@ public class UnloadObject : MonoBehaviour
         this.gameObject.AddComponent<GrabRequest>();
         this.gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the bag, can comment to test if unloading works
         // Sets the collider with a larger y to ensure it stays in the bounds of the bag - if it's too small of an object, it will pass through and count as an unload
-        this.gameObject.GetComponent<BoxCollider>().size = new Vector3(this.gameObject.GetComponent<BoxCollider>().size.x, this.gameObject.GetComponent<BoxCollider>().size.y * 2, this.gameObject.GetComponent<BoxCollider>().size.z);
+        this.gameObject.GetComponent<BoxCollider>().size = new Vector3(this.gameObject.GetComponent<BoxCollider>().size.x, this.gameObject.GetComponent<BoxCollider>().size.y * 1.5f, this.gameObject.GetComponent<BoxCollider>().size.z);
 
         // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
