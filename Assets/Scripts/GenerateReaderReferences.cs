@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class GenerateReaderReferences : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class GenerateReaderReferences : MonoBehaviour
     private int keyItemsLayer = 13;
     private int interactableLayer = 7;
     private GameObject readerReferencePrefab;
+    private List<string> spawnableNames = new List<string>();
+    private bool audioAssigned = false;
 
     // Variables for updating room config
     private List<string> objectNames = new List<string>();
@@ -52,10 +55,13 @@ public class GenerateReaderReferences : MonoBehaviour
             return;
         }
 
+        // Find all object names of objects that can be spawned into the scene
+        GetSpawnableNames();
+
         // Find all objects in both target layers
-        //AddReaderReferencesToLayer(floorsLayer);
-        //AddReaderReferencesToLayer(keyItemsLayer);
-        //AddReaderReferencesToLayer(interactableLayer);
+        AddReaderReferencesToLayer(floorsLayer);
+        AddReaderReferencesToLayer(keyItemsLayer);
+        AddReaderReferencesToLayer(interactableLayer);
 
         if (objectNames.Count > 0)
         {
@@ -67,6 +73,56 @@ public class GenerateReaderReferences : MonoBehaviour
 
             // Checks that generated audio files exist and assigns them if they do
             AssignGeneratedAudio();
+        }
+    }
+
+    private void Update()
+    {
+        // Once audio has been assigned in one round for all static objects, check for dynamic interactables
+        if (audioAssigned)
+            CheckForNewInteractables();
+    }
+
+    private void GetSpawnableNames()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+        // Load all objects in Resources/Environments/{sceneName} folder
+        Object[] resources = Resources.LoadAll($"Environments/{sceneName}", typeof(GameObject));
+
+        // Loop through each object and add its name to the list
+        foreach (Object obj in resources)
+            spawnableNames.Add(obj.name);
+    }
+
+    private void CheckForNewInteractables()
+    {
+        // Check for all interactable objects in the scene
+        GameObject[] allObjects = FindObjectsOfType<GameObject>();
+
+        // Loop through each object
+        foreach (GameObject obj in allObjects)
+        {
+            string cleanedName = obj.name.Replace("(Clone)", "").Trim();
+            if (obj.layer == 7 && spawnableNames.Contains(cleanedName)) // If there's an interactable that matches a name from our spawnable objects
+            {
+                // Add Reader Reference if one does not exist on the object
+                GameObject readerReference = FindChildWithTag(obj, "Reader Reference");
+                if (readerReference == null)
+                    readerReference = Instantiate(readerReferencePrefab, obj.transform);
+
+                // Search all generated audio files
+                string[] audioFiles = Directory.GetFiles(resourcesPath, "*.mp3");
+                if (audioFiles.Length > 0)
+                {
+                    foreach (string filePath in audioFiles)
+                    {
+                        // Check names of every audio file - if one matches the new interactable, assign it
+                        string fileName = Path.GetFileNameWithoutExtension(filePath);
+                        if (fileName == cleanedName)
+                            StartCoroutine(LoadAudioClipFromFile(filePath, fileName)); // Load the file as an AudioClip to be assigned to a source
+                    }
+                }
+            }
         }
     }
 
@@ -85,9 +141,10 @@ public class GenerateReaderReferences : MonoBehaviour
 
                 foreach (GameObject currentObject in gameObjects)
                 {
-                    if (currentObject.name == fileName)
+                    string cleanedName = currentObject.name.Replace("(Clone)", "").Trim(); // Clean names just in case of dynamic objects (clones)
+                    if (cleanedName == fileName)
                     {
-                        Debug.Log("Found GameObject named " + currentObject.name);
+                        Debug.Log("Found GameObject named " + cleanedName);
                         // Find the Reader Reference child and be sure to grab its AudioSource
                         GameObject readerReference = FindChildWithTag(currentObject, "Reader Reference");
                         if (readerReference != null)
@@ -95,10 +152,10 @@ public class GenerateReaderReferences : MonoBehaviour
                             AudioSource audioSource = readerReference.gameObject.GetComponentInChildren<AudioSource>();
 
                             audioSource.clip = audioClip;
-                            Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {currentObject.name}");
+                            Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
                         }
                         else
-                            Debug.Log($"GameObject {currentObject.name} did not have a Reader Reference");
+                            Debug.Log($"GameObject {cleanedName} did not have a Reader Reference");
                     }
                 }
             }
@@ -144,6 +201,8 @@ public class GenerateReaderReferences : MonoBehaviour
                     // Load the file as an AudioClip to be assigned to a source
                     StartCoroutine(LoadAudioClipFromFile(filePath, fileName));
                 }
+
+                audioAssigned = true;
             }
             else
                 Debug.Log("No audio files exist in this directory.");
@@ -164,14 +223,14 @@ public class GenerateReaderReferences : MonoBehaviour
             {
                 GameObject readerReferenceInstance = Instantiate(readerReferencePrefab, obj.transform); // Instantiate the Reader Reference as a child of each object
                 objectNames.Add(obj.name); // Add the objects name for the list of key objects in our config file
-            }
+            }  
         }
     }
 
     void UpdateRoomDescriptions()
     {
         // Get current scene name
-        sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        sceneName = SceneManager.GetActiveScene().name;
         string newEntryKey = sceneName + "_Objects";
         string newEntryValue = string.Join(", ", objectNames);
 
