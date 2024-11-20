@@ -21,9 +21,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string apiKey;
     [HideInInspector]
-    public string playHTApiKey = "be0df08ac90e4fefb83a20c4325f6e46";
+    public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
     [HideInInspector]
-    public string playHTUserId = "tzQHNKayacM2E5DkkjMScWkPSy32";
+    public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -536,6 +536,8 @@ public class OpenAIQueries : MonoBehaviour
             // Parse the JSON data from config.json and assign apiKey values accordingly
             ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
             apiKey = configData.APIKey;
+            playHTApiKey = configData.PlayHTAPIKey;
+            playHTUserId = configData.PlayHTUserID;
         }
         else
         {
@@ -546,42 +548,28 @@ public class OpenAIQueries : MonoBehaviour
     private void LoadRoomDescriptions()
     {
         TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
+        string jsonFilePath = Path.Combine(Application.dataPath, "Resources", "RoomDescriptions.json");
+
         if (descriptionsAsset != null)
         {
-            DescriptionsData descriptionData = JsonUtility.FromJson<DescriptionsData>(descriptionsAsset.text);
+            // Load and parse the JSON file into a dictionary
+            string jsonContent = File.ReadAllText(jsonFilePath);
+            Dictionary<string, string> descriptionDataDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonContent);
 
             // Once we have the descriptions, check the current scene and set objectClassifications to the appropriate description
             string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-            if (descriptionData != null)
+            string sceneDescriptionKey = currentSceneName;
+            string sceneObjectsKey = currentSceneName + "_Objects";
+
+            objectClassifications = descriptionDataDict[sceneDescriptionKey];
+            objectNames = descriptionDataDict[sceneObjectsKey];
+
+            //Debug.Log("objectClassifications set to: " + objectClassifications);
+            //Debug.Log("objectNames set to: " + objectNames);
+
+            if (objectClassifications == null || objectNames == null)
             {
-                if (currentSceneName.Equals("Tutorial"))
-                {
-                    objectClassifications = descriptionData.Tutorial;
-                    objectNames = descriptionData.Test_Objects;
-                }
-                else if (currentSceneName.Equals("GuidePark1_Networked"))
-                {
-                    objectClassifications = descriptionData.GuidePark1_Networked;
-                    objectNames = descriptionData.Park1_Objects;
-                    // Debug.Log("objectClassifications set to: " + objectClassifications);
-                    // Debug.Log("queryClassifications set to: " + queryClassifications);
-                }
-                else if (currentSceneName.Equals("GuidePark2_Networked"))
-                {
-                    objectClassifications = descriptionData.GuidePark2_Networked;
-                    objectNames = descriptionData.Park2_Objects;
-                    // Debug.Log("objectClassifications set to: " + objectClassifications);
-                }
-                else if (currentSceneName.Equals("GuidePark3_Networked"))
-                {
-                    objectClassifications = descriptionData.GuidePark3_Networked;
-                    objectNames = descriptionData.Park3_Objects;
-                    // Debug.Log("objectClassifications set to: " + objectClassifications);
-                }
-                else
-                {
-                    Debug.LogWarning("Description for the current scene not found in RoomDescriptions.json.");
-                }
+                Debug.LogWarning("Description for the current scene not found in RoomDescriptions.json.");
             }
         }
         else
@@ -608,17 +596,7 @@ public class OpenAIQueries : MonoBehaviour
     private class ConfigData
     {
         public string APIKey;
-    }
-
-    private class DescriptionsData
-    {
-        public string Tutorial;
-        public string GuidePark1_Networked;
-        public string GuidePark2_Networked;
-        public string GuidePark3_Networked;
-        public string Test_Objects;
-        public string Park1_Objects;
-        public string Park2_Objects;
-        public string Park3_Objects;
+        public string PlayHTAPIKey;
+        public string PlayHTUserID;
     }
 }

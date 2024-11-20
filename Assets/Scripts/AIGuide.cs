@@ -51,10 +51,11 @@ public class AIGuide : MonoBehaviour
         else if (currentSceneName.Equals("GuidePark3_Networked"))
             role = 4; // robot
         else
-        {
-            role = 6; // invisible - was set to this for tutorial, but now we have a guide in the tutorial
-            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
-        }
+            role = 1; // human is default guide for all other rooms
+
+        // This line is needed if we use the invisible guide role
+        if (role == 6)
+            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject); 
 
         // Line to test guide changes over network
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
@@ -197,17 +198,6 @@ public class AIGuide : MonoBehaviour
                     audioSource.Play();
                     break;
                 }
-            case "completion":
-                {
-                    //Debug.Log("Playing completion sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/completion");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
-                    // Mute after playing the completion effect to prevent audio doubling
-                    StartCoroutine(muteAudioSource(audioSource, audioSource.clip));
-                    break;
-                }
         }
     }
 
@@ -337,7 +327,7 @@ public class AIGuide : MonoBehaviour
             playEffect("processing");
 
             // Construct the query to send to GPT-4
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + " The names and descriptions of key objects in the environment are as follows: " + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
 
             // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
             /*if (firstQuery)
