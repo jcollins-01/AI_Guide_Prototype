@@ -65,7 +65,7 @@ public class OpenAIQueries : MonoBehaviour
         get
         {//succintly summarize?
             return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
-                   "If the player seems like they want to describe the entire scene, then succintly summarize the scene as though you are helping the player understand the game they are in. " +
+                   "If the player seems like they want to describe the entire scene, then succinctly summarize the scene as though you are helping the player understand the game they are in. " +
                    "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
                    "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
                    "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
