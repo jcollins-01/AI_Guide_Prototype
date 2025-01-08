@@ -144,15 +144,18 @@ public class GenerateReaderReferences : MonoBehaviour
                     string cleanedName = currentObject.name.Replace("(Clone)", "").Trim(); // Clean names just in case of dynamic objects (clones)
                     if (cleanedName == fileName)
                     {
-                        Debug.Log("Found GameObject named " + cleanedName);
+                        //Debug.Log("Found GameObject named " + cleanedName);
                         // Find the Reader Reference child and be sure to grab its AudioSource
                         GameObject readerReference = FindChildWithTag(currentObject, "Reader Reference");
                         if (readerReference != null)
                         {
                             AudioSource audioSource = readerReference.gameObject.GetComponentInChildren<AudioSource>();
 
-                            audioSource.clip = audioClip;
-                            Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
+                            if (audioSource.clip == null)
+                            {
+                                audioSource.clip = audioClip;
+                                Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
+                            }
                         }
                         else
                             Debug.Log($"GameObject {cleanedName} did not have a Reader Reference");

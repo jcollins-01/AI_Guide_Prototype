@@ -23,6 +23,7 @@ public class RandomObjectSpawner : MonoBehaviour
     {
         // Assign spawnSource to be the GameObject this script is on
         spawnSource = this.gameObject;
+        Debug.Log("Spawn source is " +  this.gameObject.name);
         m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
 
         // Assign audio components for indicating an object has been unloaded / prepared
