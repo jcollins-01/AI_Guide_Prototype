@@ -87,7 +87,7 @@ public class TeleportationHandler : MonoBehaviour
         Vector3 reticlePosition = reticle.transform.position;
 
         // Perform a Physics.OverlapSphere to check objects at the reticle's position
-        float sphereRadius = 0.05f;
+        float sphereRadius = 0.02f;
         int layerMask = ~LayerMask.GetMask("Ignore Raycast");
         Collider[] hitColliders = Physics.OverlapSphere(reticlePosition, sphereRadius, layerMask);
 
@@ -95,8 +95,7 @@ public class TeleportationHandler : MonoBehaviour
         {
             foreach (Collider hitCollider in hitColliders)
             {
-                Debug.Log("Teleport reticle hit an object: " + hitCollider.gameObject.name);
-
+                //Debug.Log("Teleport reticle hit an object: " + hitCollider.gameObject.name);
                 // Call the screenreader function for the hit object
                 m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hitCollider.gameObject);
             }

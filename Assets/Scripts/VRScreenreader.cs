@@ -165,14 +165,16 @@ public class VRScreenreader : MonoBehaviour
     // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
     {
-        //Debug.Log("Teleport reticle is being checked with " + hit.name);
+        Debug.Log("Teleport reticle is being checked with " + hit.name);
         AudioSource selectedAudio;
+        // All bounds pieces should only have one child - the reader reference
+        GameObject readerReference = hit.transform.GetChild(0).gameObject;
 
         // If the object being touched by the teleport reticle is in the readerReferences AND is a Wall and Floor layer item
-        if (readerReferences.Contains(hit) && hit.layer == 10)
+        if (readerReferences.Contains(readerReference) && hit.layer == 10)
         {
             // This is an environment object, so play its label to tell the reader the name of the environment their reticle is on
-            selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+            selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
             
             if (selectedAudio.clip != null)
             {
@@ -180,7 +182,7 @@ public class VRScreenreader : MonoBehaviour
                 if (!selectedAudio.isPlaying)
                 {
                     selectedAudio.Play(); // Play the sound automatically as it is hit
-                    HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    HighlightSelectedReaderReference(hit, selectedAudio);
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
