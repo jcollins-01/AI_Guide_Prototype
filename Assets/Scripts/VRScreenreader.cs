@@ -23,7 +23,8 @@ public class VRScreenreader : MonoBehaviour
     // Variables to hold reader references we need globally
     List<GameObject> readerReferences = new List<GameObject>();
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
-    Dictionary<GameObject, bool> objectsHitByRays = new Dictionary<GameObject, bool>();
+    Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
+    Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
 
     // Variables for reader reticles and raycast
     public GameObject leftParentController;
@@ -88,29 +89,31 @@ public class VRScreenreader : MonoBehaviour
             //PlayHapticsNearingObstacles();
     }
 
-    private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference)
+    private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
     {
         GameObject hit = readerReference.transform.parent.gameObject;
         Debug.Log("Reader reticle is hitting " + hit.name);
         AudioSource selectedAudio;
+
+        // Determine which dictionary to use based on the controller
+        Dictionary<GameObject, bool> objectsHitByCurrentController =
+            (controller == leftXRController) ? objectsHitByLeftController : objectsHitByRightController;
 
         if (readerReferences.Contains(readerReference))
         {
             if (hit.layer == 13 || hit.layer == 7) // If in Key Items or Interactables layer
             {
                 // If the dict doesn't already have this hit, or if it does have the hit, but the hit is not marked as true
-                if (!objectsHitByRays.ContainsKey(hit) || objectsHitByRays[hit] != true)
+                if (!objectsHitByCurrentController.ContainsKey(hit) || objectsHitByCurrentController[hit] != true)
                 {
                     // Update dict to show current object is being hit by ray
-                    if (!objectsHitByRays.ContainsKey(hit))
-                        objectsHitByRays.Add(hit, true);
+                    if (!objectsHitByCurrentController.ContainsKey(hit))
+                        objectsHitByCurrentController.Add(hit, true);
                     else
-                        objectsHitByRays[hit] = true;
+                        objectsHitByCurrentController[hit] = true;
 
-                    PlayHapticImpulse(); // Play a short haptic impulse to signal to user that they're hitting an object
+                    PlayHapticImpulse(controller); // Play a short haptic impulse to signal to user that they're hitting an object
                     Debug.Log("Buzz played on item: " + hit.name);
-                    Debug.Log("Value for object in the dict is " + objectsHitByRays[hit].ToString());
-                    Debug.Log("Dict size is " + objectsHitByRays.Count);
                 }
 
                 if (m_VRHandlingScript.isButtonPressed)
@@ -139,24 +142,23 @@ public class VRScreenreader : MonoBehaviour
             }
 
             // Mark all objects not hit by the ray as false so that they can trigger buzzes later
-            foreach (GameObject obj in objectsHitByRays.Keys.ToList())
+            foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
             {
                 if (obj != hit)
-                    objectsHitByRays[obj] = false;
+                    objectsHitByCurrentController[obj] = false;
             }
         }
         else // We are not hitting a reader reference
         {
             // Mark all objects not hit by the ray as false so that they can trigger buzzes later
-            foreach (GameObject obj in objectsHitByRays.Keys.ToList())
-                objectsHitByRays[obj] = false;
+            foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
+                objectsHitByCurrentController[obj] = false;
         }
     }
 
-    private void PlayHapticImpulse()
+    private void PlayHapticImpulse(InputDevice controller)
     {
-        rightXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
-        leftXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
+        controller.SendHapticImpulse(1u, 0.25f, 0.25f);
     }
 
     // This is a function used so that the TeleportationHandler can play the audio of a teleportable area when the teleport reticle hits it
@@ -336,9 +338,9 @@ public class VRScreenreader : MonoBehaviour
                 reticle.transform.position = hit.point;
                 reticle.SetActive(true);
                 if (hit.transform.gameObject.GetComponentInChildren<XRGrabInteractable>())
-                    ReaderCheckReferenceAndPlayAudio(hit.transform.GetChild(0).gameObject);
+                    ReaderCheckReferenceAndPlayAudio(hit.transform.GetChild(0).gameObject, controller);
                 else
-                    ReaderCheckReferenceAndPlayAudio(hit.transform.gameObject);
+                    ReaderCheckReferenceAndPlayAudio(hit.transform.gameObject, controller);
             }
             else
             {
