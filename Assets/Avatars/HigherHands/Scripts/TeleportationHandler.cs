@@ -61,6 +61,12 @@ public class TeleportationHandler : MonoBehaviour
         if (screenreaderActive && rightIsPressed)
             CheckForReticleHit(rightTarget, rightRay);
 
+        if (!leftIsPressed && !rightIsPressed)
+        {
+            // If both teleportation triggers are not being held down, reset the lastHitObject
+            m_VRScreenreaderScript.lastHitObject = null;
+        }
+
         // If the action of teleportation has completed
         if (teleport.locomotionPhase == LocomotionPhase.Done)
         {

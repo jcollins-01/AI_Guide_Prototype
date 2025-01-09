@@ -26,13 +26,14 @@ public class VRScreenreader : MonoBehaviour
     Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
     Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
 
-    // Variables for reader reticles and raycast
+    // Variables for reader reticles, teleport reticles, and raycast
     public GameObject leftParentController;
     public GameObject rightParentController;
     GameObject leftReaderReticle;
     GameObject rightReaderReticle;
     GameObject thePlayer;
     Material glowMaterial;
+    public GameObject lastHitObject = null; // Tracks the last hit object for teleport reticle
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -129,17 +130,6 @@ public class VRScreenreader : MonoBehaviour
                     }
                 }
             }
-            /*else if (hit.layer == 10) // If in Floors layer // Might want to remove this part, only play sound if trying to teleport
-            {
-                // Play audio label automatically as it is hit
-                selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
-                {
-                    selectedAudio.Play(); 
-                    HighlightSelectedReaderReference(hit, selectedAudio);
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                }
-            }*/
 
             // Mark all objects not hit by the ray as false so that they can trigger buzzes later
             foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
@@ -165,7 +155,7 @@ public class VRScreenreader : MonoBehaviour
     // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
     {
-        Debug.Log("Teleport reticle is being checked with " + hit.name);
+        //Debug.Log("Teleport reticle is being checked with " + hit.name);
         AudioSource selectedAudio;
         // All bounds pieces should only have one child - the reader reference
         GameObject readerReference = hit.transform.GetChild(0).gameObject;
@@ -175,15 +165,22 @@ public class VRScreenreader : MonoBehaviour
         {
             // This is an environment object, so play its label to tell the reader the name of the environment their reticle is on
             selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-            
+
             if (selectedAudio.clip != null)
             {
-                //Debug.Log("Teleport reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
-                if (!selectedAudio.isPlaying)
+                // Check if the current object is the same as the last hit object
+                if (lastHitObject != hit)
                 {
-                    selectedAudio.Play(); // Play the sound automatically as it is hit
-                    HighlightSelectedReaderReference(hit, selectedAudio);
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                    //Debug.Log("Teleport reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
+                    if (!selectedAudio.isPlaying)
+                    {
+                        selectedAudio.Play(); // Play the sound automatically as it is hit
+                        HighlightSelectedReaderReference(hit, selectedAudio);
+                        Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                    }
+
+                    // Update last object hit
+                    lastHitObject = hit;
                 }
             }
         }
@@ -191,7 +188,7 @@ public class VRScreenreader : MonoBehaviour
 
     private void PlayReferenceAudioPostTeleport()
     {
-        //Debug.Log("Checking for post teleport audio labels");
+        Debug.Log("Checking for post teleport audio labels");
         AudioSource selectedAudio;
 
         // If the action of teleportation has completed
@@ -216,6 +213,8 @@ public class VRScreenreader : MonoBehaviour
                 }
             }
         }
+        else
+            Debug.Log("Locomotion not completed");
     }
 
     private void GetReaderReferences()
@@ -404,6 +403,7 @@ public class VRScreenreader : MonoBehaviour
 
     private float CheckSmallestReferenceDistance(string version)
     {
+        Debug.Log("Reached check smallest reference distance");
         float distance;
         List<float> distancesToReferences = new List<float>();
         referencesAndDistances.Clear(); // Reset dict values with each check
