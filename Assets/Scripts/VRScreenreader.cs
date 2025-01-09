@@ -36,7 +36,7 @@ public class VRScreenreader : MonoBehaviour
     public GameObject lastHitObject = null; // Tracks the last hit object for teleport reticle
 
     // Monitoring bools
-    private bool sharedMovementFound = false;
+    public bool sharedMovementFound = false;
     private bool referencesReady = false;
     private bool referencesFound = false;
 
@@ -81,8 +81,8 @@ public class VRScreenreader : MonoBehaviour
             ShootRaycast(leftXRController, leftReaderReticle, leftParentController);
             ShootRaycast(rightXRController, rightReaderReticle, rightParentController);
 
-            if (teleport && sharedMovementFound)
-                PlayReferenceAudioPostTeleport();
+            //if (teleport && sharedMovementFound)
+                //PlayReferenceAudioPostTeleport();
         }
 
         // Activate haptic screenreader functions - not in use
@@ -186,35 +186,31 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    private void PlayReferenceAudioPostTeleport()
+    // This function is called from TeleportationHandler which most accurately detects when a teleport move has been completed
+    public void PlayReferenceAudioPostTeleport()
     {
-        Debug.Log("Checking for post teleport audio labels");
+        //Debug.Log("Checking for post teleport audio labels");
         AudioSource selectedAudio;
 
-        // If the action of teleportation has completed
-        if (teleport.locomotionPhase == LocomotionPhase.Done)
-        {
-            // Check the location of the player, find the nearest reader reference that is an environment object, play its label
-            // If the value of distance attached to the given reference matches the smallestDistance
-            float smallestDistance = CheckSmallestReferenceDistance("teleport");
-            Debug.Log("After checking in post teleport, smallestDistance is " + smallestDistance);
+        // Check the location of the player, find the nearest reader reference that is an environment object, play its label
+        // If the value of distance attached to the given reference matches the smallestDistance
+        float smallestDistance = CheckSmallestReferenceDistance("teleport");
+        //Debug.Log("After checking in post teleport, smallestDistance is " + smallestDistance);
 
-            foreach (GameObject reference in referencesAndDistances.Keys)
+        foreach (GameObject reference in referencesAndDistances.Keys)
+        {
+            // If the value of distance attached to the given reference matches the smallestDistance
+            if (referencesAndDistances[reference] == smallestDistance)
             {
-                // If the value of distance attached to the given reference matches the smallestDistance
-                if (referencesAndDistances[reference] == smallestDistance)
-                {
-                    Debug.Log("Closest environmental object is " + reference.transform.parent.name);
-                    // Play the label of the closest floor / environmental object
-                    selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying)
-                        selectedAudio.Play();
-                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                }
+                //Debug.Log("Closest environmental object is " + reference.transform.parent.name);
+                // Play the label of the closest floor / environmental object
+                selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                if (selectedAudio.isPlaying)
+                    selectedAudio.Stop(); // Stops playing if we were just using the reticle to hear this area's name
+                selectedAudio.Play();
+                Debug.Log("Now playing post audio from " + selectedAudio.transform.parent.transform.parent.name);
             }
         }
-        else
-            Debug.Log("Locomotion not completed");
     }
 
     private void GetReaderReferences()
@@ -403,7 +399,6 @@ public class VRScreenreader : MonoBehaviour
 
     private float CheckSmallestReferenceDistance(string version)
     {
-        Debug.Log("Reached check smallest reference distance");
         float distance;
         List<float> distancesToReferences = new List<float>();
         referencesAndDistances.Clear(); // Reset dict values with each check
@@ -414,7 +409,7 @@ public class VRScreenreader : MonoBehaviour
             foreach (GameObject reference in readerReferences)
             {
                 // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
-                if (reference.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
                     distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
                     distancesToReferences.Add(distance);
