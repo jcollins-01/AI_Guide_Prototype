@@ -145,6 +145,12 @@ public class VRScreenreader : MonoBehaviour
                     objectsHitByRays[obj] = false;
             }
         }
+        else // We are not hitting a reader reference
+        {
+            // Mark all objects not hit by the ray as false so that they can trigger buzzes later
+            foreach (GameObject obj in objectsHitByRays.Keys.ToList())
+                objectsHitByRays[obj] = false;
+        }
     }
 
     private void PlayHapticImpulse()
