@@ -52,13 +52,13 @@ public class TeleportationHandler : MonoBehaviour
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
-        if (screenreaderActive)
+        if (screenreaderActive && leftIsPressed)
             CheckForReticleHit(leftTarget, leftRay);
 
         bool rightIsPressed = CheckIfButtonDown(rightTarget);
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
-        if (screenreaderActive)
+        if (screenreaderActive && rightIsPressed)
             CheckForReticleHit(rightTarget, rightRay);
 
         // If the action of teleportation has completed
@@ -78,7 +78,34 @@ public class TeleportationHandler : MonoBehaviour
     // Function to check if the ray hits something
     void CheckForReticleHit(XRController controller, XRInteractorLineVisual ray)
     {
-        RaycastHit hit;
+        // Ensure the reticle exists and is active
+        GameObject reticle = ray.reticle;
+        if (reticle == null || !reticle.activeInHierarchy)
+            return;
+
+        // Get the position of the reticle
+        Vector3 reticlePosition = reticle.transform.position;
+
+        // Perform a Physics.OverlapSphere to check objects at the reticle's position
+        float sphereRadius = 0.05f;
+        int layerMask = ~LayerMask.GetMask("Ignore Raycast");
+        Collider[] hitColliders = Physics.OverlapSphere(reticlePosition, sphereRadius, layerMask);
+
+        if (hitColliders.Length > 0)
+        {
+            foreach (Collider hitCollider in hitColliders)
+            {
+                Debug.Log("Teleport reticle hit an object: " + hitCollider.gameObject.name);
+
+                // Call the screenreader function for the hit object
+                m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hitCollider.gameObject);
+            }
+        }
+        else
+            Debug.Log("No objects detected at reticle position.");
+
+
+        /*RaycastHit hit;
         Ray raycast = new Ray(ray.transform.position, ray.transform.forward);
 
         // Perform raycast to detect objects in the teleportableLayerMask
@@ -88,9 +115,9 @@ public class TeleportationHandler : MonoBehaviour
             // Check if the reticle hit a teleportable surface
             if (hit.collider != null)
             {
-                //Debug.Log("Teleport reticle hit an object: " + hit.collider.gameObject.name);
+                Debug.Log("Teleport reticle hit an object: " + hit.collider.gameObject.name);
                 m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hit.transform.gameObject);
             }
-        }
+        }*/
     }
 }

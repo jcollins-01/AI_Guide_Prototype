@@ -129,7 +129,7 @@ public class VRScreenreader : MonoBehaviour
                     }
                 }
             }
-            else if (hit.layer == 10) // If in Floors layer // Might want to remove this part, only play sound if trying to teleport
+            /*else if (hit.layer == 10) // If in Floors layer // Might want to remove this part, only play sound if trying to teleport
             {
                 // Play audio label automatically as it is hit
                 selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
@@ -139,7 +139,7 @@ public class VRScreenreader : MonoBehaviour
                     HighlightSelectedReaderReference(hit, selectedAudio);
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
-            }
+            }*/
 
             // Mark all objects not hit by the ray as false so that they can trigger buzzes later
             foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
