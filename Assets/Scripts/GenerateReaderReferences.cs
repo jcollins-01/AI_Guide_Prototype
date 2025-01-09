@@ -16,7 +16,7 @@ public class GenerateReaderReferences : MonoBehaviour
     private int interactableLayer = 7;
     private GameObject readerReferencePrefab;
     private List<string> spawnableNames = new List<string>();
-    private bool audioAssigned = false;
+    public bool audioAssigned = false;
 
     // Variables for updating room config
     private List<string> objectNames = new List<string>();

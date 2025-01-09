@@ -10,6 +10,7 @@ public class VRScreenreader : MonoBehaviour
     // Variables to hold scripts we need access to
     private VRHandling m_VRHandlingScript;
     private SharedMovement m_SharedMovementScript;
+    private GenerateReaderReferences m_GenerateReaderReferencesScript;
 
     // Components to grab from scripts
     private TeleportationProvider teleport;
@@ -33,14 +34,14 @@ public class VRScreenreader : MonoBehaviour
 
     // Monitoring bools
     private bool sharedMovementFound = false;
+    private bool referencesReady = false;
     private bool referencesFound = false;
 
     // Start is called before the first frame update
     void Start()
     {
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
-        gameObject.AddComponent<GenerateReaderReferences>();
-        GetReaderReferences();
+        m_GenerateReaderReferencesScript = gameObject.AddComponent<GenerateReaderReferences>();
 
         // Load and instantiate the reader reticles into the scene
         leftReaderReticle = Resources.Load<GameObject>("Screenreader/Left Reader Reticle");
@@ -66,6 +67,10 @@ public class VRScreenreader : MonoBehaviour
         if (!sharedMovementFound)
             getSharedMovement();
 
+        // Check if all initial reader references have been generated and assigned audio
+        if (!referencesReady)
+            CheckIfReaderReferencesReady();
+
         // Activate audio screenreader functions
         if (controllersGrabbed && referencesFound)
         {
@@ -82,17 +87,19 @@ public class VRScreenreader : MonoBehaviour
             //PlayHapticsNearingObstacles();
     }
 
-    public void ReaderCheckReferenceAndPlayAudio(GameObject hit)
+    private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference)
     {
-        //Debug.Log("Reader reticle is hitting " + hit.name);
+        GameObject hit = readerReference.transform.parent.gameObject;
+        Debug.Log("Reader reticle is hitting " + hit.name);
         AudioSource selectedAudio;
         Dictionary<GameObject, float> lastBuzzTime = new Dictionary<GameObject, float>();
         float buzzCooldown = 1.0f; // Cooldown time in seconds
 
-        if (readerReferences.Contains(hit))
+        if (readerReferences.Contains(readerReference))
         {
             if (hit.layer == 13 || hit.layer == 7) // If in Key Items or Interactables layer
             {
+                Debug.Log("hit is a key item or interactable");
                 // Play short haptic buzz to indicate contact with item
                 float currentTime = Time.time;
 
@@ -106,24 +113,26 @@ public class VRScreenreader : MonoBehaviour
 
                 if (m_VRHandlingScript.isButtonPressed)
                 {
+                    Debug.Log("Waiting for button press to read");
                     // Play audio label if the button is pressed
-                    selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                    selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
                     {
                         selectedAudio.Play();
-                        HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                        HighlightSelectedReaderReference(hit, selectedAudio);
                         Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                     }
                 }
             }
-            else if (hit.layer == 10) // If in Floors and Walls layer
+            else if (hit.layer == 10) // If in Floors layer
             {
+                Debug.Log("hit is a floor");
                 // Play audio label automatically as it is hit
-                selectedAudio = hit.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                 if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
                 {
                     selectedAudio.Play(); 
-                    HighlightSelectedReaderReference(hit.transform.parent.gameObject, selectedAudio);
+                    HighlightSelectedReaderReference(hit, selectedAudio);
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
             }
@@ -136,9 +145,11 @@ public class VRScreenreader : MonoBehaviour
         leftXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
     }
 
+    // This is a function used so that the TeleportationHandler can play the audio of a teleportable area when the teleport reticle hits it
+    // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
     {
-        //Debug.Log("Teleport reticle is being checked");
+        Debug.Log("Teleport reticle is being checked with " + hit.name);
         AudioSource selectedAudio;
 
         // If the object being touched by the teleport reticle is in the readerReferences AND is a Wall and Floor layer item
@@ -189,7 +200,7 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    void GetReaderReferences()
+    private void GetReaderReferences()
     {
         Debug.Log("Getting reader references");
         // Get all reader reference objects in scene
@@ -410,6 +421,18 @@ public class VRScreenreader : MonoBehaviour
 
         //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
+    }
+
+    private void CheckIfReaderReferencesReady()
+    {
+        if (m_GenerateReaderReferencesScript != null)
+        {
+            if (m_GenerateReaderReferencesScript.audioAssigned == true)
+            {
+                referencesReady = true;
+                GetReaderReferences();
+            }
+        }
     }
 
     private void AssignHandling()
