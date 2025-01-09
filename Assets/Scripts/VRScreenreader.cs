@@ -23,6 +23,7 @@ public class VRScreenreader : MonoBehaviour
     // Variables to hold reader references we need globally
     List<GameObject> readerReferences = new List<GameObject>();
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
+    Dictionary<GameObject, bool> objectsHitByRays = new Dictionary<GameObject, bool>();
 
     // Variables for reader reticles and raycast
     public GameObject leftParentController;
@@ -92,23 +93,24 @@ public class VRScreenreader : MonoBehaviour
         GameObject hit = readerReference.transform.parent.gameObject;
         Debug.Log("Reader reticle is hitting " + hit.name);
         AudioSource selectedAudio;
-        Dictionary<GameObject, float> lastBuzzTime = new Dictionary<GameObject, float>();
-        float buzzCooldown = 1.0f; // Cooldown time in seconds
 
         if (readerReferences.Contains(readerReference))
         {
             if (hit.layer == 13 || hit.layer == 7) // If in Key Items or Interactables layer
             {
-                Debug.Log("hit is a key item or interactable");
-                // Play short haptic buzz to indicate contact with item
-                float currentTime = Time.time;
-
-                // Check if it's time to play haptics again
-                if (!lastBuzzTime.ContainsKey(hit) || currentTime - lastBuzzTime[hit] > buzzCooldown)
+                // If the dict doesn't already have this hit, or if it does have the hit, but the hit is not marked as true
+                if (!objectsHitByRays.ContainsKey(hit) || objectsHitByRays[hit] != true)
                 {
-                    lastBuzzTime[hit] = currentTime; // Update last buzz time
+                    // Update dict to show current object is being hit by ray
+                    if (!objectsHitByRays.ContainsKey(hit))
+                        objectsHitByRays.Add(hit, true);
+                    else
+                        objectsHitByRays[hit] = true;
+
                     PlayHapticImpulse(); // Play a short haptic impulse to signal to user that they're hitting an object
                     Debug.Log("Buzz played on item: " + hit.name);
+                    Debug.Log("Value for object in the dict is " + objectsHitByRays[hit].ToString());
+                    Debug.Log("Dict size is " + objectsHitByRays.Count);
                 }
 
                 if (m_VRHandlingScript.isButtonPressed)
@@ -124,9 +126,8 @@ public class VRScreenreader : MonoBehaviour
                     }
                 }
             }
-            else if (hit.layer == 10) // If in Floors layer
+            else if (hit.layer == 10) // If in Floors layer // Might want to remove this part, only play sound if trying to teleport
             {
-                Debug.Log("hit is a floor");
                 // Play audio label automatically as it is hit
                 selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                 if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
@@ -135,6 +136,13 @@ public class VRScreenreader : MonoBehaviour
                     HighlightSelectedReaderReference(hit, selectedAudio);
                     Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                 }
+            }
+
+            // Mark all objects not hit by the ray as false so that they can trigger buzzes later
+            foreach (GameObject obj in objectsHitByRays.Keys.ToList())
+            {
+                if (obj != hit)
+                    objectsHitByRays[obj] = false;
             }
         }
     }
@@ -149,7 +157,7 @@ public class VRScreenreader : MonoBehaviour
     // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
     {
-        Debug.Log("Teleport reticle is being checked with " + hit.name);
+        //Debug.Log("Teleport reticle is being checked with " + hit.name);
         AudioSource selectedAudio;
 
         // If the object being touched by the teleport reticle is in the readerReferences AND is a Wall and Floor layer item
