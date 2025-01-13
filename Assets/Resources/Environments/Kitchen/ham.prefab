@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2577013147196705681}
   - component: {fileID: 1169219114901730582}
   - component: {fileID: 78581921821746276}
-  - component: {fileID: -3026247909342363621}
+  - component: {fileID: -3063168050698015154}
   m_Layer: 7
   m_Name: ham
   m_TagString: Untagged
@@ -265,8 +265,8 @@ MonoBehaviour:
   m_StartingSingleGrabTransformers: []
   m_StartingMultipleGrabTransformers: []
   m_AddDefaultGrabTransformers: 1
---- !u!64 &-3026247909342363621
-MeshCollider:
+--- !u!65 &-3063168050698015154
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -283,7 +283,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2093618290791676878, guid: 3e878953f5034a84784b5502e3d4cf51, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 1.391101, y: 0.83, z: 0.83}
+  m_Center: {x: -0.19979687, y: 0.0003685057, z: 0.00034381446}
