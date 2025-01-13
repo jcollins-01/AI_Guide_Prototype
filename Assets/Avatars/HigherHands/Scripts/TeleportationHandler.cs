@@ -102,12 +102,9 @@ public class TeleportationHandler : MonoBehaviour
 
         if (hitColliders.Length > 0)
         {
-            foreach (Collider hitCollider in hitColliders)
-            {
-                //Debug.Log("Teleport reticle hit an object: " + hitCollider.gameObject.name);
-                // Call the screenreader function for the hit object
-                m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hitCollider.gameObject);
-            }
+            //Debug.Log("Teleport reticle hit an object");
+            // Hitting a teleportable object, so activate screenreader and share position of reticle
+            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
         }
         else
             Debug.Log("No objects detected at reticle position.");

@@ -34,6 +34,7 @@ public class VRScreenreader : MonoBehaviour
     GameObject thePlayer;
     Material glowMaterial;
     public GameObject lastHitObject = null; // Tracks the last hit object for teleport reticle
+    public Vector3 handlerReticlePosition; // Holds the value of teleport reticles created in TeleportationHandler
 
     // Monitoring bools
     public bool sharedMovementFound = false;
@@ -80,9 +81,6 @@ public class VRScreenreader : MonoBehaviour
             // Perform raycast for left and right controllers
             ShootRaycast(leftXRController, leftReaderReticle, leftParentController);
             ShootRaycast(rightXRController, rightReaderReticle, rightParentController);
-
-            //if (teleport && sharedMovementFound)
-                //PlayReferenceAudioPostTeleport();
         }
 
         // Activate haptic screenreader functions - not in use
@@ -93,7 +91,7 @@ public class VRScreenreader : MonoBehaviour
     private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
     {
         GameObject hit = readerReference.transform.parent.gameObject;
-        Debug.Log("Reader reticle is hitting " + hit.name);
+        //Debug.Log("Reader reticle is hitting " + hit.name);
         AudioSource selectedAudio;
 
         // Determine which dictionary to use based on the controller
@@ -114,12 +112,10 @@ public class VRScreenreader : MonoBehaviour
                         objectsHitByCurrentController[hit] = true;
 
                     PlayHapticImpulse(controller); // Play a short haptic impulse to signal to user that they're hitting an object
-                    Debug.Log("Buzz played on item: " + hit.name);
                 }
 
                 if (m_VRHandlingScript.isButtonPressed)
                 {
-                    Debug.Log("Waiting for button press to read");
                     // Play audio label if the button is pressed
                     selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                     if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
@@ -153,34 +149,42 @@ public class VRScreenreader : MonoBehaviour
 
     // This is a function used so that the TeleportationHandler can play the audio of a teleportable area when the teleport reticle hits it
     // Teleport reticle is separate from the reader reticle
-    public void TeleportCheckReferenceAndPlayAudio(GameObject hit)
+    public void TeleportCheckReferenceAndPlayAudio(Vector3 reticlePosition) // was GameObject hit
     {
         //Debug.Log("Teleport reticle is being checked with " + hit.name);
         AudioSource selectedAudio;
-        // All bounds pieces should only have one child - the reader reference
-        GameObject readerReference = hit.transform.GetChild(0).gameObject;
 
-        // If the object being touched by the teleport reticle is in the readerReferences AND is a Wall and Floor layer item
-        if (readerReferences.Contains(readerReference) && hit.layer == 10)
+        // Assign handlerReticlePosition to the value passed from TeleportationHandler, to be used in CheckSmallestReferenceDistance
+        handlerReticlePosition = reticlePosition;
+
+        // Set the value of the distance passed to share here
+        float smallestDistance = CheckSmallestReferenceDistance("pre-teleport");
+
+        foreach (GameObject reference in referencesAndDistances.Keys)
         {
-            // This is an environment object, so play its label to tell the reader the name of the environment their reticle is on
-            selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-
-            if (selectedAudio.clip != null)
+            // If the value of distance attached to the given reference matches the smallestDistance
+            if (referencesAndDistances[reference] == smallestDistance)
             {
-                // Check if the current object is the same as the last hit object
-                if (lastHitObject != hit)
-                {
-                    //Debug.Log("Teleport reticle is hitting a reader reference with an environment label + description on layer " + hit.layer);
-                    if (!selectedAudio.isPlaying)
-                    {
-                        selectedAudio.Play(); // Play the sound automatically as it is hit
-                        HighlightSelectedReaderReference(hit, selectedAudio);
-                        Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                    }
+                // This is the closest environment object, so play its label to tell the reader the name of the environment their reticle is on
+                selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+                // Assign the environmental object as the hit to compare between teleports, since this object contains the appropriate name to compare
+                GameObject hit = reference.transform.parent.gameObject;
 
-                    // Update last object hit
-                    lastHitObject = hit;
+                if (selectedAudio.clip != null)
+                {
+                    // Check if the current object is the same as the last hit object
+                    if (lastHitObject != hit)
+                    {
+                        if (!selectedAudio.isPlaying)
+                        {
+                            selectedAudio.Play(); // Play the sound automatically as it is hit
+                            HighlightSelectedReaderReference(hit, selectedAudio);
+                            Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                        }
+
+                        // Update last object hit
+                        lastHitObject = hit;
+                    }
                 }
             }
         }
@@ -412,6 +416,21 @@ public class VRScreenreader : MonoBehaviour
                 if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
                     distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
+                    distancesToReferences.Add(distance);
+                    referencesAndDistances.Add(reference, distance);
+                }
+            }
+        }
+        else if (version.Equals("pre-teleport"))
+        {
+            Debug.Log("Reached pre-teleport");
+            // Calculate the distance between the player and each object in environmentCues
+            foreach (GameObject reference in readerReferences)
+            {
+                // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
+                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                {
+                    distance = Vector3.Distance(reference.transform.position, handlerReticlePosition);
                     distancesToReferences.Add(distance);
                     referencesAndDistances.Add(reference, distance);
                 }
