@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class PrepareObject : MonoBehaviour
 {
@@ -51,14 +52,9 @@ public class PrepareObject : MonoBehaviour
                 break;
         }
 
-        // Set up the prep tool's collider as a trigger so we can detect when it gets close to this spawned object
-        if (prepTool.GetComponent<Collider>())
-            prepTool.GetComponent<Collider>().isTrigger = true;
-        else
-        {
-            prepTool.AddComponent<SphereCollider>();
-            prepTool.GetComponent<Collider>().isTrigger = true;
-        }
+        // Set up a new collider for the prep tool as a trigger so we can detect when it gets close to this spawned object
+        SphereCollider triggerCollider = prepTool.AddComponent<SphereCollider>();
+        triggerCollider.isTrigger = true;
     }
 
     // Update is called once per frame
@@ -81,6 +77,7 @@ public class PrepareObject : MonoBehaviour
 
         if (isToolNearby && isButtonPressed)
         {
+            Debug.Log("Entered mid prep");
             playerMidPreparation = true;
             holdTime += Time.deltaTime;
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
@@ -91,6 +88,7 @@ public class PrepareObject : MonoBehaviour
         }
         else
         {
+            Debug.Log("Not prepping");
             holdTime = 0.0f; // Reset hold time if button is released or tool is not nearby
             playerMidPreparation = false;
         }

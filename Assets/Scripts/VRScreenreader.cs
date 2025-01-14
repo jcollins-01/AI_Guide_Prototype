@@ -90,8 +90,10 @@ public class VRScreenreader : MonoBehaviour
 
     private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
     {
+        //Debug.Log("Reader reticle is hitting " + readerReference.name);
+        //Debug.Log("Reader reticle is hitting parent " + readerReference.transform.parent.gameObject.name);
         GameObject hit = readerReference.transform.parent.gameObject;
-        //Debug.Log("Reader reticle is hitting " + hit.name);
+        //Debug.Log("Reader reticle is hitting hit " + hit.name);
         AudioSource selectedAudio;
 
         // Determine which dictionary to use based on the controller
