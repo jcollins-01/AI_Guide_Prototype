@@ -81,7 +81,7 @@ public class PrepareObject : MonoBehaviour
 
         if (isToolNearby && isButtonPressed)
         {
-            Debug.Log("Entered mid prep");
+            //Debug.Log("Entered mid prep");
             playerMidPreparation = true;
             holdTime += Time.deltaTime;
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
@@ -92,7 +92,7 @@ public class PrepareObject : MonoBehaviour
         }
         else
         {
-            Debug.Log("Not prepping");
+            //Debug.Log("Not prepping");
             holdTime = 0.0f; // Reset hold time if button is released or tool is not nearby
             playerMidPreparation = false;
         }
