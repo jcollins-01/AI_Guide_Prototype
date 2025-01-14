@@ -63,7 +63,7 @@ public class PrepareObject : MonoBehaviour
         BoxCollider triggerCollider = this.gameObject.AddComponent<BoxCollider>();
         triggerCollider.isTrigger = true;
         //triggerCollider.radius = 2f;
-        triggerCollider.size = new Vector3(5f, 5f, 5f);
+        triggerCollider.size = new Vector3(1.5f, 1.5f, 1.5f);
     }
 
     // Update is called once per frame
