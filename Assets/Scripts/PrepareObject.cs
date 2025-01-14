@@ -28,10 +28,11 @@ public class PrepareObject : MonoBehaviour
     {
         Debug.Log("A new object has been spawned for preparation");
 
+        // Find necessary components
+        m_VRHandlingScript = FindObjectOfType<VRHandling>();
+
         // Add necessary components for spawned object physics + trigger detection with prep tool
         this.gameObject.layer = 7; // Make the object Interactable if it isn't already
-        this.gameObject.AddComponent<Rigidbody>();
-        this.gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the table
 
         // Add a collider to the table for physics
         if (table != null)
@@ -53,8 +54,11 @@ public class PrepareObject : MonoBehaviour
         }
 
         // Set up a new collider for the prep tool as a trigger so we can detect when it gets close to this spawned object
-        SphereCollider triggerCollider = prepTool.AddComponent<SphereCollider>();
+        //SphereCollider triggerCollider = prepTool.AddComponent<SphereCollider>();
+        BoxCollider triggerCollider = this.gameObject.AddComponent<BoxCollider>();
         triggerCollider.isTrigger = true;
+        //triggerCollider.radius = 2f;
+        triggerCollider.size = new Vector3(5f, 5f, 5f);
     }
 
     // Update is called once per frame
@@ -72,7 +76,7 @@ public class PrepareObject : MonoBehaviour
     private void CheckIfPrepToolNearbyAndPressed()
     {
         // Create a variable to track primary button press
-        bool isButtonPressed = false;
+        bool isButtonPressed;
         rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out isButtonPressed);
 
         if (isToolNearby && isButtonPressed)
