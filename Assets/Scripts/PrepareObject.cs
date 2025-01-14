@@ -11,6 +11,8 @@ public class PrepareObject : MonoBehaviour
    
     private GameObject table;
     private GameObject prepTool;
+    private Vector3 prepToolSpawnPosition;
+    private Quaternion prepToolSpawnRotation;
 
     // Variables for handling preparation zone and timing
     public float requiredHoldTime = 3.0f; // Time in seconds the button must be held
@@ -53,6 +55,9 @@ public class PrepareObject : MonoBehaviour
                 break;
         }
 
+        prepToolSpawnPosition = prepTool.transform.position;
+        prepToolSpawnRotation = prepTool.transform.rotation;
+
         // Set up a new collider for the prep tool as a trigger so we can detect when it gets close to this spawned object
         //SphereCollider triggerCollider = prepTool.AddComponent<SphereCollider>();
         BoxCollider triggerCollider = this.gameObject.AddComponent<BoxCollider>();
@@ -88,6 +93,10 @@ public class PrepareObject : MonoBehaviour
             {
                 playerPreparedObject = true;
                 Debug.Log("Player prepared the object.");
+
+                // Use prepTool spawn position and rotation to return prepTool to original spot
+                prepTool.transform.position = prepToolSpawnPosition;
+                prepTool.transform.rotation = prepToolSpawnRotation;
             }
         }
         else
