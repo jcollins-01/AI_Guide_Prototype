@@ -343,8 +343,14 @@ public class VRScreenreader : MonoBehaviour
                 // Move the reticle to the hit point
                 reticle.transform.position = hit.point;
                 reticle.SetActive(true);
+
                 if (hit.transform.gameObject.GetComponentInChildren<XRGrabInteractable>())
-                    ReaderCheckReferenceAndPlayAudio(hit.transform.GetChild(0).gameObject, controller);
+                {
+                    XRGrabInteractable grab = hit.transform.gameObject.GetComponentInChildren<XRGrabInteractable>();
+                    // If the object is not being actively held by the user while reticle is touching it
+                    if (!grab.isSelected)
+                        ReaderCheckReferenceAndPlayAudio(hit.transform.GetChild(0).gameObject, controller);
+                } 
                 else
                     ReaderCheckReferenceAndPlayAudio(hit.transform.gameObject, controller);
             }
