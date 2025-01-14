@@ -155,6 +155,11 @@ public class GenerateReaderReferences : MonoBehaviour
                             {
                                 audioSource.clip = audioClip;
                                 Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
+                                
+                                // If we have already gone through our first round of audio assignment,
+                                // Any object being assigned is a dynamic interactable
+                                if (audioAssigned)
+                                    FindObjectOfType<VRScreenreader>().GetReaderReferences(); // Update screenreader's ref dict with new dynamic interactable
                             }
                         }
                         else

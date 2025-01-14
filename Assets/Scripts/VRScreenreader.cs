@@ -21,7 +21,7 @@ public class VRScreenreader : MonoBehaviour
     private bool controllersGrabbed = false;
 
     // Variables to hold reader references we need globally
-    List<GameObject> readerReferences = new List<GameObject>();
+    public List<GameObject> readerReferences = new List<GameObject>();
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
     Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
     Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
@@ -85,15 +85,12 @@ public class VRScreenreader : MonoBehaviour
 
         // Activate haptic screenreader functions - not in use
         //if (sharedMovementFound && referencesFound)
-            //PlayHapticsNearingObstacles();
+        //PlayHapticsNearingObstacles();
     }
 
     private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
     {
-        //Debug.Log("Reader reticle is hitting " + readerReference.name);
-        //Debug.Log("Reader reticle is hitting parent " + readerReference.transform.parent.gameObject.name);
         GameObject hit = readerReference.transform.parent.gameObject;
-        //Debug.Log("Reader reticle is hitting hit " + hit.name);
         AudioSource selectedAudio;
 
         // Determine which dictionary to use based on the controller
@@ -126,6 +123,8 @@ public class VRScreenreader : MonoBehaviour
                         HighlightSelectedReaderReference(hit, selectedAudio);
                         Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                     }
+                    else
+                        Debug.Log("Object found with reader reference but no assigned audio clip");
                 }
             }
 
@@ -219,9 +218,13 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    private void GetReaderReferences()
+    public void GetReaderReferences()
     {
         Debug.Log("Getting reader references");
+
+        // Clear larger readerReferences dictionary each time this is called, so our dictionary is fresh + won't call for destroyed items
+        readerReferences.Clear();
+
         // Get all reader reference objects in scene
         GameObject[] tempReaderReferences = GameObject.FindGameObjectsWithTag("Reader Reference");
 
