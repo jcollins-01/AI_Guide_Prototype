@@ -120,31 +120,23 @@ public class RandomObjectSpawner : MonoBehaviour
         {
             if (spawnedObject.GetComponent<PrepareObject>())
             {
-                Debug.Log("Prep value is " + spawnedObject.GetComponent<PrepareObject>().playerMidPreparation);
                 // If player is mid-preparation
                 if (spawnedObject.GetComponent<PrepareObject>().playerMidPreparation)
                 {
                     Debug.Log("Player starting preparing object");
                     if (!audioSource.isPlaying)
                     {
-                        audioSource.loop = true;
                         audioSource.clip = preparing;
                         audioSource.Play();
                     }
                 }
-                else // If player stops preparation or finishes preparing, stop playing this AudioClip
-                {
-                    //if (audioSource.clip == preparing) // If the last clip playing was the mid-preparation one
-                        //audioSource.Stop();
-                }
-
-                // If player has finished preparing object
+                
+                // If player finishes preparation
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
                     timesObjectPrepared++;
-                    audioSource.loop = false;
                     audioSource.clip = unloaded;
                     audioSource.Play();
                     SpawnRandomObject();
