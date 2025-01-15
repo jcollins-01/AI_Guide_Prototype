@@ -26,9 +26,9 @@ public class ShortTaskController : MonoBehaviour
     // Variables to track scores
     public bool checkScores;
     private bool previousCheckScoreState;
-    private int navigationTaskScore = 0;
-    private int unloadingTaskScore = 0;
-    private int preparationTaskScore = 0;
+    public int navigationTaskScore = 0;
+    public int unloadingTaskScore = 0;
+    public int preparationTaskScore = 0;
 
     // Start is called before the first frame update
     void Start()
