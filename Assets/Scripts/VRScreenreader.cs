@@ -345,15 +345,20 @@ public class VRScreenreader : MonoBehaviour
                 reticle.transform.position = hit.point;
                 reticle.SetActive(true);
 
+                GameObject readerReference = hit.transform.gameObject; // Default assignment
+
+                if (hit.transform.Find("Reader Reference(Clone)")) // If we find a Reader Ref child, switch assignment
+                    readerReference = hit.transform.Find("Reader Reference(Clone)").gameObject;
+
                 if (hit.transform.gameObject.GetComponentInChildren<XRGrabInteractable>())
                 {
                     XRGrabInteractable grab = hit.transform.gameObject.GetComponentInChildren<XRGrabInteractable>();
                     // If the object is not being actively held by the user while reticle is touching it
                     if (!grab.isSelected)
-                        ReaderCheckReferenceAndPlayAudio(hit.transform.GetChild(0).gameObject, controller);
+                        ReaderCheckReferenceAndPlayAudio(readerReference, controller);
                 } 
                 else
-                    ReaderCheckReferenceAndPlayAudio(hit.transform.gameObject, controller);
+                    ReaderCheckReferenceAndPlayAudio(readerReference, controller);
             }
             else
             {
@@ -366,22 +371,35 @@ public class VRScreenreader : MonoBehaviour
 
     void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)
     {
-        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
+        // Store original materials for each renderer
+        Dictionary<Renderer, Material> originalMaterials = new Dictionary<Renderer, Material>();
 
-        // Add a glow around the selectedReference + brighten its color
-        selectedReference.GetComponent<Renderer>().material = glowMaterial;
+        // Get all renderers in the selected object and its children
+        Renderer[] renderers = selectedReference.GetComponentsInChildren<Renderer>();
 
-        // Return selectedReference renderers to normal after coroutine finishes
-        StartCoroutine(WaitForAudioToEnd(selectedReference, selectedAudio, previousMaterial));
+        // Apply the glow material to all renderers and save their original materials
+        foreach (Renderer renderer in renderers)
+        {
+            originalMaterials[renderer] = renderer.material;
+            renderer.material = glowMaterial;
+        }
+
+        StartCoroutine(WaitForAudioToEnd(renderers, selectedAudio, originalMaterials));
     }
 
-    IEnumerator WaitForAudioToEnd(GameObject selectedReference, AudioSource selectedAudio, Material previousMaterial)
+    IEnumerator WaitForAudioToEnd(Renderer[] renderers, AudioSource selectedAudio, Dictionary<Renderer, Material> originalMaterials)
     {
-        // Wait until the audio finishes
+        // Wait until the audio finishes playing
         yield return new WaitWhile(() => selectedAudio.isPlaying);
 
-        // Restore the original material
-        selectedReference.GetComponent<Renderer>().material = previousMaterial;
+        // Restore the original materials for all affected renderers
+        foreach (Renderer renderer in renderers)
+        {
+            if (renderer != null && originalMaterials.ContainsKey(renderer))
+            {
+                renderer.material = originalMaterials[renderer];
+            }
+        }
     }
 
     /**
