@@ -114,7 +114,8 @@ public class VRScreenreader : MonoBehaviour
                     PlayHapticImpulse(controller); // Play a short haptic impulse to signal to user that they're hitting an object
                 }
 
-                if (m_VRHandlingScript.isButtonPressed)
+                // If right or left secondary buttons are pressed (left secondary is muting button for the guide)
+                if (m_VRHandlingScript.isButtonPressed || m_VRHandlingScript.isMutingButtonPressed)
                 {
                     // Play audio label if the button is pressed
                     selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
