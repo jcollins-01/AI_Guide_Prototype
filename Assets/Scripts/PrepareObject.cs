@@ -58,12 +58,21 @@ public class PrepareObject : MonoBehaviour
         prepToolSpawnPosition = prepTool.transform.position;
         prepToolSpawnRotation = prepTool.transform.rotation;
 
+        // Create a new GameObject to hold a trigger collider and child it under the spawned object
+        // This makes the trigger collider size a bit more precise as it follows its own scale, rather than a game object's scale when added directly
+        GameObject trigger = new GameObject();
+        trigger.name = "Prep Trigger Collider";
+        trigger.transform.parent = this.transform.transform;
+
+        // Get the world position and rotation of the parent object so the new child is positioned correctly
+        Transform parentTransform = this.gameObject.transform;
+        trigger.transform.position = parentTransform.position;
+        trigger.transform.rotation = parentTransform.rotation;
+
         // Set up a new collider for the prep tool as a trigger so we can detect when it gets close to this spawned object
-        //SphereCollider triggerCollider = prepTool.AddComponent<SphereCollider>();
-        BoxCollider triggerCollider = this.gameObject.AddComponent<BoxCollider>();
+        BoxCollider triggerCollider = trigger.AddComponent<BoxCollider>();
         triggerCollider.isTrigger = true;
-        //triggerCollider.radius = 2f;
-        triggerCollider.size = new Vector3(2f, 2f, 2f);
+        triggerCollider.size = new Vector3(1f, 1f, 1f);
     }
 
     // Update is called once per frame

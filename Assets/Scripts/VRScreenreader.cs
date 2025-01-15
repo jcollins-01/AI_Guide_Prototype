@@ -338,7 +338,7 @@ public class VRScreenreader : MonoBehaviour
             Debug.DrawRay(controllerPosition, direction * 10f, Color.green);
 
             // Perform the raycast and check if it hits something
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, Physics.AllLayers))
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) 
             {
                 //Debug.Log("Performing ray cast and hit something");
                 // Move the reticle to the hit point
@@ -356,7 +356,7 @@ public class VRScreenreader : MonoBehaviour
                     // If the object is not being actively held by the user while reticle is touching it
                     if (!grab.isSelected)
                         ReaderCheckReferenceAndPlayAudio(readerReference, controller);
-                } 
+                }
                 else
                     ReaderCheckReferenceAndPlayAudio(readerReference, controller);
             }
