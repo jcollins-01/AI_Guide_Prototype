@@ -63,7 +63,7 @@ public class PrepareObject : MonoBehaviour
         BoxCollider triggerCollider = this.gameObject.AddComponent<BoxCollider>();
         triggerCollider.isTrigger = true;
         //triggerCollider.radius = 2f;
-        triggerCollider.size = new Vector3(1.5f, 1.5f, 1.5f);
+        triggerCollider.size = new Vector3(2f, 2f, 2f);
     }
 
     // Update is called once per frame
@@ -94,9 +94,22 @@ public class PrepareObject : MonoBehaviour
                 playerPreparedObject = true;
                 Debug.Log("Player prepared the object.");
 
+                XRGrabInteractable grab = prepTool.GetComponentInChildren<XRGrabInteractable>();
+                // If the prepTool is being held by user when they finish preparing
+                if (grab.isSelected)
+                {
+                    // Forcefully detatch the held prepTool from whoever is holding it
+                    IXRSelectInteractor interactor = grab.firstInteractorSelecting;
+                    grab.interactionManager.SelectExit(interactor, grab);
+                }
+
                 // Use prepTool spawn position and rotation to return prepTool to original spot
                 prepTool.transform.position = prepToolSpawnPosition;
                 prepTool.transform.rotation = prepToolSpawnRotation;
+
+                // Reset hold time since tool moves away too quickly for else to catch
+                holdTime = 0.0f;
+                playerMidPreparation = false;
             }
         }
         else

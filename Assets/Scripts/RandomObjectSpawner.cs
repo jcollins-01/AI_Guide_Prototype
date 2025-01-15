@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class RandomObjectSpawner : MonoBehaviour
 {
@@ -90,6 +91,8 @@ public class RandomObjectSpawner : MonoBehaviour
         {
             spawnedObject.AddComponent<PrepareObject>();
             spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
+            // Destroy the grabbable component so the object can't be grabbed accidentally
+            Destroy(spawnedObject.GetComponentInChildren<XRGrabInteractable>());
         }
     }
 

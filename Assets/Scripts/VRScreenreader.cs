@@ -90,7 +90,6 @@ public class VRScreenreader : MonoBehaviour
 
     private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
     {
-        GameObject hit = readerReference.transform.parent.gameObject;
         AudioSource selectedAudio;
 
         // Determine which dictionary to use based on the controller
@@ -99,6 +98,8 @@ public class VRScreenreader : MonoBehaviour
 
         if (readerReferences.Contains(readerReference))
         {
+            GameObject hit = readerReference.transform.parent.gameObject;
+
             if (hit.layer == 13 || hit.layer == 7) // If in Key Items or Interactables layer
             {
                 // If the dict doesn't already have this hit, or if it does have the hit, but the hit is not marked as true
