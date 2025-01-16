@@ -20,6 +20,8 @@ public class ShortTaskController : MonoBehaviour
 
     // Scripts we need access to
     private RandomTarget m_RandomTargetScript;
+
+    // These are the same script - one value goes null when one task is active - change to one variable
     private RandomObjectSpawner m_UnloadSpawnerScript;
     private RandomObjectSpawner m_PrepareSpawnerScript;
 
