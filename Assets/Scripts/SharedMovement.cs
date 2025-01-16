@@ -196,6 +196,7 @@ public class SharedMovement : MonoBehaviour
         if (collision.gameObject.GetComponentInChildren<XRGrabInteractable>() && collision.gameObject.layer == 7)
         {
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), collision.gameObject.GetComponent<Collider>());
+            
             Debug.Log("Ignoring collision with " + name);
         } 
         else
@@ -209,7 +210,7 @@ public class SharedMovement : MonoBehaviour
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on
         // If not, turn collisions off - the guide falls in this second category where we want to ignore collisions while we're grabbing it
-        if (other.GetComponent<XRGrabInteractable>())
+        if (other.GetComponentInChildren<XRGrabInteractable>())
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
         else
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);
