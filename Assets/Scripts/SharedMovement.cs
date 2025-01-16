@@ -191,16 +191,6 @@ public class SharedMovement : MonoBehaviour
     {
         string name = collision.gameObject.name;
         Debug.Log("Colliding with " + name);
-
-        // If it's an interactable object being held that somehow starts colliding with us
-        if (collision.gameObject.GetComponentInChildren<XRGrabInteractable>() && collision.gameObject.layer == 7)
-        {
-            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), collision.gameObject.GetComponent<Collider>());
-            
-            Debug.Log("Ignoring collision with " + name);
-        } 
-        else
-            Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), collision.gameObject.GetComponent<Collider>(), false);
     }
 
     public void OnTriggerEnter(Collider other)

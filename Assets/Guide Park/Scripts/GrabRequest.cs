@@ -65,6 +65,7 @@ public class GrabRequest : MonoBehaviour
 
     private void checkGrabRequest()
     {
+        Debug.Log("Reaching check grab request");
         if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue))
         {
             if (gripValue < 0.1f)
@@ -90,6 +91,8 @@ public class GrabRequest : MonoBehaviour
 
         if (xrGrabInteractable.isSelected && (gripping1 || gripping2)) // If selected AND pressing a grip button - prevents gripping from teleport ray
         {
+            Debug.Log("Gripping an interactable");
+
             if (realtimeTransform != null)
                 realtimeTransform.RequestOwnership();
             grabbed = true;
