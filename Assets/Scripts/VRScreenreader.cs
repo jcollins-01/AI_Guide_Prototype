@@ -248,9 +248,7 @@ public class VRScreenreader : MonoBehaviour
             Transform parentTransform = reference.transform.parent;
             if (parentTransform != null)
             {
-                // Get the MeshFilter of the parent to find the shape
-                //MeshFilter parentMeshFilter = CheckAndGenerateMeshFilters(parentTransform);
-                //MeshCollider parentCollider = parentTransform.GetComponent<MeshCollider>();
+                // Get the Collider of the parent to find the shape
                 Collider parentCollider = parentTransform.GetComponent<Collider>();
                 if (parentCollider != null)
                 {
@@ -268,6 +266,10 @@ public class VRScreenreader : MonoBehaviour
 
                     if (referenceCollider != null)
                         Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
+
+                    // Remove the mesh filters and renderers from the reticle since we only need its colliders now
+                    Destroy(reference.GetComponent<MeshFilter>());
+                    Destroy(reference.GetComponent<MeshRenderer>());
 
                     // Add the same type of collider as the parent collider and make it slightly larger
                     if (parentCollider is BoxCollider parentBoxCollider)
@@ -308,12 +310,6 @@ public class VRScreenreader : MonoBehaviour
 
                     // Reattach to the original parent
                     reference.transform.SetParent(originalParent);
-
-                    // If readerReference has a MeshFilter, replace its mesh with the parent's
-                    MeshFilter referenceMeshFilter = reference.GetComponent<MeshFilter>();
-                    MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
-                    if (referenceMeshFilter != null && parentMeshFilter != null)
-                        referenceMeshFilter.sharedMesh = parentMeshFilter.sharedMesh;
                 }
             }
         }
