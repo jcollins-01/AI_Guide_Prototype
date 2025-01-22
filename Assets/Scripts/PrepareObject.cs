@@ -100,9 +100,6 @@ public class PrepareObject : MonoBehaviour
             holdTime += Time.deltaTime;
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
-                playerPreparedObject = true;
-                Debug.Log("Player prepared the object.");
-
                 XRGrabInteractable grab = prepTool.GetComponentInChildren<XRGrabInteractable>();
                 // If the prepTool is being held by user when they finish preparing
                 if (grab.isSelected)
@@ -119,6 +116,10 @@ public class PrepareObject : MonoBehaviour
                 // Reset hold time since tool moves away too quickly for else to catch
                 holdTime = 0.0f;
                 playerMidPreparation = false;
+
+                // Mark object as prepared last to hopefully prevent grabbing bug
+                playerPreparedObject = true;
+                Debug.Log("Player prepared the object.");
             }
         }
         else

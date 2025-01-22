@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 402456195}
   - component: {fileID: 402456197}
   - component: {fileID: 402456196}
+  - component: {fileID: 402456198}
   m_Layer: 0
   m_Name: Task Manager
   m_TagString: Untagged
@@ -226,10 +227,30 @@ MonoBehaviour:
   navigationTaskActive: 0
   unloadingTaskActive: 0
   preparationTaskActive: 0
-  checkScores: 0
   navigationTaskScore: 0
   unloadingTaskScore: 0
   preparationTaskScore: 0
+--- !u!65 &402456198
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 402456193}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.020000014, y: 0.024999999, z: 0.03}
+  m_Center: {x: 2.8679584e-10, y: 0.01250001, z: -0.0024544157}
 --- !u!1 &595955986
 GameObject:
   m_ObjectHideFlags: 0
@@ -920,6 +941,10 @@ PrefabInstance:
       propertyPath: m_Size.z
       value: 18
       objectReference: {fileID: 0}
+    - target: {fileID: 831223011789717369, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2325488208042077774, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -932,7 +957,8 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2250149891759386187, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

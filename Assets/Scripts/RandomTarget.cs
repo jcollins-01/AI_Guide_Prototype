@@ -96,6 +96,7 @@ public class RandomTarget : MonoBehaviour
 
     void FindObstaclesAndAddColliders()
     {
+        Debug.Log("Adding colliders");
         // Get all objects in the scene
         GameObject[] allObjects = FindObjectsOfType<GameObject>();
 
@@ -106,7 +107,10 @@ public class RandomTarget : MonoBehaviour
             {
                 // Add collider to parent object
                 if (!obj.GetComponentInChildren<BoxCollider>())
+                {
                     obj.AddComponent<BoxCollider>();
+                    Debug.Log("Added box collider to " + obj.name);
+                }
 
                 // Get the child objects and add colliders 
                 foreach (Transform child in obj.transform)
@@ -124,6 +128,7 @@ public class RandomTarget : MonoBehaviour
 
     void FindObstaclesAndRemoveColliders()
     {
+        Debug.Log("Removing colliders");
         // Get all objects in the scene
         GameObject[] allObjects = FindObjectsOfType<GameObject>();
 
@@ -133,13 +138,21 @@ public class RandomTarget : MonoBehaviour
             if (obj.layer == 13) // KeyItems
             {
                 if (obj.GetComponentInChildren<BoxCollider>())
+                {
                     Destroy(obj.GetComponentInChildren<BoxCollider>());
+                    Debug.Log("Destroyed collider from " + obj.name);
+                }
+                    
 
                 // Get the child objects and destroy colliders 
                 foreach (Transform child in obj.transform)
                 {
                     if (child.gameObject.GetComponentInChildren<BoxCollider>())
+                    {
                         Destroy(child.gameObject.GetComponentInChildren<BoxCollider>());
+                        Debug.Log("Destroyed collider from " + child.gameObject.name);
+                    }
+                        
                 }
             }
         }

@@ -34,6 +34,11 @@ public class ShortTaskController : MonoBehaviour
         // All desired components should be on the Task Manager prefab with this controller
         m_RandomTargetScript = gameObject.GetComponent<RandomTarget>();
 
+        // Set up necessary collider for box with adjusted size and center for storage crate pivot point
+        BoxCollider bagCollider = unloadingBag.AddComponent<BoxCollider>();
+        bagCollider.size = new Vector3(18f, 12f, 18f);
+        bagCollider.center = new Vector3(bagCollider.center.x, 5f, bagCollider.center.z);
+
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
         previousUnloadTaskState = unloadingTaskActive;
