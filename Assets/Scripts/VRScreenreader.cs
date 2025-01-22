@@ -12,9 +12,6 @@ public class VRScreenreader : MonoBehaviour
     private SharedMovement m_SharedMovementScript;
     private GenerateReaderReferences m_GenerateReaderReferencesScript;
 
-    // Components to grab from scripts
-    private TeleportationProvider teleport;
-
     // Variables to access XR Controllers
     private InputDevice rightXRController;
     private InputDevice leftXRController;
@@ -25,7 +22,8 @@ public class VRScreenreader : MonoBehaviour
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
     Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
     Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
-
+    //private bool referenceResized = false; - Make a dictionary instead to keep the references and their values of if thye've been resized or not
+    
     // Variables for reader reticles, teleport reticles, and raycast
     public GameObject leftParentController;
     public GameObject rightParentController;
@@ -57,8 +55,6 @@ public class VRScreenreader : MonoBehaviour
         // Ensure the reticles are active and initially hidden
         leftReaderReticle.SetActive(false);
         rightReaderReticle.SetActive(false);
-
-        teleport = FindObjectOfType<TeleportationProvider>();
     }
 
     // Update is called once per frame
@@ -253,10 +249,10 @@ public class VRScreenreader : MonoBehaviour
             if (parentTransform != null)
             {
                 // Get the MeshFilter of the parent to find the shape
-                MeshFilter parentMeshFilter = CheckAndGenerateMeshFilters(parentTransform);
-                MeshCollider parentCollider = parentTransform.GetComponent<MeshCollider>();
-                //Collider parentCollider = parentTransform.GetComponent<Collider>();
-                if (parentMeshFilter != null && parentCollider != null)
+                //MeshFilter parentMeshFilter = CheckAndGenerateMeshFilters(parentTransform);
+                //MeshCollider parentCollider = parentTransform.GetComponent<MeshCollider>();
+                Collider parentCollider = parentTransform.GetComponent<Collider>();
+                if (parentCollider != null)
                 {
                     // Temporarily detach from parent to apply world scale correctly
                     Transform originalParent = reference.transform.parent;
@@ -274,11 +270,19 @@ public class VRScreenreader : MonoBehaviour
                         Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
 
                     // Add the same type of collider as the parent collider and make it slightly larger
-                    /*if (parentCollider is BoxCollider parentBoxCollider)
+                    if (parentCollider is BoxCollider parentBoxCollider)
                     {
                         BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
                         newBoxCollider.center = parentBoxCollider.center;
                         newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                        Debug.Log("Added box collider to " + parentTransform.gameObject.name);
+
+                        // Special case for the storage crate since we don't want the reader ref to interfere with the crate holding objects
+                        if (parentTransform.gameObject == FindObjectOfType<ShortTaskController>().unloadingBag)
+                        {
+                            Debug.Log("The game object is the storage crate");
+                            newBoxCollider.isTrigger = true;
+                        }
                     }
                     else if (parentCollider is SphereCollider parentSphereCollider)
                     {
@@ -300,182 +304,20 @@ public class VRScreenreader : MonoBehaviour
                         newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
                         newMeshCollider.convex = parentMeshCollider.convex;
                         // Cannot uniformly "enlarge" a MeshCollider easily
-                    }*/
+                    }
 
                     // Reattach to the original parent
                     reference.transform.SetParent(originalParent);
 
-                    // If readerReference added a MeshFilter, replace its mesh with the parent's
-                    //MeshFilter referenceMeshFilter = reference.GetComponent<MeshFilter>();
-                    //if (referenceMeshFilter != null)
-                        //referenceMeshFilter.sharedMesh = parentMeshFilter.sharedMesh;
+                    // If readerReference has a MeshFilter, replace its mesh with the parent's
+                    MeshFilter referenceMeshFilter = reference.GetComponent<MeshFilter>();
+                    MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
+                    if (referenceMeshFilter != null && parentMeshFilter != null)
+                        referenceMeshFilter.sharedMesh = parentMeshFilter.sharedMesh;
                 }
             }
         }
     }
-
-    private MeshFilter CheckAndGenerateMeshFilters(Transform parentTransform)
-    {
-        // Check if the parent already has a MeshFilter
-        MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
-
-        if (parentMeshFilter == null)
-        {
-            // Collect all valid MeshFilters from children recursively
-            List<MeshFilter> meshFilters = new List<MeshFilter>();
-            CollectMeshFiltersRecursive(parentTransform, meshFilters);
-
-            if (meshFilters.Count == 0)
-            {
-                Debug.LogWarning($"No valid MeshFilters found under parent object: {parentTransform.name}");
-                return null;
-            }
-
-            List<CombineInstance> combineInstances = new List<CombineInstance>();
-
-            foreach (MeshFilter meshFilter in meshFilters)
-            {
-                if (meshFilter.mesh == null)
-                {
-                    Debug.LogWarning($"MeshFilter on {meshFilter.name} has no valid mesh.");
-                    continue;
-                }
-
-                Debug.Log($"Including mesh from child: {meshFilter.name}");
-
-                CombineInstance combineInstance = new CombineInstance
-                {
-                    mesh = meshFilter.mesh, // Use the actual mesh
-                    transform = parentTransform.worldToLocalMatrix * meshFilter.transform.localToWorldMatrix // Convert to parent's local space
-                };
-                combineInstance.mesh = meshFilter.sharedMesh;
-                combineInstances.Add(combineInstance);
-            }
-
-            if (combineInstances.Count == 0)
-            {
-                Debug.LogError($"No valid meshes to combine for parent object: {parentTransform.name}");
-                return null;
-            }
-
-            // Create the combined mesh
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.CombineMeshes(combineInstances.ToArray(), true, true);
-
-            if (combinedMesh.vertexCount == 0)
-            {
-                Debug.LogError($"Combined mesh is empty for parent object: {parentTransform.name}");
-                return null;
-            }
-
-            // Assign the combined mesh to a new MeshFilter
-            parentMeshFilter = parentTransform.gameObject.AddComponent<MeshFilter>();
-            parentMeshFilter.mesh = combinedMesh;
-
-            // Add a MeshRenderer and assign a material
-            MeshRenderer parentMeshRenderer = parentTransform.GetComponent<MeshRenderer>();
-            if (parentMeshRenderer == null)
-                parentMeshRenderer = parentTransform.gameObject.AddComponent<MeshRenderer>();
-
-            if (parentMeshRenderer.material == null)
-                parentMeshRenderer.material = new Material(Shader.Find("Standard"));
-
-            // Add a MeshCollider to match the combined shape
-            MeshCollider meshCollider = parentTransform.GetComponent<MeshCollider>();
-            if (meshCollider == null)
-                meshCollider = parentTransform.gameObject.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = combinedMesh;
-
-            Debug.Log($"Successfully created combined mesh for {parentTransform.name}");
-        }
-        else
-        {
-            Debug.Log($"Parent already has a MeshFilter: {parentMeshFilter.name}");
-        }
-
-        return parentMeshFilter;
-    }
-
-    // Recursive function to collect MeshFilters
-    private void CollectMeshFiltersRecursive(Transform parentTransform, List<MeshFilter> meshFilters)
-    {
-        foreach (Transform child in parentTransform)
-        {
-            MeshFilter meshFilter = child.GetComponent<MeshFilter>();
-            if (meshFilter != null)
-            {
-                meshFilters.Add(meshFilter);
-            }
-
-            // Recurse into children
-            CollectMeshFiltersRecursive(child, meshFilters);
-        }
-    }
-
-
-
-    /*private MeshFilter CheckAndGenerateMeshFilters(Transform parentTransform)
-    {
-        // First, check if the parent had a mesh filter already - assign if so
-        MeshFilter parentMeshFilter = parentTransform.GetComponent<MeshFilter>();
-
-        // If the parent had no mesh filter, 
-        if (parentMeshFilter == null)
-        {
-            // Get all mesh filters in the children
-            MeshFilter[] meshFilters = parentTransform.GetComponentsInChildren<MeshFilter>();
-
-            // Create a list of CombineInstance objects, add the grabbed child mesh filters as each instance to be combined
-            CombineInstance[] combine = new CombineInstance[meshFilters.Length];
-            int i = 0;
-
-            foreach (MeshFilter meshFilter in meshFilters)
-            {
-                Debug.Log("Got meshfilter " + meshFilter.name + " from " + parentTransform.gameObject.name);
-                if (meshFilter.mesh == null) continue; // Skip objects without a mesh
-
-                combine[i].mesh = Instantiate(meshFilter.mesh); // Clone the mesh
-                combine[i].transform = meshFilter.transform.localToWorldMatrix; // Maintain world space
-                i++;
-            }
-
-            // Create a new mesh from the combined child mesh filters
-            Mesh combinedMesh = new Mesh();
-            combinedMesh.CombineMeshes(combine, true, true);
-
-            // Add a MeshFilter component to the parent object and assign the combined mesh
-            parentMeshFilter = parentTransform.gameObject.AddComponent<MeshFilter>();
-            parentMeshFilter.mesh = combinedMesh;
-
-            // Add a MeshRenderer so the combined mesh can render
-            MeshRenderer parentMeshRenderer = parentTransform.GetComponent<MeshRenderer>();
-            if (parentMeshRenderer == null)
-                parentMeshRenderer = parentTransform.gameObject.AddComponent<MeshRenderer>();
-
-            // Assign a material if none exists
-            if (parentMeshRenderer.material == null)
-                parentMeshRenderer.material = new Material(Shader.Find("Standard"));
-
-            // Add a MeshCollider to match the new shape of the filter
-            MeshCollider meshCollider = parentTransform.GetComponent<MeshCollider>();
-            if (meshCollider == null)
-                meshCollider = parentTransform.gameObject.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = combinedMesh;
-
-            Debug.Log("Combined mesh created for parent object.");
-        }
-        else // If the parent had a mesh filter, add a mesh collider that matches its shape
-        {
-            MeshCollider meshCollider = parentTransform.GetComponent<MeshCollider>();
-            if (meshCollider == null)
-                meshCollider = parentTransform.gameObject.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = parentMeshFilter.mesh;
-
-            Debug.Log("Added collider based on existing parent mesh.");
-        }
-
-        return parentMeshFilter;
-    }*/
 
     private void ShootRaycast(InputDevice controller, GameObject reticle, GameObject parentController)
     {

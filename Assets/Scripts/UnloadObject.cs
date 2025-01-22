@@ -35,7 +35,6 @@ public class UnloadObject : MonoBehaviour
             else
                 bagBounds = bag.GetComponent<Collider>();
 
-            Debug.Log("bag bounds name " + bagBounds.name);
             bag.GetComponent<Collider>().isTrigger = true; // To prevent objects from spawning on top of bag or flying out of it by colliding with it
 
             // Grab the interaction table prefab from the task controller, and add a collider to prevent the object from falling to the floor
