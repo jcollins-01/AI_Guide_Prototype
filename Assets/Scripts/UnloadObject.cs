@@ -33,6 +33,9 @@ public class UnloadObject : MonoBehaviour
             gameObject.GetComponent<BoxCollider>().size = new Vector3(gameObject.GetComponent<BoxCollider>().size.x, gameObject.GetComponent<BoxCollider>().size.y * 1.5f, gameObject.GetComponent<BoxCollider>().size.z);
         }
 
+        // Grab the unloading bag's existing reference collider and handle collisions with it
+        CheckForBagReferenceCollider();
+
         // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
         {
@@ -62,8 +65,6 @@ public class UnloadObject : MonoBehaviour
     void Update()
     {
         CheckIfGrabbed();
-        // Test this after we get t
-        //CheckForBagReferenceCollider(); // Must be called in update so it can respond to the new colliders generated post-ingredient spawn
 
         // Check if the object has been released outside the bounds of the bag
         if (trackingStarted && !isGrabbed && playerUnloadedObject == false && bagBounds != null)
@@ -101,8 +102,10 @@ public class UnloadObject : MonoBehaviour
 
     private void CheckForBagReferenceCollider()
     {
-        // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider
-        if (m_VRScreenreaderScript.unloadingBagRefCollider != null)
-            Physics.IgnoreCollision(gameObject.GetComponent<Collider>(), m_VRScreenreaderScript.unloadingBagRefCollider);
+        // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
+        BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        Physics.IgnoreCollision(gameObject.GetComponent<Collider>(), bagReferenceCollider);
+        Debug.Log("Collisions are being ignored between " + gameObject.name + " and " + bagReferenceCollider.gameObject.name + " on " + bagReferenceCollider.transform.parent.gameObject.name);
+        bagReferenceCollider.isTrigger = true;
     }
 }

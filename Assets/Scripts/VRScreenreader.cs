@@ -39,9 +39,6 @@ public class VRScreenreader : MonoBehaviour
     private bool referencesReady = false;
     private bool referencesFound = false;
 
-    // Variables for handling short task functionality
-    public BoxCollider unloadingBagRefCollider;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -276,21 +273,9 @@ public class VRScreenreader : MonoBehaviour
                         // Add the same type of collider as the parent collider and make it slightly larger
                         if (parentCollider is BoxCollider parentBoxCollider)
                         {
-                            // Special case for the storage crate since we don't want the reader ref to interfere with the crate holding objects
-                            if (parentTransform.gameObject == FindObjectOfType<ShortTaskController>().unloadingBag)
-                            {
-                                Debug.Log("The game object is the storage crate");
-                                unloadingBagRefCollider = reference.gameObject.AddComponent<BoxCollider>();
-                                unloadingBagRefCollider.center = parentBoxCollider.center;
-                                unloadingBagRefCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
-                            }
-                            else
-                            {
-                                BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
-                                newBoxCollider.center = parentBoxCollider.center;
-                                newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
-                                Debug.Log("Added box collider to " + parentTransform.gameObject.name);
-                            }
+                            BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
+                            newBoxCollider.center = parentBoxCollider.center;
+                            newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
                         }
                         else if (parentCollider is SphereCollider parentSphereCollider)
                         {
