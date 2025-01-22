@@ -19,10 +19,10 @@ public class VRScreenreader : MonoBehaviour
 
     // Variables to hold reader references we need globally
     public List<GameObject> readerReferences = new List<GameObject>();
+    List<GameObject> resizedReaderReferences = new List<GameObject>();
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
     Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
     Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
-    //private bool referenceResized = false; - Make a dictionary instead to keep the references and their values of if thye've been resized or not
     
     // Variables for reader reticles, teleport reticles, and raycast
     public GameObject leftParentController;
@@ -38,6 +38,9 @@ public class VRScreenreader : MonoBehaviour
     public bool sharedMovementFound = false;
     private bool referencesReady = false;
     private bool referencesFound = false;
+
+    // Variables for handling short task functionality
+    public BoxCollider unloadingBagRefCollider;
 
     // Start is called before the first frame update
     void Start()
@@ -78,10 +81,6 @@ public class VRScreenreader : MonoBehaviour
             ShootRaycast(leftXRController, leftReaderReticle, leftParentController);
             ShootRaycast(rightXRController, rightReaderReticle, rightParentController);
         }
-
-        // Activate haptic screenreader functions - not in use
-        //if (sharedMovementFound && referencesFound)
-        //PlayHapticsNearingObstacles();
     }
 
     private void ReaderCheckReferenceAndPlayAudio(GameObject readerReference, InputDevice controller)
@@ -244,89 +243,83 @@ public class VRScreenreader : MonoBehaviour
     {
         foreach(GameObject reference in readerReferences)
         {
-            // Get the parent of the readerReference
-            Transform parentTransform = reference.transform.parent;
-            if (parentTransform != null)
+            // If our references tracker doesn't contain the reference yet (hasn't had a collider resized and added to it yet)
+            if (!resizedReaderReferences.Contains(reference))
             {
-                // Get the Collider of the parent to find the shape
-                Collider parentCollider = parentTransform.GetComponent<Collider>();
-                if (parentCollider != null)
+                // Get the parent of the readerReference
+                Transform parentTransform = reference.transform.parent;
+                if (parentTransform != null)
                 {
-                    // Temporarily detach from parent to apply world scale correctly
-                    Transform originalParent = reference.transform.parent;
-                    reference.transform.SetParent(null); // Detach to set global scale
-
-                    // Set position, rotation, and scale directly from the parent
-                    reference.transform.position = parentTransform.position;
-                    reference.transform.rotation = parentTransform.rotation;
-                    reference.transform.localScale = parentTransform.localScale;
-
-                    // Match the collider dimensions and type
-                    Collider referenceCollider = reference.GetComponent<Collider>();
-
-                    if (referenceCollider != null)
-                        Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
-
-                    // Remove the mesh filters and renderers from the reticle since we only need its colliders now
-                    Destroy(reference.GetComponent<MeshFilter>());
-                    Destroy(reference.GetComponent<MeshRenderer>());
-
-                    // Add the same type of collider as the parent collider and make it slightly larger
-                    if (parentCollider is BoxCollider parentBoxCollider)
+                    // Get the Collider of the parent to find the shape
+                    Collider parentCollider = parentTransform.GetComponent<Collider>();
+                    if (parentCollider != null)
                     {
-                        // Special case for the storage crate since we don't want the reader ref to interfere with the crate holding objects
-                        if (parentTransform.gameObject == FindObjectOfType<ShortTaskController>().unloadingBag)
+                        // Temporarily detach from parent to apply world scale correctly
+                        Transform originalParent = reference.transform.parent;
+                        reference.transform.SetParent(null); // Detach to set global scale
+
+                        // Set position, rotation, and scale directly from the parent
+                        reference.transform.position = parentTransform.position;
+                        reference.transform.rotation = parentTransform.rotation;
+                        reference.transform.localScale = parentTransform.localScale;
+
+                        // Match the collider dimensions and type
+                        Collider referenceCollider = reference.GetComponent<Collider>();
+
+                        if (referenceCollider != null)
+                            Destroy(referenceCollider); // Remove the current collider since it may not be the same type as the parent
+
+                        // Remove the mesh filters and renderers from the reticle since we only need its colliders now
+                        Destroy(reference.GetComponent<MeshFilter>());
+                        Destroy(reference.GetComponent<MeshRenderer>());
+
+                        // Add the same type of collider as the parent collider and make it slightly larger
+                        if (parentCollider is BoxCollider parentBoxCollider)
                         {
-                            Debug.Log("The game object is the storage crate");
-                            // Create an empty gameObject child to hold the colliders
-                            GameObject colliderHolder = new GameObject();
-                            colliderHolder.transform.SetParent(null); // Detach to set global scale
-
-                            // Set position, rotation, and scale directly from the parent
-                            colliderHolder.transform.position = parentTransform.position;
-                            colliderHolder.transform.rotation = parentTransform.rotation;
-                            colliderHolder.transform.localScale = parentTransform.localScale;
-                            colliderHolder.layer = 9; // IgnoreCollisions
-
-                            BoxCollider newBoxCollider = colliderHolder.AddComponent<BoxCollider>();
-                            newBoxCollider.center = parentBoxCollider.center;
-                            newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
-
-                            // Reattach the collider holder to the reference
-                            colliderHolder.transform.SetParent(reference.transform);
+                            // Special case for the storage crate since we don't want the reader ref to interfere with the crate holding objects
+                            if (parentTransform.gameObject == FindObjectOfType<ShortTaskController>().unloadingBag)
+                            {
+                                Debug.Log("The game object is the storage crate");
+                                unloadingBagRefCollider = reference.gameObject.AddComponent<BoxCollider>();
+                                unloadingBagRefCollider.center = parentBoxCollider.center;
+                                unloadingBagRefCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                            }
+                            else
+                            {
+                                BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
+                                newBoxCollider.center = parentBoxCollider.center;
+                                newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                                Debug.Log("Added box collider to " + parentTransform.gameObject.name);
+                            }
                         }
-                        else
+                        else if (parentCollider is SphereCollider parentSphereCollider)
                         {
-                            BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
-                            newBoxCollider.center = parentBoxCollider.center;
-                            newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
-                            Debug.Log("Added box collider to " + parentTransform.gameObject.name);
+                            SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
+                            newSphereCollider.center = parentSphereCollider.center;
+                            newSphereCollider.radius = parentSphereCollider.radius * 1.05f; // Increase radius by 5%
                         }
-                    }
-                    else if (parentCollider is SphereCollider parentSphereCollider)
-                    {
-                        SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
-                        newSphereCollider.center = parentSphereCollider.center;
-                        newSphereCollider.radius = parentSphereCollider.radius * 1.05f; // Increase radius by 5%
-                    }
-                    else if (parentCollider is CapsuleCollider parentCapsuleCollider)
-                    {
-                        CapsuleCollider newCapsuleCollider = reference.gameObject.AddComponent<CapsuleCollider>();
-                        newCapsuleCollider.center = parentCapsuleCollider.center;
-                        newCapsuleCollider.radius = parentCapsuleCollider.radius * 1.05f; // Increase radius by 5%
-                        newCapsuleCollider.height = parentCapsuleCollider.height * 1.05f; // Increase height by 5%
-                        newCapsuleCollider.direction = parentCapsuleCollider.direction;
-                    }
-                    else if (parentCollider is MeshCollider parentMeshCollider)
-                    {
-                        MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
-                        newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
-                        newMeshCollider.convex = parentMeshCollider.convex;
-                        // Cannot uniformly "enlarge" a MeshCollider easily
-                    }
+                        else if (parentCollider is CapsuleCollider parentCapsuleCollider)
+                        {
+                            CapsuleCollider newCapsuleCollider = reference.gameObject.AddComponent<CapsuleCollider>();
+                            newCapsuleCollider.center = parentCapsuleCollider.center;
+                            newCapsuleCollider.radius = parentCapsuleCollider.radius * 1.05f; // Increase radius by 5%
+                            newCapsuleCollider.height = parentCapsuleCollider.height * 1.05f; // Increase height by 5%
+                            newCapsuleCollider.direction = parentCapsuleCollider.direction;
+                        }
+                        else if (parentCollider is MeshCollider parentMeshCollider)
+                        {
+                            MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
+                            newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
+                            newMeshCollider.convex = parentMeshCollider.convex;
+                            // Cannot uniformly "enlarge" a MeshCollider easily
+                        }
 
-                    // Reattach to the original parent
-                    reference.transform.SetParent(originalParent);
+                        // Reattach to the original parent
+                        reference.transform.SetParent(originalParent);
+
+                        // Add to our reference tracker so we can ensure we don't add multiple colliders as we check and resize with new objects
+                        resizedReaderReferences.Add(reference);
+                    }
                 }
             }
         }
@@ -422,35 +415,6 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    /**
-     * DEPRECATED: Not in use after switching to Owlchemy Labs baseline
-     * Could possibly be re-implemented in future versions of improved prototypes
-     */
-    void PlayHapticsNearingObstacles()
-    {
-        float smallestDistance = CheckSmallestReferenceDistance("haptics");
-
-        // If the player is getting too close within a certain range of an object, play warning impulses at various strengths
-        if (smallestDistance < 3f && smallestDistance > 2.5f)
-        {
-            Debug.Log("Within 3f of potential obstacle - approaching");
-            rightXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
-            leftXRController.SendHapticImpulse(1u, 0.25f, 0.25f);
-        }
-        else if (smallestDistance < 2.5f && smallestDistance > 1.7f)
-        {
-            Debug.Log("Within 2.5f of potential obstacle - even closer");
-            rightXRController.SendHapticImpulse(1u, 0.5f, 0.25f);
-            leftXRController.SendHapticImpulse(1u, 0.5f, 0.25f);
-        }
-        else if (smallestDistance < 1.7f) // This one gets rid of haptics since it could be bothersome while standing beside an object
-        {
-            Debug.Log("Within 1.7f of potential obstacle - right next to");
-            rightXRController.StopHaptics();
-            leftXRController.StopHaptics();
-        }
-    }
-
     private float CheckSmallestReferenceDistance(string version)
     {
         float distance;
@@ -486,20 +450,6 @@ public class VRScreenreader : MonoBehaviour
                 }
             }
         }
-        /*else // Haptics version - no longer in use
-        {
-            // Calculate the distance between the player and each object in environmentCues
-            foreach (GameObject reference in environmentCues)
-            {
-                // If the reference has a null environment label (is NOT part of the floor spaces)
-                if (reference.transform.Find("Environment Label").GetComponent<AudioSource>().clip == null)
-                {
-                    distance = Vector3.Distance(reference.transform.parent.gameObject.transform.position, thePlayer.transform.position);
-                    distancesToReferences.Add(distance);
-                    referencesAndDistances.Add(reference, distance);
-                }
-            }
-        }*/
 
         //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
