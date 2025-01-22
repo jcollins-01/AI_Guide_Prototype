@@ -45,6 +45,9 @@ public class GrabRequest : MonoBehaviour
 
         // Assign sounds from Resources
         grabSound = Resources.Load<AudioClip>("Audio/grabbed");
+
+        // Ignore collisions between grabbable objects and anything on our IgnoreCollisions layer
+        Physics.IgnoreLayerCollision(7, 9, true); // IgnoreCollisions
     }
 
     // Update is called once per frame

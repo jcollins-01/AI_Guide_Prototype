@@ -274,16 +274,33 @@ public class VRScreenreader : MonoBehaviour
                     // Add the same type of collider as the parent collider and make it slightly larger
                     if (parentCollider is BoxCollider parentBoxCollider)
                     {
-                        BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
-                        newBoxCollider.center = parentBoxCollider.center;
-                        newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
-                        Debug.Log("Added box collider to " + parentTransform.gameObject.name);
-
                         // Special case for the storage crate since we don't want the reader ref to interfere with the crate holding objects
                         if (parentTransform.gameObject == FindObjectOfType<ShortTaskController>().unloadingBag)
                         {
                             Debug.Log("The game object is the storage crate");
-                            newBoxCollider.isTrigger = true;
+                            // Create an empty gameObject child to hold the colliders
+                            GameObject colliderHolder = new GameObject();
+                            colliderHolder.transform.SetParent(null); // Detach to set global scale
+
+                            // Set position, rotation, and scale directly from the parent
+                            colliderHolder.transform.position = parentTransform.position;
+                            colliderHolder.transform.rotation = parentTransform.rotation;
+                            colliderHolder.transform.localScale = parentTransform.localScale;
+                            colliderHolder.layer = 9; // IgnoreCollisions
+
+                            BoxCollider newBoxCollider = colliderHolder.AddComponent<BoxCollider>();
+                            newBoxCollider.center = parentBoxCollider.center;
+                            newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+
+                            // Reattach the collider holder to the reference
+                            colliderHolder.transform.SetParent(reference.transform);
+                        }
+                        else
+                        {
+                            BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
+                            newBoxCollider.center = parentBoxCollider.center;
+                            newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                            Debug.Log("Added box collider to " + parentTransform.gameObject.name);
                         }
                     }
                     else if (parentCollider is SphereCollider parentSphereCollider)
