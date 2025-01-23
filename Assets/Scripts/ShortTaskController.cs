@@ -38,6 +38,9 @@ public class ShortTaskController : MonoBehaviour
         previousNavTaskState = navigationTaskActive;
         previousUnloadTaskState = unloadingTaskActive;
         previousPrepTaskState = preparationTaskActive;
+
+        // Set up Physics Matrix to ignore collisions between Interactables and any objects on the IgnoreCollisions layer
+        Physics.IgnoreLayerCollision(7, 9, true); // Interactables, IgnoreCollisions
     }
 
     // Update is called once per frame
@@ -81,13 +84,22 @@ public class ShortTaskController : MonoBehaviour
     {
         if (unloadingTaskActive != previousUnloadTaskState)
         {
+            // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
+            BoxCollider bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+            
             if (unloadingTaskActive)
             {
+                // Set reference collider to IgnoreCollisions layer
+                bagReferenceCollider.gameObject.layer = 9;
+
                 Debug.Log("Setting up unloading task");
                 SetUpUnloadSpawner();
             }
             else
             {
+                // Revert reference collider layer to restore proper collision effects between it and other interactables
+                bagReferenceCollider.gameObject.layer = 0;
+
                 Debug.Log("Taking down unloading task");
                 TakeDownUnloadSpawner();
             }

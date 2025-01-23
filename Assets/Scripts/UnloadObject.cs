@@ -20,6 +20,9 @@ public class UnloadObject : MonoBehaviour
     {
         Debug.Log("A new object has been spawned for unloading");
 
+        // Grab the unloading bag's existing reference collider and handle collisions with it
+        CheckForBagReferenceCollider();
+
         // Add necessary components for grabbing and detecting grip button with object
         gameObject.layer = 7; // Make the object Interactable if it isn't already
         if (gameObject.GetComponent<XRGrabInteractable>() == null)
@@ -32,9 +35,6 @@ public class UnloadObject : MonoBehaviour
             // Sets the collider with a larger y to ensure it stays in the bounds of the bag - if it's too small of an object, it will pass through and count as an unload
             gameObject.GetComponent<BoxCollider>().size = new Vector3(gameObject.GetComponent<BoxCollider>().size.x, gameObject.GetComponent<BoxCollider>().size.y * 1.5f, gameObject.GetComponent<BoxCollider>().size.z);
         }
-
-        // Grab the unloading bag's existing reference collider and handle collisions with it
-        CheckForBagReferenceCollider();
 
         // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
@@ -104,8 +104,11 @@ public class UnloadObject : MonoBehaviour
     {
         // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
         BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
-        Physics.IgnoreCollision(gameObject.GetComponent<Collider>(), bagReferenceCollider);
-        Debug.Log("Collisions are being ignored between " + gameObject.name + " and " + bagReferenceCollider.gameObject.name + " on " + bagReferenceCollider.transform.parent.gameObject.name);
-        bagReferenceCollider.isTrigger = true;
+        //bagReferenceCollider.gameObject.layer = 9; // IgnoreCollisions
+
+        //Physics.IgnoreCollision(gameObject.GetComponent<Collider>(), bagReferenceCollider);
+        //Debug.Log("Collisions are being ignored between " + gameObject.name + " and " + bagReferenceCollider.gameObject.name + " on " + bagReferenceCollider.transform.parent.gameObject.name);
+        //bagReferenceCollider.isTrigger = true;
+        Debug.Log("Layer Collision: " + Physics.GetIgnoreLayerCollision(gameObject.layer, bagReferenceCollider.gameObject.layer));
     }
 }
