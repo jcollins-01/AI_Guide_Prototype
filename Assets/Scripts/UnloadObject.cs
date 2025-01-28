@@ -75,10 +75,6 @@ public class UnloadObject : MonoBehaviour
                 playerUnloadedObject = true;
                 Debug.Log("Player unloaded the object outside the bag.");
             }
-            else
-            {
-                //Debug.Log("Object is currently inside the bag, waiting to be unloaded");
-            }
         }
     }
 
@@ -104,11 +100,19 @@ public class UnloadObject : MonoBehaviour
     {
         // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
         BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
-        //bagReferenceCollider.gameObject.layer = 9; // IgnoreCollisions
+        Transform colliderTransform = bagReferenceCollider.gameObject.transform;
+        Vector3 originalColliderPosition = colliderTransform.position;
 
-        //Physics.IgnoreCollision(gameObject.GetComponent<Collider>(), bagReferenceCollider);
-        //Debug.Log("Collisions are being ignored between " + gameObject.name + " and " + bagReferenceCollider.gameObject.name + " on " + bagReferenceCollider.transform.parent.gameObject.name);
-        //bagReferenceCollider.isTrigger = true;
-        Debug.Log("Layer Collision: " + Physics.GetIgnoreLayerCollision(gameObject.layer, bagReferenceCollider.gameObject.layer));
+        // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
+        colliderTransform.position = new Vector3(originalColliderPosition.x + 2, originalColliderPosition.y, originalColliderPosition.z);
+        
+        // Determine how long to wait before shifting back
+        StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
+    }
+
+    private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
+    {
+        yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
+        colliderTransform.position = originalColliderPosition;
     }
 }
