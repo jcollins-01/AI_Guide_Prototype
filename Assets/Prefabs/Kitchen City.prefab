@@ -219,8 +219,9 @@ GameObject:
   - component: {fileID: 3321301767095992473}
   - component: {fileID: 4106178898871022509}
   - component: {fileID: 7529785337857972416}
+  - component: {fileID: 2456061719965993801}
   m_Layer: 0
-  m_Name: Apartments
+  m_Name: Hospital
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -234,12 +235,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 22923299417334240}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -23.39, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 47.04608, y: -0, z: 37.960293}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8199406320488947672}
+  m_Father: {fileID: 9124768647504261234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4106178898871022509
 MeshFilter:
@@ -299,6 +300,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &2456061719965993801
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 22923299417334240}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 0ae8d45dc8f27d544820653040a3b108, type: 3}
 --- !u!1 &69523408578517516
 GameObject:
   m_ObjectHideFlags: 0
@@ -1231,38 +1254,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &381630541442501547
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 286046138997240624}
-  m_Layer: 0
-  m_Name: City Lake
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &286046138997240624
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 381630541442501547}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 42.6, y: 3.77, z: 150.5}
-  m_LocalScale: {x: 5, y: 5, z: 5}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6752210707525375912}
-  m_Father: {fileID: 2610774862638247072}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &395766808132518761
 GameObject:
   m_ObjectHideFlags: 0
@@ -1706,38 +1697,6 @@ Transform:
   m_Children:
   - {fileID: 8189491429867044977}
   m_Father: {fileID: 5645185121122421745}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &471632587371541582
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3828754185656169087}
-  m_Layer: 0
-  m_Name: Outside storage
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3828754185656169087
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 471632587371541582}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -64.39, y: -0.28600597, z: 13.52}
-  m_LocalScale: {x: 5, y: 1, z: 5}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 6133327129250014417}
-  m_Father: {fileID: 3824862857418332640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &487598834150452470
 GameObject:
@@ -3533,8 +3492,9 @@ GameObject:
   - component: {fileID: 4694588861493644655}
   - component: {fileID: 8004513314641488369}
   - component: {fileID: 6519277904757809251}
+  - component: {fileID: 7677865641846928418}
   m_Layer: 0
-  m_Name: Glass building
+  m_Name: City Tax Office
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3548,12 +3508,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987901013526775848}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8430096534221475590}
+  m_Father: {fileID: 3757329505254729280}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8004513314641488369
 MeshFilter:
@@ -3611,6 +3571,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &7677865641846928418
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987901013526775848}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: f7227eae54e4e7a42a93c459a6f492d2, type: 3}
 --- !u!1 &1000989560681213676
 GameObject:
   m_ObjectHideFlags: 0
@@ -3786,38 +3768,6 @@ Transform:
   - {fileID: 1744750715424391141}
   m_Father: {fileID: 986573913380426417}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!1 &1095857086784281065
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7201443335723361769}
-  m_Layer: 0
-  m_Name: Lake Nose Point
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7201443335723361769
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1095857086784281065}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -29.185623, y: 0, z: 9.450184}
-  m_LocalScale: {x: 3, y: 3, z: 3}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8259730240479485236}
-  m_Father: {fileID: 8147680273443785429}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1183368920890108267
 GameObject:
   m_ObjectHideFlags: 0
@@ -4050,38 +4000,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &1280123485695710217
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3510531978942270194}
-  m_Layer: 0
-  m_Name: City Courthouse
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3510531978942270194
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1280123485695710217}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2438144838709710402}
-  m_Father: {fileID: 9124768647504261234}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1336628379012578135
 GameObject:
   m_ObjectHideFlags: 0
@@ -4420,38 +4338,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 5852e3d9b75e2a34babe6d91ddec8b8d, type: 3}
---- !u!1 &1431167896589613848
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1956175863138558423}
-  m_Layer: 0
-  m_Name: City Bank
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1956175863138558423
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1431167896589613848}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 3.7000008, y: 0, z: -19.2}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5684884323302562750}
-  m_Father: {fileID: 3757329505254729280}
-  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!1 &1444161768980767280
 GameObject:
   m_ObjectHideFlags: 0
@@ -5461,38 +5347,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &1935109423093708396
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8562919771522821089}
-  m_Layer: 0
-  m_Name: City News Network Office
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8562919771522821089
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1935109423093708396}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 16.9, y: 0, z: 7.8999996}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8123808845019839119}
-  m_Father: {fileID: 9124768647504261234}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1947360953357609574
 GameObject:
   m_ObjectHideFlags: 0
@@ -5853,38 +5707,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.9999995, y: 0.25, z: 4}
   m_Center: {x: -0.0000004172325, y: 0.12499851, z: -0.000004351139}
---- !u!1 &2038252370500492699
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2640480181055067034}
-  m_Layer: 0
-  m_Name: Police Station
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2640480181055067034
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2038252370500492699}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 95.57, y: -0.01399374, z: 11.9}
-  m_LocalScale: {x: 2, y: 0.92996, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3324714980135446325}
-  m_Father: {fileID: 9124768647504261234}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2098985192165354486
 GameObject:
   m_ObjectHideFlags: 0
@@ -8032,8 +7854,9 @@ GameObject:
   - component: {fileID: 5684884323302562750}
   - component: {fileID: 385025584411971062}
   - component: {fileID: 5511694509630760430}
+  - component: {fileID: 2963076346316920394}
   m_Layer: 0
-  m_Name: Bank
+  m_Name: City Bank
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8047,12 +7870,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2812141918667616687}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 3.7000008, y: 0, z: -19.200005}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1956175863138558423}
+  m_Father: {fileID: 3757329505254729280}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &385025584411971062
 MeshFilter:
@@ -8115,6 +7938,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &2963076346316920394
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2812141918667616687}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 3eedb57cbe6114a488fee637e97b46d6, type: 3}
 --- !u!1 &2818842103434341826
 GameObject:
   m_ObjectHideFlags: 0
@@ -8297,38 +8142,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: abd1a9bd4eaa3c74fbffe1db3d4ab74a, type: 3}
---- !u!1 &2919336989224504015
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 9194892190214800367}
-  m_Layer: 0
-  m_Name: Post Office
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &9194892190214800367
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2919336989224504015}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -18.3, y: 0, z: 3.3999977}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5647275568838725162}
-  m_Father: {fileID: 9124768647504261234}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2968165446550540631
 GameObject:
   m_ObjectHideFlags: 0
@@ -8572,6 +8385,7 @@ GameObject:
   - component: {fileID: 6133327129250014417}
   - component: {fileID: 6248328150398274020}
   - component: {fileID: 4473055459389490946}
+  - component: {fileID: 3027181449705515217}
   m_Layer: 0
   m_Name: Outside storage
   m_TagString: Untagged
@@ -8588,11 +8402,11 @@ Transform:
   m_GameObject: {fileID: 3033260115028617737}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -64.39, y: -0.28601217, z: 13.519993}
+  m_LocalScale: {x: 5, y: 1, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3828754185656169087}
+  m_Father: {fileID: 3824862857418332640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6248328150398274020
 MeshFilter:
@@ -8647,6 +8461,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &3027181449705515217
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3033260115028617737}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: d8fae8e9712ff014b96d3711a65b15b8, type: 3}
 --- !u!1 &3074606463601300089
 GameObject:
   m_ObjectHideFlags: 0
@@ -10389,7 +10225,7 @@ GameObject:
   - component: {fileID: 3259438136533191769}
   - component: {fileID: 8963977566457470384}
   m_Layer: 0
-  m_Name: Rock big
+  m_Name: Lake Nose Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10403,12 +10239,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3662772123532918837}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -29.18563, y: 0, z: 9.450165}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7201443335723361769}
+  m_Father: {fileID: 8147680273443785429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6352961790800662926
 MeshFilter:
@@ -11971,8 +11807,9 @@ GameObject:
   - component: {fileID: 2438144838709710402}
   - component: {fileID: 2709094546390093782}
   - component: {fileID: 7349590993288044658}
+  - component: {fileID: 8159479386132278913}
   m_Layer: 0
-  m_Name: High building 2
+  m_Name: City Courthouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11986,12 +11823,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3999640210877972017}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -0, z: -0}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3510531978942270194}
+  m_Father: {fileID: 9124768647504261234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2709094546390093782
 MeshFilter:
@@ -12047,6 +11884,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &8159479386132278913
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3999640210877972017}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 1b9a1d1146c2ba84c98a594645ccfef5, type: 3}
 --- !u!1 &4005257116258030031
 GameObject:
   m_ObjectHideFlags: 0
@@ -12302,8 +12161,9 @@ GameObject:
   - component: {fileID: 8123808845019839119}
   - component: {fileID: 8501718063001528752}
   - component: {fileID: 6454508584657444323}
+  - component: {fileID: 9209007471936515965}
   m_Layer: 0
-  m_Name: Building with antenna
+  m_Name: City News Network Office
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12318,11 +12178,11 @@ Transform:
   m_GameObject: {fileID: 4053365417692054189}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.28}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 16.899998, y: -0, z: 5.3399925}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8562919771522821089}
+  m_Father: {fileID: 9124768647504261234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8501718063001528752
 MeshFilter:
@@ -12381,6 +12241,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &9209007471936515965
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4053365417692054189}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 0dd3aa5743d43e64d9f8693bd3d26b20, type: 3}
 --- !u!1 &4054226929288783541
 GameObject:
   m_ObjectHideFlags: 0
@@ -13448,6 +13330,7 @@ GameObject:
   - component: {fileID: 3015695088304900429}
   - component: {fileID: 5390623319946198918}
   - component: {fileID: 2440631719675461449}
+  - component: {fileID: 7443839484516422315}
   m_Layer: 0
   m_Name: Warehouse
   m_TagString: Untagged
@@ -13463,12 +13346,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4463568734533926705}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: -64.42205, y: -0.2859969, z: -12.239895}
+  m_LocalScale: {x: 5, y: 2, z: 8}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3282592739374505660}
+  m_Father: {fileID: 3824862857418332640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5390623319946198918
 MeshFilter:
@@ -13524,6 +13407,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &7443839484516422315
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4463568734533926705}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 72cf21009c6fa5143a0d773dd368c3f9, type: 3}
 --- !u!1 &4484921764990164795
 GameObject:
   m_ObjectHideFlags: 0
@@ -14162,8 +14067,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1956175863138558423}
-  - {fileID: 8430096534221475590}
+  - {fileID: 5684884323302562750}
+  - {fileID: 4694588861493644655}
   m_Father: {fileID: 2640384082887038482}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4761291450287184194
@@ -15100,38 +15005,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.9999995, y: 0.25, z: 4}
   m_Center: {x: -0.0000004172325, y: 0.12499851, z: -0.0000041127205}
---- !u!1 &5082714361410338497
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6294102414332048324}
-  m_Layer: 0
-  m_Name: City Christmas Tree
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6294102414332048324
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5082714361410338497}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 4, z: 4}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1348161757738475256}
-  m_Father: {fileID: 8370963791043364527}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5112972027700326868
 GameObject:
   m_ObjectHideFlags: 0
@@ -15763,8 +15636,9 @@ GameObject:
   - component: {fileID: 3324714980135446325}
   - component: {fileID: 7638207719804824863}
   - component: {fileID: 8330042230151056655}
+  - component: {fileID: 2622094435625193407}
   m_Layer: 0
-  m_Name: Apartments
+  m_Name: Police Station
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15779,11 +15653,11 @@ Transform:
   m_GameObject: {fileID: 5385547784842684580}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -23.39, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 48.79, y: -0.013998508, z: 11.89999}
+  m_LocalScale: {x: 2, y: 0.92996, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2640480181055067034}
+  m_Father: {fileID: 9124768647504261234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7638207719804824863
 MeshFilter:
@@ -15843,6 +15717,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &2622094435625193407
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5385547784842684580}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 0ae8d45dc8f27d544820653040a3b108, type: 3}
 --- !u!1 &5427780396358814124
 GameObject:
   m_ObjectHideFlags: 0
@@ -16391,8 +16287,9 @@ GameObject:
   - component: {fileID: 5647275568838725162}
   - component: {fileID: 2811871259781096748}
   - component: {fileID: 9128802743617956568}
+  - component: {fileID: 3879613882637684472}
   m_Layer: 0
-  m_Name: High Office Building
+  m_Name: Post Office
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16407,11 +16304,11 @@ Transform:
   m_GameObject: {fileID: 5620477976478035314}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -18.300001, y: -0, z: 3.39999}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 9194892190214800367}
+  m_Father: {fileID: 9124768647504261234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2811871259781096748
 MeshFilter:
@@ -16466,6 +16363,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &3879613882637684472
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5620477976478035314}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 92cc875d3c4fd304b91000f1d0550900, type: 3}
 --- !u!1 &5626881846211383681
 GameObject:
   m_ObjectHideFlags: 0
@@ -16618,7 +16537,7 @@ Transform:
   - {fileID: 8797327197143768626}
   - {fileID: 6057929532197609117}
   - {fileID: 906213002787643698}
-  - {fileID: 286046138997240624}
+  - {fileID: 6752210707525375912}
   - {fileID: 7889588972073356471}
   m_Father: {fileID: 6673502407069733749}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -18167,7 +18086,7 @@ GameObject:
   - component: {fileID: 6786795247053958194}
   - component: {fileID: 2370311328497697947}
   m_Layer: 0
-  m_Name: Tree spruce
+  m_Name: City Christmas Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18182,11 +18101,11 @@ Transform:
   m_GameObject: {fileID: 6294469218265238523}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6294102414332048324}
+  m_Father: {fileID: 8370963791043364527}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5262742509534725604
 MeshFilter:
@@ -18260,38 +18179,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 5c5023da2230da744b2c569c2459af8b, type: 3}
---- !u!1 &6302366184694967428
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8537136352892680658}
-  m_Layer: 0
-  m_Name: Warehouse Parking Lot
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8537136352892680658
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6302366184694967428}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.000056067645, y: 0.000534921, z: 0.00055386923, w: 0.99999976}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8935713563819875615}
-  m_Father: {fileID: 3824862857418332640}
-  m_LocalEulerAnglesHint: {x: 0.006, y: 0.061, z: 0.063}
 --- !u!1 &6350909008561530828
 GameObject:
   m_ObjectHideFlags: 0
@@ -19376,38 +19263,6 @@ Transform:
   - {fileID: 8128692583847541560}
   m_Father: {fileID: 6761705736490634680}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!1 &6667478968312962853
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3282592739374505660}
-  m_Layer: 0
-  m_Name: Warehouse
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3282592739374505660
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6667478968312962853}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
-  m_LocalPosition: {x: -64.42205, y: -0.28599834, z: -12.239906}
-  m_LocalScale: {x: 5, y: 2, z: 8}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3015695088304900429}
-  m_Father: {fileID: 3824862857418332640}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &6693470624481043361
 GameObject:
   m_ObjectHideFlags: 0
@@ -20424,8 +20279,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1532308710502969208}
-  - {fileID: 7201443335723361769}
+  - {fileID: 151532085307447668}
+  - {fileID: 8259730240479485236}
   - {fileID: 1022447837727276479}
   - {fileID: 9004353472045417424}
   - {fileID: 9016909376785387251}
@@ -20570,7 +20425,7 @@ GameObject:
   - component: {fileID: 686379579982619242}
   - component: {fileID: 9189341872047016637}
   m_Layer: 0
-  m_Name: Rock big
+  m_Name: Mount Oreo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20584,12 +20439,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7057033126094515397}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 97.51437, y: 0.0000166893, z: -116.837524}
+  m_LocalScale: {x: 8, y: 8, z: 8}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1532308710502969208}
+  m_Father: {fileID: 8147680273443785429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7588688128072812366
 MeshFilter:
@@ -20675,8 +20530,9 @@ GameObject:
   - component: {fileID: 8935713563819875615}
   - component: {fileID: 1850513065520578693}
   - component: {fileID: 5673884461228635254}
+  - component: {fileID: 28981572981200152}
   m_Layer: 0
-  m_Name: Height parking lot 15
+  m_Name: Warehouse Parking Lot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -20690,12 +20546,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7074366571788647271}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -22.23, y: -0.2, z: -13.55}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.000056067645, y: 0.000534921, z: 0.00055386923, w: 0.99999976}
+  m_LocalPosition: {x: -66.73276, y: -0.6693435, z: -40.5787}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 8537136352892680658}
+  m_Father: {fileID: 3824862857418332640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1850513065520578693
 MeshFilter:
@@ -20748,6 +20604,28 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &28981572981200152
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7074366571788647271}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: fef81c27bb18d2041aff0a567c11b1b7, type: 3}
 --- !u!1 &7093645928804033658
 GameObject:
   m_ObjectHideFlags: 0
@@ -23853,9 +23731,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3282592739374505660}
-  - {fileID: 3828754185656169087}
-  - {fileID: 8537136352892680658}
+  - {fileID: 3015695088304900429}
+  - {fileID: 6133327129250014417}
+  - {fileID: 8935713563819875615}
   m_Father: {fileID: 2640384082887038482}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8061278245022035206
@@ -24800,7 +24678,7 @@ GameObject:
   - component: {fileID: 8430369175899371513}
   - component: {fileID: 5770885264713779030}
   m_Layer: 0
-  m_Name: Pond
+  m_Name: Lake Nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24814,12 +24692,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8307673185829328622}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 42.6, y: 3.7700057, z: 150.50002}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 286046138997240624}
+  m_Father: {fileID: 2610774862638247072}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4290149180420921354
 MeshFilter:
@@ -25034,38 +24912,6 @@ Transform:
   - {fileID: 8244370689486065048}
   m_Father: {fileID: 2610774862638247072}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &8406848572837580707
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8199406320488947672}
-  m_Layer: 0
-  m_Name: Hospital
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8199406320488947672
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8406848572837580707}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 47.046078, y: 0, z: 84.74031}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3321301767095992473}
-  m_Father: {fileID: 9124768647504261234}
-  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!1 &8439095562101485548
 GameObject:
   m_ObjectHideFlags: 0
@@ -25899,38 +25745,6 @@ Transform:
   - {fileID: 8940402165951051651}
   m_Father: {fileID: 8370963791043364527}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &8645605918695800946
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8430096534221475590}
-  m_Layer: 0
-  m_Name: City Tax Office
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8430096534221475590
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8645605918695800946}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4694588861493644655}
-  m_Father: {fileID: 3757329505254729280}
-  m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
 --- !u!1 &8660626221964676852
 GameObject:
   m_ObjectHideFlags: 0
@@ -26281,7 +26095,7 @@ Transform:
   - {fileID: 6440657200709366571}
   - {fileID: 453834169660111424}
   - {fileID: 2173748581551470840}
-  - {fileID: 6294102414332048324}
+  - {fileID: 1348161757738475256}
   m_Father: {fileID: 6673502407069733749}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8744408451059732324
@@ -26368,38 +26182,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &8748803694825567851
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1532308710502969208}
-  m_Layer: 0
-  m_Name: Mount Oreo
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1532308710502969208
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8748803694825567851}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 97.51438, y: 0.000015258789, z: -116.837524}
-  m_LocalScale: {x: 8, y: 8, z: 8}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 151532085307447668}
-  m_Father: {fileID: 8147680273443785429}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8749070256570605691
 GameObject:
   m_ObjectHideFlags: 0
@@ -26874,11 +26656,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8562919771522821089}
-  - {fileID: 9194892190214800367}
-  - {fileID: 2640480181055067034}
-  - {fileID: 8199406320488947672}
-  - {fileID: 3510531978942270194}
+  - {fileID: 8123808845019839119}
+  - {fileID: 5647275568838725162}
+  - {fileID: 3324714980135446325}
+  - {fileID: 3321301767095992473}
+  - {fileID: 2438144838709710402}
   m_Father: {fileID: 2640384082887038482}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8902474286676660470
