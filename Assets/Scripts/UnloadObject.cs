@@ -13,19 +13,28 @@ public class UnloadObject : MonoBehaviour
 
     // Variables for scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
+    private VRScreenreader m_VRScreenreaderScript;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("A new object has been spawned for unloading");
 
+        // Grab the unloading bag's existing reference collider and handle collisions with it
+        CheckForBagReferenceCollider();
+
         // Add necessary components for grabbing and detecting grip button with object
-        this.gameObject.layer = 7; // Make the object Interactable if it isn't already
-        this.gameObject.AddComponent<XRGrabInteractable>();
-        this.gameObject.AddComponent<GrabRequest>();
-        this.gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the bag, can comment to test if unloading works
-        // Sets the collider with a larger y to ensure it stays in the bounds of the bag - if it's too small of an object, it will pass through and count as an unload
-        this.gameObject.GetComponent<BoxCollider>().size = new Vector3(this.gameObject.GetComponent<BoxCollider>().size.x, this.gameObject.GetComponent<BoxCollider>().size.y * 1.5f, this.gameObject.GetComponent<BoxCollider>().size.z);
+        gameObject.layer = 7; // Make the object Interactable if it isn't already
+        if (gameObject.GetComponent<XRGrabInteractable>() == null)
+            gameObject.AddComponent<XRGrabInteractable>();
+        if (gameObject.GetComponent<GrabRequest>() == null)
+            gameObject.AddComponent<GrabRequest>();
+        if (gameObject.GetComponent<BoxCollider>() == null)
+        {
+            gameObject.AddComponent<BoxCollider>(); // To ensure it doesn't fall through the bag, can comment to test if unloading works
+            // Sets the collider with a larger y to ensure it stays in the bounds of the bag - if it's too small of an object, it will pass through and count as an unload
+            gameObject.GetComponent<BoxCollider>().size = new Vector3(gameObject.GetComponent<BoxCollider>().size.x, gameObject.GetComponent<BoxCollider>().size.y * 1.5f, gameObject.GetComponent<BoxCollider>().size.z);
+        }
 
         // Add a collider to the bag for detecting its bounds + physics
         if (bag != null)
@@ -41,6 +50,11 @@ public class UnloadObject : MonoBehaviour
             m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
             if (!m_ShortTaskControllerScript.interactionTable.GetComponent<Collider>())
                 m_ShortTaskControllerScript.interactionTable.AddComponent<BoxCollider>();
+
+            // Grab the screenreader script to access the unloadingBagCollider
+            m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
+
+            // Alt. grab the unloading bag, find child object named ReaderReference, get collider from that child, ignore collisions
 
             if (bagBounds != null)
                 StartCoroutine(StartUnloadCheckAfterDelay()); // Start the unload check with a delay to avoid immediate triggering
@@ -61,10 +75,6 @@ public class UnloadObject : MonoBehaviour
                 playerUnloadedObject = true;
                 Debug.Log("Player unloaded the object outside the bag.");
             }
-            else
-            {
-                //Debug.Log("Object is currently inside the bag, waiting to be unloaded");
-            }
         }
     }
 
@@ -84,5 +94,25 @@ public class UnloadObject : MonoBehaviour
     {
         if (GetComponent<GrabRequest>() != null)
             isGrabbed = GetComponent<GrabRequest>().grabbed;
+    }
+
+    private void CheckForBagReferenceCollider()
+    {
+        // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
+        BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        Transform colliderTransform = bagReferenceCollider.gameObject.transform;
+        Vector3 originalColliderPosition = colliderTransform.position;
+
+        // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
+        colliderTransform.position = new Vector3(originalColliderPosition.x + 2, originalColliderPosition.y, originalColliderPosition.z);
+        
+        // Determine how long to wait before shifting back
+        StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
+    }
+
+    private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
+    {
+        yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
+        colliderTransform.position = originalColliderPosition;
     }
 }

@@ -12,6 +12,7 @@ public class RandomTarget : MonoBehaviour
     private Vector3 areaCenter;
 
     // Variables for short tasks with targets
+    private List<BoxCollider> targetColliders = new List<BoxCollider>();
     public List<GameObject> randomTargets = new List<GameObject>();
     private SelectedTarget m_SelectedTargetScript;
     public int timesTargetReached = 0;
@@ -96,6 +97,7 @@ public class RandomTarget : MonoBehaviour
 
     void FindObstaclesAndAddColliders()
     {
+        Debug.Log("Adding colliders");
         // Get all objects in the scene
         GameObject[] allObjects = FindObjectsOfType<GameObject>();
 
@@ -106,16 +108,22 @@ public class RandomTarget : MonoBehaviour
             {
                 // Add collider to parent object
                 if (!obj.GetComponentInChildren<BoxCollider>())
-                    obj.AddComponent<BoxCollider>();
+                {
+                    BoxCollider targetCollider = obj.AddComponent<BoxCollider>();
+                    targetColliders.Add(targetCollider);
+                }
 
                 // Get the child objects and add colliders 
                 foreach (Transform child in obj.transform)
                 {
                     if (child.gameObject.layer != 13 || child.gameObject.layer != 7 || child.gameObject.layer != 10) // If the child is not a key item or on another important layer
                     {
-                        child.gameObject.layer = 8; // Obstacles
+                        child.gameObject.layer = 8; // Obstacles, children must be set to this layer or their colliders will be ignored when considering spawn positions
                         if (!child.gameObject.GetComponentInChildren<BoxCollider>())
-                            child.gameObject.AddComponent<BoxCollider>();
+                        {
+                            BoxCollider targetCollider = child.gameObject.AddComponent<BoxCollider>();
+                            targetColliders.Add(targetCollider);
+                        }
                     }
                 }
             }
@@ -124,25 +132,14 @@ public class RandomTarget : MonoBehaviour
 
     void FindObstaclesAndRemoveColliders()
     {
-        // Get all objects in the scene
-        GameObject[] allObjects = FindObjectsOfType<GameObject>();
-
-        // Loop through each object
-        foreach (GameObject obj in allObjects)
+        Debug.Log("Removing colliders");
+        // Get all colliders in the targetColliders list
+        foreach (BoxCollider targetCollider in targetColliders)
         {
-            if (obj.layer == 13) // KeyItems
-            {
-                if (obj.GetComponentInChildren<BoxCollider>())
-                    Destroy(obj.GetComponentInChildren<BoxCollider>());
-
-                // Get the child objects and destroy colliders 
-                foreach (Transform child in obj.transform)
-                {
-                    if (child.gameObject.GetComponentInChildren<BoxCollider>())
-                        Destroy(child.gameObject.GetComponentInChildren<BoxCollider>());
-                }
-            }
+            Destroy(targetCollider);
         }
+
+        targetColliders.Clear();
     }
 
     void FindAndSpawnInOpenSpaces()

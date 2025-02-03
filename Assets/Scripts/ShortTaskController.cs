@@ -24,11 +24,9 @@ public class ShortTaskController : MonoBehaviour
     private RandomObjectSpawner m_PrepareSpawnerScript;
 
     // Variables to track scores
-    public bool checkScores;
-    private bool previousCheckScoreState;
-    private int navigationTaskScore = 0;
-    private int unloadingTaskScore = 0;
-    private int preparationTaskScore = 0;
+    public int navigationTaskScore = 0;
+    public int unloadingTaskScore = 0;
+    public int preparationTaskScore = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -40,15 +38,16 @@ public class ShortTaskController : MonoBehaviour
         previousNavTaskState = navigationTaskActive;
         previousUnloadTaskState = unloadingTaskActive;
         previousPrepTaskState = preparationTaskActive;
-        previousCheckScoreState = checkScores;
+
+        // Set up Physics Matrix to ignore collisions between Interactables and any objects on the IgnoreCollisions layer
+        Physics.IgnoreLayerCollision(7, 9, true); // Interactables, IgnoreCollisions
     }
 
     // Update is called once per frame
     void Update()
     {
         // Constantly check + update scores from tasks
-        if (m_RandomTargetScript != null && m_UnloadSpawnerScript != null && m_PrepareSpawnerScript != null)
-            CheckScoreUpdates();
+        CheckScoreUpdates();
 
         // Check if navigation task is active or inactive
         if (m_RandomTargetScript != null)
@@ -85,13 +84,22 @@ public class ShortTaskController : MonoBehaviour
     {
         if (unloadingTaskActive != previousUnloadTaskState)
         {
+            // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
+            BoxCollider bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+            
             if (unloadingTaskActive)
             {
+                // Set reference collider to IgnoreCollisions layer
+                bagReferenceCollider.gameObject.layer = 9;
+
                 Debug.Log("Setting up unloading task");
                 SetUpUnloadSpawner();
             }
             else
             {
+                // Revert reference collider layer to restore proper collision effects between it and other interactables
+                bagReferenceCollider.gameObject.layer = 0;
+
                 Debug.Log("Taking down unloading task");
                 TakeDownUnloadSpawner();
             }
@@ -182,20 +190,11 @@ public class ShortTaskController : MonoBehaviour
     void CheckScoreUpdates()
     {
         // Pull latest scores from scripts
-        navigationTaskScore = m_RandomTargetScript.timesTargetReached;
-        unloadingTaskScore = m_UnloadSpawnerScript.timesObjectUnloaded;
-        preparationTaskScore = m_PrepareSpawnerScript.timesObjectPrepared;
-
-        // Display scores in editor if checkScores is true
-        if (checkScores != previousCheckScoreState)
-        {
-            if (checkScores)
-            {
-                Debug.Log("Navigation task score is: " + navigationTaskScore);
-                Debug.Log("Unloading task score is: " + unloadingTaskScore);
-                Debug.Log("Preparation task score is: " + preparationTaskScore);
-            }
-            previousCheckScoreState = checkScores;
-        }
+        if (m_RandomTargetScript != null)
+            navigationTaskScore = m_RandomTargetScript.timesTargetReached;
+        if (m_UnloadSpawnerScript != null)
+            unloadingTaskScore = m_UnloadSpawnerScript.timesObjectUnloaded;
+        if (m_PrepareSpawnerScript != null)
+            preparationTaskScore = m_PrepareSpawnerScript.timesObjectPrepared;
     }
 }

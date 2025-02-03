@@ -81,7 +81,7 @@ public class VRHandling : MonoBehaviour
         return false;
     }
 
-    // Function to get the state of the primary button on the XR controller
+    // Function to get the state of the secondary button on the left XR controller
     private bool GetMutingButtonPress()
     {
         if (leftXRController != null)

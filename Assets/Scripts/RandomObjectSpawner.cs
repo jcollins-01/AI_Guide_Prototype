@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class RandomObjectSpawner : MonoBehaviour
 {
@@ -23,6 +24,7 @@ public class RandomObjectSpawner : MonoBehaviour
     {
         // Assign spawnSource to be the GameObject this script is on
         spawnSource = this.gameObject;
+        Debug.Log("Spawn source is " +  this.gameObject.name);
         m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
 
         // Assign audio components for indicating an object has been unloaded / prepared
@@ -89,6 +91,8 @@ public class RandomObjectSpawner : MonoBehaviour
         {
             spawnedObject.AddComponent<PrepareObject>();
             spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
+            // Destroy the grabbable component so the object can't be grabbed accidentally
+            Destroy(spawnedObject.GetComponentInChildren<XRGrabInteractable>());
         }
     }
 
@@ -123,23 +127,19 @@ public class RandomObjectSpawner : MonoBehaviour
                 if (spawnedObject.GetComponent<PrepareObject>().playerMidPreparation)
                 {
                     Debug.Log("Player starting preparing object");
-                    audioSource.loop = true;
-                    audioSource.clip = preparing;
-                    audioSource.Play();
+                    if (!audioSource.isPlaying)
+                    {
+                        audioSource.clip = preparing;
+                        audioSource.Play();
+                    }
                 }
-                else // If player stops preparation or finishes preparing, stop playing this AudioClip
-                {
-                    if (audioSource.clip == preparing) // If the last clip playing was the mid-preparation one
-                        audioSource.Stop();
-                }
-
-                // If player has finished preparing object
+                
+                // If player finishes preparation
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
                     timesObjectPrepared++;
-                    audioSource.loop = false;
                     audioSource.clip = unloaded;
                     audioSource.Play();
                     SpawnRandomObject();

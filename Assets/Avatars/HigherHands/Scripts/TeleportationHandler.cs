@@ -52,20 +52,29 @@ public class TeleportationHandler : MonoBehaviour
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
-        if (screenreaderActive)
+        if (screenreaderActive && leftIsPressed)
             CheckForReticleHit(leftTarget, leftRay);
 
         bool rightIsPressed = CheckIfButtonDown(rightTarget);
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
-        if (screenreaderActive)
+        if (screenreaderActive && rightIsPressed)
             CheckForReticleHit(rightTarget, rightRay);
+
+        if (!leftIsPressed && !rightIsPressed)
+        {
+            // If both teleportation triggers are not being held down, reset the lastHitObject
+            m_VRScreenreaderScript.lastHitObject = null;
+        }
 
         // If the action of teleportation has completed
         if (teleport.locomotionPhase == LocomotionPhase.Done)
         {
+            Debug.Log("Teleport motion completed");
             characterController.center = new Vector3(0f, characterControllerCenterY, 0f);
             characterController.height = characterControllerHeight;
+            if (m_VRScreenreaderScript.sharedMovementFound)
+                m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
         }
     }
 
@@ -78,19 +87,26 @@ public class TeleportationHandler : MonoBehaviour
     // Function to check if the ray hits something
     void CheckForReticleHit(XRController controller, XRInteractorLineVisual ray)
     {
-        RaycastHit hit;
-        Ray raycast = new Ray(ray.transform.position, ray.transform.forward);
+        // Ensure the reticle exists and is active
+        GameObject reticle = ray.reticle;
+        if (reticle == null || !reticle.activeInHierarchy)
+            return;
 
-        // Perform raycast to detect objects in the teleportableLayerMask
+        // Get the position of the reticle
+        Vector3 reticlePosition = reticle.transform.position;
+
+        // Perform a Physics.OverlapSphere to check objects at the reticle's position
+        float sphereRadius = 0.02f;
         int layerMask = ~LayerMask.GetMask("Ignore Raycast");
-        if (Physics.Raycast(raycast, out hit, Mathf.Infinity, layerMask))
+        Collider[] hitColliders = Physics.OverlapSphere(reticlePosition, sphereRadius, layerMask);
+
+        if (hitColliders.Length > 0)
         {
-            // Check if the reticle hit a teleportable surface
-            if (hit.collider != null)
-            {
-                //Debug.Log("Teleport reticle hit an object: " + hit.collider.gameObject.name);
-                m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(hit.transform.gameObject);
-            }
+            //Debug.Log("Teleport reticle hit an object");
+            // Hitting a teleportable object, so activate screenreader and share position of reticle
+            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
         }
+        else
+            Debug.Log("No objects detected at reticle position.");
     }
 }
