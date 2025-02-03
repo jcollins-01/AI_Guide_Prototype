@@ -220,9 +220,7 @@ public class OpenAIQueries : MonoBehaviour
             new Message(Role.User, content)
         };
 
-        // gpt-4o : requires URL field
-
-        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4-turbo", maxTokens: 300); // was gpt-4-vision-preview, deprecated in Dec 2024
+        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4o", maxTokens: 300); // was gpt-4-vision-preview, deprecated in Dec 2024
 
         // Use StreamCompletionAsync to stream the responses
         try
