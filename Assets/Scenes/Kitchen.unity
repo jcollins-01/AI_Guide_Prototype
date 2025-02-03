@@ -958,11 +958,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRScreenreaderActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5919492226065966512, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_MinHeight
@@ -1383,6 +1383,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1165691686}
     m_Modifications:
+    - target: {fileID: 18749857644837039, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
     - target: {fileID: 195888068504541348, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1431,21 +1435,101 @@ PrefabInstance:
       propertyPath: m_Convex
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 711689721679657954, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Wood
+      objectReference: {fileID: 0}
+    - target: {fileID: 977438561117029840, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
     - target: {fileID: 2325488208042077774, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2650592903088229382, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 2770313973152335322, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 3363217569028719998, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 4656944618713577929, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 4793053475456909990, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 5144889124460053062, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
       objectReference: {fileID: 0}
     - target: {fileID: 5604217011687010304, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Kitchen City
       objectReference: {fileID: 0}
+    - target: {fileID: 5910340941734196784, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 5938749052585460093, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Stone
+      objectReference: {fileID: 0}
     - target: {fileID: 6535877816015180461, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6632288196781922381, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 6658632197819942905, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Stone
+      objectReference: {fileID: 0}
+    - target: {fileID: 6893876654446739880, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Wood
+      objectReference: {fileID: 0}
+    - target: {fileID: 7052785886946169902, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 7257228045731389659, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 8191030832494311930, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 8307673185829328622, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Water
+      objectReference: {fileID: 0}
+    - target: {fileID: 8352864163943206608, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 8480510854957011505, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
+      objectReference: {fileID: 0}
     - target: {fileID: 8755328374777158666, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9119644853908080076, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_TagString
+      value: Grass
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
