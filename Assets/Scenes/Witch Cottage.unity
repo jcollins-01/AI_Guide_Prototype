@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.31988698, g: 0.2583933, b: 0.36811996, a: 1}
+  m_IndirectSpecularColor: {r: 0.3201431, g: 0.25861406, b: 0.3684007, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -215,7 +215,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 579568076}
-  - {fileID: 1285873159}
+  - {fileID: 8883930297941011623}
   - {fileID: 1757267108}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -442,11 +442,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8888548579614736209, guid: 81db538e49f3a53438eef27eb21a612a, type: 3}
   m_PrefabInstance: {fileID: 579568075}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &1285873159 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-  m_PrefabInstance: {fileID: 2287998023965524973}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1757267106
 GameObject:
   m_ObjectHideFlags: 0
@@ -541,7 +536,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 340243907}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1001 &2287998023965524973
+--- !u!1001 &1100241243860366551
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -549,55 +544,68 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 340243907}
     m_Modifications:
-    - target: {fileID: 5435434847130722387, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-      propertyPath: m_Name
-      value: Witch Cottage Bog
+    - target: {fileID: 390351155968813554, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.35
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalRotation.x
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalRotation.y
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7244767456069709642, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+    - target: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883215708459470988, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Name
+      value: Witch Cottage Bog
+      objectReference: {fileID: 0}
+    - target: {fileID: 7136665208438844041, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+--- !u!4 &8883930297941011623 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1038110057156147150, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+  m_PrefabInstance: {fileID: 1100241243860366551}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
