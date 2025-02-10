@@ -1440,9 +1440,21 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Wood
       objectReference: {fileID: 0}
+    - target: {fileID: 714755064414033426, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 977438561117029840, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_TagString
       value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 1973209957840895891, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Name
+      value: Cluttered Table
+      objectReference: {fileID: 0}
+    - target: {fileID: 1973209957840895891, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 2325488208042077774, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
@@ -1535,8 +1547,37 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1973209957840895891, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4280557288900568261}
   m_SourcePrefab: {fileID: 100100000, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+--- !u!1 &4280557288900568260 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1973209957840895891, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+  m_PrefabInstance: {fileID: 4280557288900568259}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &4280557288900568261
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4280557288900568260}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.0000014, y: 1.9279714, z: 2.000001}
+  m_Center: {x: -0.0000009536743, y: 0.9602343, z: -0.000029474497}
 --- !u!1001 &5328124011688891335
 PrefabInstance:
   m_ObjectHideFlags: 0
