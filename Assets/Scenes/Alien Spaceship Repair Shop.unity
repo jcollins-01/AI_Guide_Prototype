@@ -1042,6 +1042,32 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1617084655460598291, guid: 2c6cca66f8edd724ba6a9900765605fa, type: 3}
   m_PrefabInstance: {fileID: 958939813}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1003285689 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2133879649538566876, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1003285690
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003285689}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 17.557865, y: 9.979143, z: 11.709401}
+  m_Center: {x: 2.7498107, y: 4.692603, z: 2.1921802}
 --- !u!65 &1041093001
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -4184,6 +4210,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: tall table
       objectReference: {fileID: 0}
+    - target: {fileID: 2133879649538566876, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 2134402406465448812, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Name
       value: large metal bar
@@ -4737,6 +4767,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4763576060986601908, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 472607602}
+    - targetCorrespondingSourceObject: {fileID: 2133879649538566876, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1003285690}
   m_SourcePrefab: {fileID: 100100000, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
 --- !u!1 &4290234073903715217 stripped
 GameObject:
