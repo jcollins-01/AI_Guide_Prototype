@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0634741, g: 0.052032404, b: 0.056677427, a: 1}
+  m_IndirectSpecularColor: {r: 0.06335979, g: 0.051945098, b: 0.05664592, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -5967,6 +5967,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.70398384, y: 1.2750611, z: 0.7261403}
   m_Center: {x: 0.08195921, y: 0.63459975, z: -0.010412729}
+--- !u!1 &368139818 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4593942532686318307, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &368139822
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 368139818}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.6528199, y: 2.2603548, z: 6.185213}
+  m_Center: {x: 0.0011129966, y: 0.24347135, z: 0.081729315}
 --- !u!65 &369072540
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7681,6 +7707,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.413643, y: 2.1151617, z: 1.5758489}
   m_Center: {x: 0, y: -0.29445216, z: 0.03972892}
+--- !u!1 &531467062 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9056193527501725802, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &531467066
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 531467062}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.6528182, y: 2.2603545, z: 6.18521}
+  m_Center: {x: 0.0011149049, y: 0.24347135, z: 0.08172929}
 --- !u!65 &533957926
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11785,6 +11837,122 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.8987747, y: 1.5553749, z: 1.5871569}
   m_Center: {x: -0.17491476, y: 0.6282364, z: 0.04633122}
+--- !u!1 &1038680100 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8120835659047515294, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1038680101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038680100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f6bf3d943ac7945842268c9ef1dca6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_InteractionManager: {fileID: 0}
+  m_Colliders: []
+  m_InteractionLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_InteractionLayers:
+    m_Bits: 1
+  m_DistanceCalculationMode: 1
+  m_SelectMode: 1
+  m_FocusMode: 1
+  m_CustomReticle: {fileID: 0}
+  m_AllowGazeInteraction: 0
+  m_AllowGazeSelect: 0
+  m_OverrideGazeTimeToSelect: 0
+  m_GazeTimeToSelect: 0.5
+  m_OverrideTimeToAutoDeselectGaze: 0
+  m_TimeToAutoDeselectGaze: 3
+  m_AllowGazeAssistance: 0
+  m_FirstHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_HoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_HoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FirstSelectEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastSelectExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_SelectEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_SelectExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FirstFocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_LastFocusExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FocusExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Activated:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Deactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  m_StartingHoverFilters: []
+  m_StartingSelectFilters: []
+  m_StartingInteractionStrengthFilters: []
+  m_OnFirstHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnLastHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnHoverEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnHoverExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnSelectEntered:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnSelectExited:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnSelectCanceled:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnActivate:
+    m_PersistentCalls:
+      m_Calls: []
+  m_OnDeactivate:
+    m_PersistentCalls:
+      m_Calls: []
+  m_TeleportationProvider: {fileID: 0}
+  m_MatchOrientation: 0
+  m_MatchDirectionalInput: 0
+  m_TeleportTrigger: 0
+  m_FilterSelectionByHitNormal: 0
+  m_UpNormalToleranceDegrees: 30
+  m_Teleporting:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!65 &1040978000
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14329,6 +14497,58 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.0728649, y: 0.5013157, z: 0.86353505}
   m_Center: {x: -0.06524323, y: 0.23214366, z: -0.025240779}
+--- !u!1 &1268143057 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8069326925001189686, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1268143061
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1268143057}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.6528184, y: 2.2603545, z: 6.18521}
+  m_Center: {x: 0.0011149073, y: 0.24347517, z: 0.08172929}
+--- !u!1 &1269099127 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6509714137909967435, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1269099131
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1269099127}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.639818, y: 2.2603552, z: 6.1777773}
+  m_Center: {x: 0.00042752153, y: 0.2605165, z: 0.08291651}
 --- !u!65 &1274392030
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -24800,6 +25020,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: black gear (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 3467453522181644806, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Missile Truck
+      objectReference: {fileID: 0}
     - target: {fileID: 3502467253804272492, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
@@ -24864,11 +25088,27 @@ PrefabInstance:
       propertyPath: m_Name
       value: VegetationMedium08
       objectReference: {fileID: 0}
+    - target: {fileID: 4593942532686318307, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Space Truck Junkyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 4593942532686318307, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 4702468634820729876, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Name
       value: pipe ring
       objectReference: {fileID: 0}
     - target: {fileID: 4756830012154353233, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763576060986601908, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Launchpad Circle
+      objectReference: {fileID: 0}
+    - target: {fileID: 4763576060986601908, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -24887,6 +25127,14 @@ PrefabInstance:
     - target: {fileID: 5485491040250066416, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Name
       value: VegetationMedium06 (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5705678259709365757, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Launchpad Circle
+      objectReference: {fileID: 0}
+    - target: {fileID: 5705678259709365757, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 5719649199251622475, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
@@ -24952,6 +25200,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 6509714137909967435, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Space Truck Junkyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 6509714137909967435, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 6554745982242179443, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
@@ -24961,6 +25217,14 @@ PrefabInstance:
       value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 6670198443270906769, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6705942412418081024, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Launchpad Circle
+      objectReference: {fileID: 0}
+    - target: {fileID: 6705942412418081024, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -24985,6 +25249,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7027994140314630349, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 7083988570106405517, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Operational Space Truck
+      objectReference: {fileID: 0}
+    - target: {fileID: 7083988570106405517, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -25020,7 +25292,19 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8001669287775197122, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Flipped Truck
+      objectReference: {fileID: 0}
     - target: {fileID: 8049328088245298251, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 8069326925001189686, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Space Truck Junkyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 8069326925001189686, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -25116,6 +25400,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 9056193527501725802, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Space Truck Junkyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 9056193527501725802, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 9217537804935468195, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Layer
       value: 13
@@ -25124,6 +25416,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8120835659047515294, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1038680101}
     - targetCorrespondingSourceObject: {fileID: 4639235160990885835, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1759235398}
@@ -27800,6 +28095,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4763576060986601908, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 472607602}
+    - targetCorrespondingSourceObject: {fileID: 4593942532686318307, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 368139822}
+    - targetCorrespondingSourceObject: {fileID: 6509714137909967435, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1269099131}
+    - targetCorrespondingSourceObject: {fileID: 8069326925001189686, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1268143061}
+    - targetCorrespondingSourceObject: {fileID: 9056193527501725802, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 531467066}
     - targetCorrespondingSourceObject: {fileID: 2133879649538566876, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1003285690}
