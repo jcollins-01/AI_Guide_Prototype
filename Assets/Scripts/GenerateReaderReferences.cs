@@ -240,7 +240,8 @@ public class GenerateReaderReferences : MonoBehaviour
         // Get current scene name
         sceneName = SceneManager.GetActiveScene().name;
         string newEntryKey = sceneName + "_Objects";
-        string newEntryValue = string.Join(", ", objectNames);
+        HashSet<string> uniqueObjectNames = new HashSet<string>(objectNames);
+        string newEntryValue = string.Join(", ", uniqueObjectNames);
 
         // Load the current JSON file
         Dictionary<string, string> roomDescriptions = new Dictionary<string, string>();
@@ -262,6 +263,35 @@ public class GenerateReaderReferences : MonoBehaviour
 
         Debug.Log($"Updated {newEntryKey} in RoomDescriptions.json");
     }
+
+
+    /*void UpdateRoomDescriptions()
+    {
+        // Get current scene name
+        sceneName = SceneManager.GetActiveScene().name;
+        string newEntryKey = sceneName + "_Objects";
+        string newEntryValue = string.Join(", ", objectNames);
+
+        // Load the current JSON file
+        Dictionary<string, string> roomDescriptions = new Dictionary<string, string>();
+
+        jsonPath = Path.Combine(Application.dataPath, "Resources", jsonFileName);
+        if (File.Exists(jsonPath))
+        {
+            string jsonContent = File.ReadAllText(jsonPath);
+            // Deserialize existing content into the dictionary
+            roomDescriptions = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonContent);
+        }
+
+        // Add or update the entry for the current scene
+        roomDescriptions[newEntryKey] = newEntryValue;
+
+        // Convert back to JSON format and save the file
+        string updatedJson = JsonConvert.SerializeObject(roomDescriptions, Formatting.Indented);
+        File.WriteAllText(jsonPath, updatedJson);
+
+        Debug.Log($"Updated {newEntryKey} in RoomDescriptions.json");
+    }*/
 
     // Method to read the JSON file and trigger PlayHT generation for the current scene
     public IEnumerator GenerateAudioFilesFromConfig()
