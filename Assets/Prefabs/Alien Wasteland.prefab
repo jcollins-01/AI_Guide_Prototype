@@ -27567,7 +27567,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3822980616076091796}
   m_Layer: 0
-  m_Name: Spore Blob
+  m_Name: Spore Cactus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -50577,6 +50577,7 @@ Transform:
   - {fileID: 4458804774182327742}
   - {fileID: 574630319335664644}
   - {fileID: 2799465062021734534}
+  - {fileID: 1023014624476715855}
   m_Father: {fileID: 8466305711851501203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6024234250067998735
@@ -55573,6 +55574,7 @@ Transform:
   m_Children:
   - {fileID: 3168677927547900635}
   - {fileID: 6862044345673828812}
+  - {fileID: 7065460549640145272}
   m_Father: {fileID: 3010124113722998022}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6555040826239407598
@@ -57842,13 +57844,11 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 77278157495902071}
-  - {fileID: 7065460549640145272}
   - {fileID: 7502832848919893532}
   - {fileID: 5335008815554161398}
   - {fileID: 5521152832770007792}
   - {fileID: 3822980616076091796}
   - {fileID: 526347338398318461}
-  - {fileID: 1023014624476715855}
   m_Father: {fileID: 1744723141024761397}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6831341411844008792
@@ -68941,14 +68941,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7979160665500036331}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 68.2345, y: -0.8765569, z: -57.3322}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6500195806591954250}
   - {fileID: 6363070840414666217}
-  m_Father: {fileID: 6804632589657923276}
+  m_Father: {fileID: 101323109926962864}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8001218107126334353
 GameObject:
@@ -72635,8 +72635,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8343741771018608483}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -10.529999, y: -37.33, z: 1.5999985}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -72644,7 +72644,7 @@ Transform:
   - {fileID: 902899661381973642}
   - {fileID: 9134343491263854310}
   - {fileID: 1452020962089209679}
-  m_Father: {fileID: 6804632589657923276}
+  m_Father: {fileID: 8014742310500100247}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8348166287713610264
 GameObject:
