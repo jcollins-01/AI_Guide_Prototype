@@ -18379,6 +18379,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.7869535, y: 1.3608656, z: 0.87827903}
   m_Center: {x: -0.028145334, y: 0.6145508, z: -0.046284955}
+--- !u!1 &1727648597 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4639385968347570861, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+  m_PrefabInstance: {fileID: 4290234073903715216}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1727648598
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1727648597}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5300994, y: 0.9092658, z: 1.9261569}
+  m_Center: {x: -0.0000009759607, y: -0.0067682005, z: 0.39015952}
 --- !u!65 &1729256427
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -28488,6 +28514,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 4639385968347570861, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Name
+      value: Space Truck Junkyard
+      objectReference: {fileID: 0}
+    - target: {fileID: 4639385968347570861, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: 4656958849213610573, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       propertyPath: m_Name
       value: Banana Plant
@@ -35107,6 +35141,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4763576060986601908, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 472607602}
+    - targetCorrespondingSourceObject: {fileID: 4639385968347570861, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1727648598}
     - targetCorrespondingSourceObject: {fileID: 4593942532686318307, guid: c07538ee880442b4f8977d9cf5c24797, type: 3}
       insertIndex: -1
       addedObject: {fileID: 368139822}
