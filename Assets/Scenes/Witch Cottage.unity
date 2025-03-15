@@ -6633,8 +6633,9 @@ GameObject:
   - component: {fileID: 6480748861988986647}
   - component: {fileID: 1859244465937549665}
   - component: {fileID: 3719151497729973414}
-  m_Layer: 0
-  m_Name: mesh1100371379
+  - component: {fileID: 6480748861988986648}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6651,8 +6652,9 @@ GameObject:
   - component: {fileID: 2562126417021900181}
   - component: {fileID: 2909356711682794751}
   - component: {fileID: 5046550981925575096}
-  m_Layer: 0
-  m_Name: mesh1333387760
+  - component: {fileID: 5046550981925575097}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6891,8 +6893,9 @@ GameObject:
   - component: {fileID: 7754969221210321360}
   - component: {fileID: 7689772763257278344}
   - component: {fileID: 5370735971197227753}
-  m_Layer: 0
-  m_Name: mesh1136539803
+  - component: {fileID: 7754969221210321361}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6909,8 +6912,9 @@ GameObject:
   - component: {fileID: 4749435158352465656}
   - component: {fileID: 4980489954933711708}
   - component: {fileID: 4384384482832375400}
-  m_Layer: 0
-  m_Name: mesh857540781
+  - component: {fileID: 4980489954933711709}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7087,8 +7091,9 @@ GameObject:
   - component: {fileID: 3205257567618702508}
   - component: {fileID: 540210232772276398}
   - component: {fileID: 2239824319457438427}
-  m_Layer: 0
-  m_Name: mesh86476523
+  - component: {fileID: 3205257567618702509}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7178,8 +7183,9 @@ GameObject:
   - component: {fileID: 1814368047263014918}
   - component: {fileID: 382165121700061644}
   - component: {fileID: 8052973096593659075}
-  m_Layer: 0
-  m_Name: mesh1206691227
+  - component: {fileID: 8052973096593659076}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7204,8 +7210,9 @@ GameObject:
   - component: {fileID: 825059898660836550}
   - component: {fileID: 6609865303712418599}
   - component: {fileID: 8005984625078530536}
-  m_Layer: 0
-  m_Name: mesh1077392221
+  - component: {fileID: 8005984625078530537}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7264,8 +7271,9 @@ GameObject:
   - component: {fileID: 3925771989828303623}
   - component: {fileID: 2278846930556965991}
   - component: {fileID: 1438357964786348152}
-  m_Layer: 0
-  m_Name: mesh255370361
+  - component: {fileID: 3925771989828303624}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7603,6 +7611,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3205257567618702509
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1641825854177464150}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.29, y: 0.07250025, z: 0.29000002}
+  m_Center: {x: 0.001485981, y: 0.62626696, z: 0.016412212}
 --- !u!33 &3324762863109564457
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -7664,8 +7693,9 @@ GameObject:
   - component: {fileID: 874350638527748368}
   - component: {fileID: 7308317890915890600}
   - component: {fileID: 5910980494755464329}
-  m_Layer: 0
-  m_Name: mesh1353458987
+  - component: {fileID: 7308317890915890601}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7739,8 +7769,9 @@ GameObject:
   - component: {fileID: 2428285437791847374}
   - component: {fileID: 7031721079544965150}
   - component: {fileID: 1547720567330844101}
-  m_Layer: 0
-  m_Name: mesh943616944
+  - component: {fileID: 7031721079544965151}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7757,8 +7788,9 @@ GameObject:
   - component: {fileID: 1109633674777076539}
   - component: {fileID: 5375583032257260314}
   - component: {fileID: 696503044895220497}
-  m_Layer: 0
-  m_Name: mesh1973611077
+  - component: {fileID: 5375583032257260315}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7788,7 +7820,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4997374306533587742}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7852,6 +7884,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &3925771989828303624
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2097751947020888519}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2899999, y: 0.30000004, z: 0.29000005}
+  m_Center: {x: 0.0014859418, y: 0.48001698, z: 0.006412218}
 --- !u!33 &4116443343982877068
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -7970,8 +8023,9 @@ GameObject:
   - component: {fileID: 3653492727801896491}
   - component: {fileID: 2902427322685077019}
   - component: {fileID: 4793881714818183368}
-  m_Layer: 0
-  m_Name: mesh1116048966
+  - component: {fileID: 4793881714818183369}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8045,8 +8099,9 @@ GameObject:
   - component: {fileID: 4578654975204316030}
   - component: {fileID: 5779910678565202430}
   - component: {fileID: 4187385389628347645}
-  m_Layer: 0
-  m_Name: mesh1949096598
+  - component: {fileID: 5779910678565202431}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8063,8 +8118,9 @@ GameObject:
   - component: {fileID: 1360194927497072953}
   - component: {fileID: 8759144957957470587}
   - component: {fileID: 2830218913828925027}
-  m_Layer: 0
-  m_Name: mesh1953296260
+  - component: {fileID: 8759144957957470588}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8127,6 +8183,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &4793881714818183369
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4523218480509739062}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.0014858955, y: 0.20126693, z: 0.0064122253}
 --- !u!1 &4847973499620577649
 GameObject:
   m_ObjectHideFlags: 0
@@ -8138,8 +8215,9 @@ GameObject:
   - component: {fileID: 8638570006088582172}
   - component: {fileID: 7051968187619076631}
   - component: {fileID: 2169397741028959947}
-  m_Layer: 0
-  m_Name: mesh895211030
+  - component: {fileID: 8638570006088582173}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8156,8 +8234,9 @@ GameObject:
   - component: {fileID: 8869340116693111811}
   - component: {fileID: 6298175253483350653}
   - component: {fileID: 722681698282718227}
-  m_Layer: 0
-  m_Name: mesh1824828629
+  - component: {fileID: 8869340116693111812}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8171,6 +8250,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 923164805354314444}
   m_Mesh: {fileID: -9002235379542820350, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &4980489954933711709
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 923164805354314444}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19000001, y: 0.04750015, z: 0.18999995}
+  m_Center: {x: 0.0014860831, y: -3.1937335, z: 0.006412347}
 --- !u!4 &4997374306533587742
 Transform:
   m_ObjectHideFlags: 0
@@ -8259,6 +8359,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &5046550981925575097
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439096659831910576}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.09500001
+  m_Center: {x: -0.31707075, y: 0.48501697, z: -0.022144444}
 --- !u!33 &5081505609619552763
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8293,8 +8414,9 @@ GameObject:
   - component: {fileID: 5639863435811238804}
   - component: {fileID: 2112505067708347148}
   - component: {fileID: 1713064347788536381}
-  m_Layer: 0
-  m_Name: mesh652101582
+  - component: {fileID: 5639863435811238805}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8350,6 +8472,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3644058601758809413}
   m_Mesh: {fileID: 1438235956233287598, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &5375583032257260315
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3644058601758809413}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.26999998, y: 0.31999996, z: 0.27}
+  m_Center: {x: 0.0014860095, y: -2.999983, z: 0.006412308}
 --- !u!4 &5639863435811238804
 Transform:
   m_ObjectHideFlags: 0
@@ -8365,6 +8508,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &5639863435811238805
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5232382500118651068}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7940999, y: 1.36806, z: 0.14224742}
+  m_Center: {x: 0.39943606, y: 2.3240473, z: 0.009009175}
 --- !u!1 &5744568826207597339
 GameObject:
   m_ObjectHideFlags: 0
@@ -8376,8 +8540,9 @@ GameObject:
   - component: {fileID: 6012039071397808045}
   - component: {fileID: 9132007426799794568}
   - component: {fileID: 9122802590591506750}
-  m_Layer: 0
-  m_Name: mesh835758789
+  - component: {fileID: 9132007426799794569}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8433,6 +8598,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4694944965883058937}
   m_Mesh: {fileID: 8872570816865785902, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &5779910678565202431
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4694944965883058937}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19000001, y: 0.04750015, z: 0.18999995}
+  m_Center: {x: 0.0014860857, y: -3.2662334, z: 0.0064123487}
 --- !u!23 &5900646295096813426
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8528,8 +8714,9 @@ GameObject:
   - component: {fileID: 1636433697108652603}
   - component: {fileID: 1878797446358506261}
   - component: {fileID: 6790798866716856177}
-  m_Layer: 0
-  m_Name: mesh321658050
+  - component: {fileID: 6790798866716856178}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8603,6 +8790,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6480748861988986648
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433722828102329401}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.33, y: 0.0825, z: 0.33}
+  m_Center: {x: 0.0014859999, y: 0.30876693, z: 0.0064122225}
 --- !u!4 &6587413004924346795
 Transform:
   m_ObjectHideFlags: 0
@@ -8629,13 +8837,35 @@ GameObject:
   - component: {fileID: 6278140941206787217}
   - component: {fileID: 1558796489965613445}
   - component: {fileID: 2026426347699360568}
-  m_Layer: 0
-  m_Name: mesh242607239
+  - component: {fileID: 6605441124963303456}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &6605441124963303456
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6605441124963303455}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.28999993, y: 0.46999985, z: 0.28999993}
+  m_Center: {x: 0.0014859289, y: 0.8550172, z: 0.0064122602}
 --- !u!33 &6609865303712418599
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8670,8 +8900,9 @@ GameObject:
   - component: {fileID: 6587413004924346795}
   - component: {fileID: 8519208091816516394}
   - component: {fileID: 3434554577797734118}
-  m_Layer: 0
-  m_Name: mesh1255388254
+  - component: {fileID: 8519208091816516396}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8688,8 +8919,9 @@ GameObject:
   - component: {fileID: 3482198996702973285}
   - component: {fileID: 9051555113560056875}
   - component: {fileID: 6915774657151020327}
-  m_Layer: 0
-  m_Name: mesh1294698649
+  - component: {fileID: 9051555113560056876}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8737,6 +8969,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &6790798866716856178
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5971061711060161183}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.09500001
+  m_Center: {x: 0.030042695, y: 0.49501696, z: 0.3078555}
 --- !u!1 &6802345627085695508
 GameObject:
   m_ObjectHideFlags: 0
@@ -8748,13 +9001,35 @@ GameObject:
   - component: {fileID: 6403016491905770958}
   - component: {fileID: 1645159156937084733}
   - component: {fileID: 715241612704480035}
-  m_Layer: 0
-  m_Name: mesh365804501
+  - component: {fileID: 6802345627085695509}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &6802345627085695509
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6802345627085695508}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7954121, y: 1.368492, z: 0.14259334}
+  m_Center: {x: -0.38580856, y: 2.3242633, z: 0.008536298}
 --- !u!23 &6915774657151020327
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -8808,8 +9083,9 @@ GameObject:
   - component: {fileID: 2682277089942724557}
   - component: {fileID: 5081505609619552763}
   - component: {fileID: 7144252597676066124}
-  m_Layer: 0
-  m_Name: mesh853873683
+  - component: {fileID: 7144252597676066125}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8826,8 +9102,9 @@ GameObject:
   - component: {fileID: 4240716514373971096}
   - component: {fileID: 7797051869597587241}
   - component: {fileID: 5900646295096813426}
-  m_Layer: 0
-  m_Name: mesh492482658
+  - component: {fileID: 7797051869597587242}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8841,6 +9118,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3616186825829478130}
   m_Mesh: {fileID: -6692575729679083961, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &7031721079544965151
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3616186825829478130}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7941, y: 1.3680593, z: 0.1022474}
+  m_Center: {x: -0.39105266, y: 1.8774958, z: 0.009969606}
 --- !u!33 &7051968187619076631
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8860,8 +9158,9 @@ GameObject:
   - component: {fileID: 8018005535575653904}
   - component: {fileID: 746984655700198300}
   - component: {fileID: 3482648043036263525}
-  m_Layer: 0
-  m_Name: mesh1500370796
+  - component: {fileID: 8018005535575653905}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8909,6 +9208,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &7144252597676066125
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6950883976986662825}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19000003, y: 0.42000014, z: 0.19000001}
+  m_Center: {x: 0.001486079, y: -3.0699835, z: 0.006412314}
 --- !u!33 &7308317890915890600
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8917,6 +9237,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3435298452398051355}
   m_Mesh: {fileID: 1526070401604620960, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &7308317890915890601
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3435298452398051355}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.0014859461, y: -1.2687331, z: 0.0064122635}
 --- !u!1 &7438236666669552480
 GameObject:
   m_ObjectHideFlags: 0
@@ -8928,13 +9269,35 @@ GameObject:
   - component: {fileID: 5166690619001590978}
   - component: {fileID: 1480391962985456311}
   - component: {fileID: 2216450163633531200}
-  m_Layer: 0
-  m_Name: mesh2100485742
+  - component: {fileID: 7438236666669552481}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &7438236666669552481
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7438236666669552480}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.6000001, y: 0.020000024, z: 0.10000109}
+  m_Center: {x: 0.0018973653, y: 2.5715253, z: 0.009807058}
 --- !u!33 &7689772763257278344
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8958,6 +9321,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7754969221210321361
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922719318366629896}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.0014859417, y: -1.138733, z: 0.00641226}
 --- !u!33 &7797051869597587241
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -8966,6 +9350,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6960645618165843190}
   m_Mesh: {fileID: -7289143713813255797, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!135 &7797051869597587242
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6960645618165843190}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.14500001
+  m_Center: {x: -0.00071696955, y: 2.1050172, z: 0.04420927}
 --- !u!23 &8005984625078530536
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9008,6 +9413,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &8005984625078530537
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1966938082617901137}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.09500001
+  m_Center: {x: -0.00707076, y: 0.48501697, z: -0.28503096}
 --- !u!4 &8018005535575653904
 Transform:
   m_ObjectHideFlags: 0
@@ -9023,6 +9449,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8018005535575653905
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7112260603412395181}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.0014859156, y: -0.38123316, z: 0.00641224}
 --- !u!23 &8052973096593659075
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9065,6 +9512,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &8052973096593659076
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1878238143103587478}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.09500001
+  m_Center: {x: 0.29292914, y: 0.505017, z: -0.022144476}
 --- !u!1 &8219542515965677738
 GameObject:
   m_ObjectHideFlags: 0
@@ -9076,8 +9544,9 @@ GameObject:
   - component: {fileID: 1454229978165416448}
   - component: {fileID: 8415123343970109595}
   - component: {fileID: 2307931726805070991}
-  m_Layer: 0
-  m_Name: mesh1030307775
+  - component: {fileID: 8415123343970109596}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9091,6 +9560,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8219542515965677738}
   m_Mesh: {fileID: -2902322114127773031, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &8415123343970109596
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8219542515965677738}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.0014859706, y: -1.9787333, z: 0.0064122817}
 --- !u!33 &8519208091816516394
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -9099,6 +9589,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6719563826944679271}
   m_Mesh: {fileID: -3953654113090229433, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!135 &8519208091816516396
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6719563826944679271}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.13
+  m_Center: {x: 0.0014859977, y: -2.7662332, z: 0.006412302}
 --- !u!1001 &8594345726802075570
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12087,6 +12598,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8638570006088582173
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4847973499620577649}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.79541194, y: 1.3684921, z: 0.10259332}
+  m_Center: {x: 0.39419183, y: 1.8772802, z: 0.009496652}
 --- !u!33 &8759144957957470587
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -12095,6 +12627,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4702436985461433657}
   m_Mesh: {fileID: -8427069943347801267, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &8759144957957470588
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4702436985461433657}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23, y: 0.057500023, z: 0.23000002}
+  m_Center: {x: 0.001485944, y: -1.2087332, z: 0.0064122616}
 --- !u!1 &8839182289669053489
 GameObject:
   m_ObjectHideFlags: 0
@@ -12106,13 +12659,35 @@ GameObject:
   - component: {fileID: 6707907897961797803}
   - component: {fileID: 809759744252220928}
   - component: {fileID: 5748782380709763326}
-  m_Layer: 0
-  m_Name: mesh1273034423
+  - component: {fileID: 8839182289669053490}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &8839182289669053490
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8839182289669053489}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2899999, y: 0.16000012, z: 0.28999993}
+  m_Center: {x: 0.0014859181, y: 1.1700171, z: 0.006412252}
 --- !u!4 &8869340116693111811
 Transform:
   m_ObjectHideFlags: 0
@@ -12128,6 +12703,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4997374306533587742}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8869340116693111812
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4890296892707653289}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.5153952, y: 2.5312712, z: 0.30279338}
+  m_Center: {x: 0.012278665, y: 2.0920808, z: -0.01699623}
 --- !u!1 &8999796227367594843
 GameObject:
   m_ObjectHideFlags: 0
@@ -12139,13 +12735,35 @@ GameObject:
   - component: {fileID: 2410886087948003593}
   - component: {fileID: 3324762863109564457}
   - component: {fileID: 4603219159322249355}
-  m_Layer: 0
-  m_Name: mesh291381012
+  - component: {fileID: 8999796227367594844}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &8999796227367594844
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8999796227367594843}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.33, y: 0.08250003, z: 0.33000013}
+  m_Center: {x: 0.0014860015, y: 0.26126692, z: 0.0064122756}
 --- !u!33 &9051555113560056875
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -12154,6 +12772,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6753363092308963810}
   m_Mesh: {fileID: 4962421467428777269, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &9051555113560056876
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6753363092308963810}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.6, y: 0.020000026, z: 0.14000054}
+  m_Center: {x: 0.0064859423, y: 1.6300173, z: 0.008845646}
 --- !u!1 &9080645932794532658
 GameObject:
   m_ObjectHideFlags: 0
@@ -12165,13 +12804,35 @@ GameObject:
   - component: {fileID: 2960146900865861185}
   - component: {fileID: 4116443343982877068}
   - component: {fileID: 647101482523218046}
-  m_Layer: 0
-  m_Name: mesh682947330
+  - component: {fileID: 9080645932794532659}
+  m_Layer: 7
+  m_Name: Magic Wand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &9080645932794532659
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9080645932794532658}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.33, y: 0.0825, z: 0.33}
+  m_Center: {x: 0.0014859725, y: 1.1012671, z: 0.0064122016}
 --- !u!23 &9122802590591506750
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -12222,6 +12883,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5744568826207597339}
   m_Mesh: {fileID: 958592301317329772, guid: 73adcba5b7c2ee34a81135bd567dc564, type: 3}
+--- !u!65 &9132007426799794569
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5744568826207597339}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19000092, y: 3.050002, z: 0.19000039}
+  m_Center: {x: 0.0014863869, y: -1.1949834, z: 0.0064124144}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
