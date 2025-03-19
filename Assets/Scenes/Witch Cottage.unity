@@ -1932,63 +1932,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.42602444, y: 0.3233866, z: 0.42449576}
   m_Center: {x: -0.0018539727, y: 0.1616933, z: -0.006070815}
---- !u!1 &276639397 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7830987850373282073, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-  m_PrefabInstance: {fileID: 8594345726802075570}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &276639398 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1698165501530498946, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-  m_PrefabInstance: {fileID: 8594345726802075570}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &276639399 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5237899148317129444, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
   m_PrefabInstance: {fileID: 8594345726802075570}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &276639400
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 276639397}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.13129272, y: 0.06519787, z: 0.07142523}
-  m_Center: {x: 0, y: 0.000000109896064, z: -0.0000003091991}
---- !u!65 &276639401
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 276639398}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.11773226, y: 0.24754113, z: 0.13594548}
-  m_Center: {x: -0.000011444092, y: 0.12377061, z: -0.000009544194}
 --- !u!65 &276639402
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2167,6 +2115,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.3042944, y: 0.014121128, z: 0.30429453}
   m_Center: {x: -0.006890945, y: 0.03025233, z: -0.006829001}
+--- !u!1 &302161272 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1142139406398413417, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+  m_PrefabInstance: {fileID: 8594345726802075570}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &302161273
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 302161272}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 135.60709, y: 59.391113, z: 91.47455}
+  m_Center: {x: 22.066284, y: -29.695557, z: 0.000001942609}
 --- !u!65 &302809058
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -20530,7 +20504,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 423072291539535598, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Table Leg
+      value: Picnic Table
       objectReference: {fileID: 0}
     - target: {fileID: 423072291539535598, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -20698,7 +20672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 670291124282885934, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Small Books
+      value: Small Book
       objectReference: {fileID: 0}
     - target: {fileID: 670291124282885934, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -20912,6 +20886,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 1046186232429338836, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.14
+      objectReference: {fileID: 0}
     - target: {fileID: 1054996628968103607, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
       value: Leaf
@@ -20973,6 +20951,10 @@ PrefabInstance:
       value: Flower Petal
       objectReference: {fileID: 0}
     - target: {fileID: 1137030424063725706, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 1142139406398413417, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -21298,7 +21280,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1698165501530498946, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
-      value: 13
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1705287603344611973, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
@@ -21434,11 +21416,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1896368602968619213, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Island Flower
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 1896368602968619213, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 1907653092227992467, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Name
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 1928643347979524663, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -21450,7 +21436,7 @@ PrefabInstance:
       objectReference: {fileID: -3199389707889117602, guid: 0b7cc2ffaad684d75affa8ba88d71a80, type: 3}
     - target: {fileID: 1931162952703610083, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 1931162952703610083, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -21958,7 +21944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2952195904004699035, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Small Books
+      value: Small Book
       objectReference: {fileID: 0}
     - target: {fileID: 2952195904004699035, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -22126,7 +22112,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3232171684628769866, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Island Flower
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 3232171684628769866, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -22279,6 +22265,10 @@ PrefabInstance:
     - target: {fileID: 3442916287629882607, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 3445455386043559031, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Name
+      value: Potions, Scrolls, and Containers Shelf
       objectReference: {fileID: 0}
     - target: {fileID: 3446341644540156713, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
@@ -22754,7 +22744,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4308270233040652326, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Filled Beaker
+      value: Filled Jar
       objectReference: {fileID: 0}
     - target: {fileID: 4308270233040652326, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -22978,7 +22968,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4745786776109260827, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 4745786776109260827, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -23121,6 +23111,10 @@ PrefabInstance:
       value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 4997870664621368078, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Name
+      value: Candelabra
+      objectReference: {fileID: 0}
+    - target: {fileID: 4997870664621368078, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
@@ -23170,7 +23164,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5032355760870063314, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Table Leg
+      value: Picnic Table
       objectReference: {fileID: 0}
     - target: {fileID: 5032355760870063314, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -23462,7 +23456,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5374521563121313987, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Dandelion Plant
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 5374521563121313987, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -23478,7 +23472,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5391026874127885554, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 5391026874127885554, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -23502,7 +23496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5405619970765009704, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Table Leg
+      value: Picnic Table
       objectReference: {fileID: 0}
     - target: {fileID: 5405619970765009704, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -23918,7 +23912,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6001640234139031080, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Small Books
+      value: Small Book
       objectReference: {fileID: 0}
     - target: {fileID: 6001640234139031080, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -24074,7 +24068,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6199088818011420017, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Filled Beaker
+      value: Filled Jar
       objectReference: {fileID: 0}
     - target: {fileID: 6199088818011420017, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -24222,7 +24216,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6420748342344946699, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 6420748342344946699, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -24310,7 +24304,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6598657184609245132, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Dandelion Plant
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 6598657184609245132, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -24474,7 +24468,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6886586169555362985, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Potions and Scrolls Shelf
+      value: Potions, Scrolls, and Containers Shelf
       objectReference: {fileID: 0}
     - target: {fileID: 6886586169555362985, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -24578,7 +24572,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7063471011866936548, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Dandelion Plant
+      value: Dandelion Flower
       objectReference: {fileID: 0}
     - target: {fileID: 7063471011866936548, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -25014,7 +25008,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7830987850373282073, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
-      value: 13
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7873958097446613744, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
@@ -25162,7 +25156,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8056714618559227414, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Table Leg
+      value: Picnic Table
       objectReference: {fileID: 0}
     - target: {fileID: 8056714618559227414, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -25586,7 +25580,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8663573282288919111, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 8663573282288919111, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -25734,7 +25728,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8864868683251881340, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Small Books
+      value: Small Book
       objectReference: {fileID: 0}
     - target: {fileID: 8864868683251881340, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -25814,7 +25808,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8961965505235312399, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Small Books
+      value: Small Book
       objectReference: {fileID: 0}
     - target: {fileID: 8961965505235312399, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -25846,7 +25840,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9020092748300539438, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
-      value: Large Books
+      value: Large Book
       objectReference: {fileID: 0}
     - target: {fileID: 9020092748300539438, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Layer
@@ -27225,12 +27219,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5237899148317129444, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       insertIndex: -1
       addedObject: {fileID: 276639402}
-    - targetCorrespondingSourceObject: {fileID: 1698165501530498946, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 276639401}
-    - targetCorrespondingSourceObject: {fileID: 7830987850373282073, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 276639400}
     - targetCorrespondingSourceObject: {fileID: 4845867063441527989, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1617460636}
@@ -27543,6 +27531,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7127197068512473219, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1072971285}
+    - targetCorrespondingSourceObject: {fileID: 1142139406398413417, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 302161273}
     - targetCorrespondingSourceObject: {fileID: 8086338751361041877, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1051000515}
