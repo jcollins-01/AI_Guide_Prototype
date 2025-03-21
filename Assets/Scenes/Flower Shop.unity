@@ -13923,6 +13923,7 @@ GameObject:
   - component: {fileID: 7547427589872906694}
   - component: {fileID: 753312656140362736}
   - component: {fileID: 5543646570210379255}
+  - component: {fileID: 7547427589872906695}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -16470,6 +16471,7 @@ GameObject:
   - component: {fileID: 7746355152855198579}
   - component: {fileID: 2978230065128258372}
   - component: {fileID: 8266372970280407935}
+  - component: {fileID: 8266372970280407936}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -16633,6 +16635,7 @@ GameObject:
   - component: {fileID: 1116807899146278792}
   - component: {fileID: 4412481984821441177}
   - component: {fileID: 8286147042165579725}
+  - component: {fileID: 8286147042165579726}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -16822,6 +16825,7 @@ GameObject:
   - component: {fileID: 8342808791375965006}
   - component: {fileID: 1446537615225372749}
   - component: {fileID: 8229698822404622411}
+  - component: {fileID: 8342808791375965007}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -17287,6 +17291,7 @@ GameObject:
   - component: {fileID: 1626520480911608434}
   - component: {fileID: 1390501239066609409}
   - component: {fileID: 808652950608369358}
+  - component: {fileID: 7469490528041523146}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -17294,6 +17299,27 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &7469490528041523146
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7469490528041523145}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.46706367, y: 1.4525781, z: 1.2217366}
+  m_Center: {x: -0.21112752, y: 1.0903016, z: 0.70671076}
 --- !u!33 &7470645322191982218
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -17382,6 +17408,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5253128422554246234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7547427589872906695
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2036805183734776090}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.2525666, y: 2.576642, z: 1.5555453}
+  m_Center: {x: 2.2039928, y: -0.41830906, z: 0.94871354}
 --- !u!1 &7562690490736772180
 GameObject:
   m_ObjectHideFlags: 0
@@ -18023,6 +18070,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &8266372970280407936
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5992902052755325476}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.2145462, y: 2.451143, z: 2.2145452}
+  m_Center: {x: -0.0726235, y: -0.72563547, z: 0.18337746}
 --- !u!23 &8267700818753398189
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -18141,6 +18209,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &8286147042165579726
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6300399258109243773}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.5673118, y: 0.080001794, z: 2.0852838}
+  m_Center: {x: 0.1872787, y: 0.3578826, z: 0.18250121}
 --- !u!4 &8326439968887696844
 Transform:
   m_ObjectHideFlags: 0
@@ -18254,6 +18343,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5253128422554246234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &8342808791375965007
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6851497569536814382}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.43179947, y: 1.445269, z: 1.0895002}
+  m_Center: {x: 0.083615236, y: 1.0939561, z: -0.40526485}
 --- !u!23 &8343297325223557572
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -18759,6 +18869,7 @@ GameObject:
   - component: {fileID: 7737224760112036096}
   - component: {fileID: 523268255175829268}
   - component: {fileID: 4060901022695589217}
+  - component: {fileID: 8944180606240593081}
   m_Layer: 7
   m_Name: Watering Can
   m_TagString: Untagged
@@ -18766,6 +18877,27 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!65 &8944180606240593081
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8944180606240593080}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4523045, y: 2.2177742, z: 0.55127436}
+  m_Center: {x: -1.7240067, y: -0.2990969, z: -0.23042487}
 --- !u!33 &9199233501944228191
 MeshFilter:
   m_ObjectHideFlags: 0
