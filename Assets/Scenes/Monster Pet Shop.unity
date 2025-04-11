@@ -246,6 +246,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1946492049}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -309,13 +317,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 20957866}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &20957864 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 20957863}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &20957865 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 20957863}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &20957866
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 20957865}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839345, z: -0.04527402}
 --- !u!1001 &24378185
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -324,6 +361,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2128519667}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -387,13 +432,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 24378188}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &24378186 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 24378185}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &24378187 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 24378185}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &24378188
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24378187}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022345781, y: 0.046839107, z: -0.045274973}
 --- !u!1001 &27943777
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -669,6 +743,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1743040899}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -732,13 +814,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 45290258}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &45290256 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 45290255}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &45290257 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 45290255}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &45290258
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45290257}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002234072, y: 0.04683863, z: -0.0452726}
 --- !u!4 &59071951 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3970243614316841892, guid: 61cbf895886bf4891bc24ad89ca58a88, type: 3}
@@ -1162,6 +1273,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 117351088}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -1225,13 +1344,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 96278618}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &96278616 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 96278615}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &96278617 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 96278615}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &96278618
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96278617}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.045274377}
 --- !u!1 &99404398
 GameObject:
   m_ObjectHideFlags: 0
@@ -1625,6 +1773,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1190878219}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -1688,13 +1844,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 139681259}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &139681257 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 139681256}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &139681258 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 139681256}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &139681259
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 139681258}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022338629, y: 0.046839345, z: -0.045273542}
 --- !u!1001 &142905851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1703,6 +1888,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 944238795}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -1766,13 +1959,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 142905854}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &142905852 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 142905851}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &142905853 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 142905851}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &142905854
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142905853}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.04527402}
 --- !u!1001 &158935602
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2202,6 +2424,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 944238795}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -2265,13 +2495,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 183161431}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &183161429 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 183161428}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &183161430 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 183161428}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &183161431
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 183161430}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022360086, y: 0.046839822, z: -0.04527402}
 --- !u!1 &184440002
 GameObject:
   m_ObjectHideFlags: 0
@@ -2349,6 +2608,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 944238795}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -2412,13 +2679,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 195882266}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &195882264 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 195882263}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &195882265 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 195882263}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &195882266
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 195882265}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022360086, y: 0.046839584, z: -0.045272112}
 --- !u!1001 &197980159
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2777,6 +3073,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1070099704}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -2840,13 +3144,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 242291102}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &242291100 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 242291099}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &242291101 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 242291099}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &242291102
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242291101}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683863, z: -0.045272123}
 --- !u!1001 &253662239
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2979,6 +3312,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 456640968}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -3042,13 +3383,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 256225139}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &256225137 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 256225136}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &256225138 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 256225136}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &256225139
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256225138}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045272123}
 --- !u!1001 &260200677
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3057,6 +3427,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1416592134}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -3120,13 +3498,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 260200680}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &260200678 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 260200677}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &260200679 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 260200677}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &260200680
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 260200679}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045272123}
 --- !u!1001 &265108544
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3197,6 +3604,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1743040899}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -3260,13 +3675,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 267604599}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &267604597 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 267604596}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &267604598 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 267604596}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &267604599
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 267604598}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022349064, y: 0.04683839, z: -0.045273703}
 --- !u!1001 &291841857
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3348,6 +3792,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2128519667}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -3411,13 +3863,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 306763119}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &306763117 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 306763116}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &306763118 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 306763116}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &306763119
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306763118}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022345781, y: 0.046839345, z: -0.045274496}
 --- !u!1001 &318881944
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3603,6 +4084,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1946492049}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -3666,13 +4155,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 337910178}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &337910176 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 337910175}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &337910177 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 337910175}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &337910178
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 337910177}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.045273542}
 --- !u!1001 &354374137
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3681,6 +4199,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2072379424}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -3744,13 +4270,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 354374140}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &354374138 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 354374137}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &354374139 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 354374137}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &354374140
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354374139}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.04527402}
 --- !u!1001 &364791048
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3956,6 +4511,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1416592134}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -4019,13 +4582,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 374891583}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &374891581 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 374891580}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &374891582 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 374891580}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &374891583
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374891582}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022379165, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &390201656
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4248,6 +4840,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 873630670}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -4311,13 +4911,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 402308312}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &402308310 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 402308309}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &402308311 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 402308309}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &402308312
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 402308311}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045275938}
 --- !u!1 &407940454
 GameObject:
   m_ObjectHideFlags: 0
@@ -4883,6 +5512,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 117351088}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -4946,13 +5583,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 462029341}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &462029339 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 462029338}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &462029340 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 462029338}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &462029341
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 462029340}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.0452739}
 --- !u!1001 &468804802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4961,6 +5627,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1861459784}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -5024,13 +5698,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 468804805}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &468804803 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 468804802}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &468804804 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 468804802}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &468804805
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 468804804}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683863, z: -0.04527272}
 --- !u!1001 &487610320
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5601,6 +6304,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1743040899}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -5664,13 +6375,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 548345416}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &548345414 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 548345413}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &548345415 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 548345413}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &548345416
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 548345415}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022346978, y: 0.04683839, z: -0.045273077}
 --- !u!1 &551825001
 GameObject:
   m_ObjectHideFlags: 0
@@ -5773,6 +6513,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1200274491}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -5836,13 +6584,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 568212820}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &568212818 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 568212817}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &568212819 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 568212817}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &568212820
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568212819}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839107, z: -0.045274973}
 --- !u!1001 &569903183
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5851,6 +6628,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 365036527}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -5914,13 +6699,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 569903186}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &569903184 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 569903183}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &569903185 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 569903183}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &569903186
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 569903185}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022336245, y: 0.046839107, z: -0.04527402}
 --- !u!1 &581970039
 GameObject:
   m_ObjectHideFlags: 0
@@ -6085,6 +6899,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 873630670}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -6148,13 +6970,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 603344318}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &603344316 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 603344315}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &603344317 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 603344315}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &603344318
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603344317}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &615144850
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6197,7 +7048,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7881466077556996133, guid: 103d1364a285c44c2b77a748aa98d677, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6.3999996
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 7881466077556996133, guid: 103d1364a285c44c2b77a748aa98d677, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6278,6 +7129,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1070099704}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -6341,13 +7200,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 621950288}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &621950286 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 621950285}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &621950287 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 621950285}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &621950288
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 621950287}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683839, z: -0.04527117}
 --- !u!1 &622548072
 GameObject:
   m_ObjectHideFlags: 0
@@ -6402,6 +7290,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 184440003}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -6465,13 +7361,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 628925731}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &628925729 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 628925728}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &628925730 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 628925728}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &628925731
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 628925730}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683863, z: -0.045272123}
 --- !u!1001 &630029656
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6480,6 +7405,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1070099704}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -6543,13 +7476,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 630029659}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &630029657 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 630029656}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &630029658 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 630029656}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &630029659
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 630029658}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683839, z: -0.045272123}
 --- !u!1001 &640302745
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6768,6 +7730,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1416592134}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -6831,13 +7801,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 650214715}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &650214713 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 650214712}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &650214714 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 650214712}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &650214715
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650214714}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002236009, y: 0.04683863, z: -0.045272123}
 --- !u!1001 &667974121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7347,6 +8346,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1861459784}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -7410,13 +8417,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 773294762}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &773294760 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 773294759}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &773294761 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 773294759}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &773294762
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 773294761}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683863, z: -0.045273554}
 --- !u!1001 &784304035
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7561,6 +8597,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1200274491}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -7624,13 +8668,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 796152042}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &796152040 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 796152039}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &796152041 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 796152039}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &796152042
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796152041}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839107, z: -0.045274973}
 --- !u!1001 &802502044
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8221,6 +9294,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 184440003}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -8284,13 +9365,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 872783134}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &872783132 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 872783131}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &872783133 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 872783131}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &872783134
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 872783133}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &873292249
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8549,6 +9659,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1946492049}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -8612,13 +9730,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 895731064}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &895731062 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 895731061}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &895731063 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 895731061}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &895731064
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895731063}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.045274973}
 --- !u!1001 &897907175
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9229,6 +10376,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1743040899}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -9292,13 +10447,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 949286645}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &949286643 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 949286642}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &949286644 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 949286642}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &949286645
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 949286644}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022346084, y: 0.04683839, z: -0.04527284}
 --- !u!1001 &953074838
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9374,6 +10558,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1190878219}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -9437,13 +10629,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 960837367}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &960837365 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 960837364}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &960837366 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 960837364}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &960837367
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 960837366}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022338629, y: 0.046839345, z: -0.04527402}
 --- !u!1 &961090143
 GameObject:
   m_ObjectHideFlags: 0
@@ -9547,6 +10768,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2128519667}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -9610,13 +10839,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 962193223}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &962193221 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 962193220}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &962193222 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 962193220}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &962193223
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 962193222}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022345781, y: 0.046839345, z: -0.045274496}
 --- !u!1001 &970133733
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10049,6 +11307,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1200274491}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -10112,13 +11378,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1056856345}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1056856343 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1056856342}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1056856344 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1056856342}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1056856345
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1056856344}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839345, z: -0.04527402}
 --- !u!1 &1058292919
 GameObject:
   m_ObjectHideFlags: 0
@@ -10472,6 +11767,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2072379424}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -10535,13 +11838,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1102249108}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1102249106 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1102249105}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1102249107 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1102249105}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1102249108
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1102249107}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.04527402}
 --- !u!1001 &1118365245
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10735,6 +12067,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2072379424}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -10798,13 +12138,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1134518722}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1134518720 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1134518719}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1134518721 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1134518719}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1134518722
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1134518721}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022338629, y: 0.046839107, z: -0.045274973}
 --- !u!1001 &1138243201
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10813,6 +12182,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 944238795}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -10876,13 +12253,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1138243204}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1138243202 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1138243201}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1138243203 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1138243201}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1138243204
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138243203}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839584, z: -0.045272112}
 --- !u!1001 &1140376082
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10973,6 +12379,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 456640968}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -11036,13 +12450,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1168109638}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1168109636 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1168109635}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1168109637 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1168109635}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1168109638
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168109637}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &1178451098
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11954,6 +13397,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 117351088}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -12017,13 +13468,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1337804725}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1337804723 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1337804722}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1337804724 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1337804722}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1337804725
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1337804724}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.045273542}
 --- !u!1001 &1345137618
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12032,6 +13512,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1190878219}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -12095,13 +13583,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1345137621}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1345137619 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1345137618}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1345137620 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1345137618}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1345137621
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1345137620}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022338629, y: 0.046839107, z: -0.045274496}
 --- !u!1 &1350810865
 GameObject:
   m_ObjectHideFlags: 0
@@ -12184,6 +13701,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1861459784}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -12247,13 +13772,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1366643980}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1366643978 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1366643977}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1366643979 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1366643977}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1366643980
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1366643979}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045273792}
 --- !u!1001 &1368261179
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12377,6 +13931,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 365036527}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -12440,13 +14002,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1372722706}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1372722704 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1372722703}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1372722705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1372722703}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1372722706
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372722705}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022345781, y: 0.046839345, z: -0.045275927}
 --- !u!1001 &1376544040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12533,6 +14124,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1190878219}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -12596,13 +14195,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1383535272}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1383535270 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1383535269}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1383535271 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1383535269}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1383535272
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383535271}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022343397, y: 0.046839345, z: -0.04527402}
 --- !u!1 &1403588356
 GameObject:
   m_ObjectHideFlags: 0
@@ -13019,6 +14647,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 184440003}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -13082,13 +14718,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1432240551}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1432240549 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1432240548}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1432240550 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1432240548}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1432240551
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1432240550}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045273077}
 --- !u!1001 &1453782256
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13097,6 +14762,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2128519667}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -13160,13 +14833,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1453782259}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1453782257 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1453782256}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1453782258 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1453782256}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1453782259
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1453782258}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022345781, y: 0.046839107, z: -0.045274258}
 --- !u!1 &1457095538
 GameObject:
   m_ObjectHideFlags: 0
@@ -13243,6 +14945,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1743040899}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -13306,13 +15016,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1463188460}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1463188458 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1463188457}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1463188459 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1463188457}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1463188460
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1463188459}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002234966, y: 0.04683863, z: -0.045273673}
 --- !u!1001 &1466782052
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13321,6 +15060,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1861459784}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -13384,13 +15131,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1466782055}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1466782053 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1466782052}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1466782054 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1466782052}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1466782055
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1466782054}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683839, z: -0.04527239}
 --- !u!1001 &1487944308
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13514,6 +15290,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1070099704}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -13577,13 +15361,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1510451645}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1510451643 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1510451642}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1510451644 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1510451642}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1510451645
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510451644}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &1527609223
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -13658,6 +15471,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1861459784}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -13721,13 +15542,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1541705534}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1541705532 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1541705531}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1541705533 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1541705531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1541705534
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1541705533}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.04527236}
 --- !u!1 &1551112907
 GameObject:
   m_ObjectHideFlags: 0
@@ -13771,6 +15621,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1190878219}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -13834,13 +15692,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1560306016}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1560306014 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1560306013}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1560306015 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1560306013}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1560306016
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560306015}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022343397, y: 0.046839107, z: -0.045273066}
 --- !u!1 &1569754933
 GameObject:
   m_ObjectHideFlags: 0
@@ -13999,6 +15886,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 944238795}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -14062,13 +15957,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1577065330}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1577065328 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1577065327}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1577065329 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1577065327}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1577065330
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1577065329}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.04527402}
 --- !u!1001 &1588137490
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14289,6 +16213,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1946492049}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -14352,13 +16284,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1601520598}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1601520596 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1601520595}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1601520597 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1601520595}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1601520598
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601520597}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022360086, y: 0.046839107, z: -0.045273542}
 --- !u!1001 &1601848113
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14429,6 +16390,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 456640968}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -14492,13 +16461,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1604400483}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1604400481 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1604400480}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1604400482 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1604400480}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1604400483
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1604400482}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683863, z: -0.0452726}
 --- !u!1001 &1614921423
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14569,6 +16567,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 456640968}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -14632,13 +16638,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1616535745}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1616535743 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1616535742}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1616535744 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1616535742}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1616535745
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616535744}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045272123}
 --- !u!1001 &1617011926
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15343,6 +17378,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 184440003}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -15406,13 +17449,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1684342449}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1684342447 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1684342446}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1684342448 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1684342446}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1684342449
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1684342448}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045273077}
 --- !u!4 &1691940637 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3717114202187975224, guid: b51fd4d4b142b482fa94f1e8c6b099a5, type: 3}
@@ -15841,6 +17913,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 365036527}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (1)
@@ -15904,13 +17984,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1710400534}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1710400532 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1710400531}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1710400533 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1710400531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1710400534
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1710400533}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839345, z: -0.04527402}
 --- !u!1 &1743040898
 GameObject:
   m_ObjectHideFlags: 0
@@ -16470,6 +18579,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1200274491}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -16533,13 +18650,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1831134872}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1831134870 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1831134869}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1831134871 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1831134869}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1831134872
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1831134871}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.002235055, y: 0.046839345, z: -0.04527402}
 --- !u!1001 &1839881672
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16548,6 +18694,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1200274491}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -16611,13 +18765,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1839881675}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1839881673 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1839881672}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1839881674 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1839881672}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1839881675
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1839881674}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022331476, y: 0.046839345, z: -0.045275927}
 --- !u!1001 &1849269290
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16626,6 +18809,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2072379424}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -16689,13 +18880,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1849269293}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1849269291 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1849269290}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1849269292 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1849269290}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1849269293
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849269292}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.045274973}
 --- !u!1 &1851897113
 GameObject:
   m_ObjectHideFlags: 0
@@ -16737,6 +18957,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1416592134}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -16800,13 +19028,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1860026082}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1860026080 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1860026079}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1860026081 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1860026079}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1860026082
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1860026081}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.04527403}
 --- !u!1 &1861459783
 GameObject:
   m_ObjectHideFlags: 0
@@ -16908,6 +19165,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 873630670}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -16971,13 +19236,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1893174764}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1893174762 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1893174761}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1893174763 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1893174761}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1893174764
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1893174763}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002236009, y: 0.04683863, z: -0.04527403}
 --- !u!1001 &1896757867
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17225,6 +19519,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 117351088}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -17288,13 +19590,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1940435620}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1940435618 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1940435617}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1940435619 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1940435617}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1940435620
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1940435619}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.045274258}
 --- !u!1 &1946492048
 GameObject:
   m_ObjectHideFlags: 0
@@ -17339,6 +19670,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1070099704}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -17402,13 +19741,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1956735627}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1956735625 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1956735624}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1956735626 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1956735624}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1956735627
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1956735626}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002233148, y: 0.04683839, z: -0.045272123}
 --- !u!1001 &1960636045
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17417,6 +19785,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2128519667}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -17480,13 +19856,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1960636048}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1960636046 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1960636045}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1960636047 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1960636045}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1960636048
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960636047}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839345, z: -0.045274615}
 --- !u!1001 &1966703477
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17709,6 +20114,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 365036527}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -17772,13 +20185,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1973854161}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1973854159 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1973854158}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1973854160 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1973854158}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1973854161
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973854160}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.045275927}
 --- !u!1001 &1980878221
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17787,6 +20229,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1416592134}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -17850,13 +20300,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1980878224}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1980878222 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1980878221}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1980878223 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1980878221}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1980878224
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980878223}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.002236009, y: 0.04683839, z: -0.04526831}
 --- !u!4 &1986330223 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2219292830553816709, guid: 6a4317fc729846d79f69cda980e03f9d, type: 3}
@@ -17870,6 +20349,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 456640968}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -17933,13 +20420,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1987258337}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &1987258335 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 1987258334}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1987258336 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 1987258334}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &1987258337
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1987258336}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022341018, y: 0.04683839, z: -0.045273077}
 --- !u!1001 &2010968848
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17948,6 +20464,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 365036527}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (4)
@@ -18011,13 +20535,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2010968851}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &2010968849 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 2010968848}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2010968850 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 2010968848}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &2010968851
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2010968850}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.045275927}
 --- !u!1001 &2019051023
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18216,6 +20769,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 117351088}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -18279,13 +20840,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2042022241}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &2042022239 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 2042022238}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2042022240 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 2042022238}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &2042022241
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042022240}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022341013, y: 0.046839107, z: -0.04527378}
 --- !u!1001 &2052071256
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18294,6 +20884,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1946492049}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (2)
@@ -18357,13 +20955,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2052071259}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &2052071257 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 2052071256}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2052071258 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 2052071256}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &2052071259
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052071258}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022360086, y: 0.046839345, z: -0.045274496}
 --- !u!1001 &2069290782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18478,6 +21105,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 184440003}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small
@@ -18541,13 +21176,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2081469055}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &2081469053 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 2081469052}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2081469054 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 2081469052}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &2081469055
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2081469054}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1790302, y: 0.10927321, z: 1.2899951}
+  m_Center: {x: -0.0022350554, y: 0.04683863, z: -0.045273077}
 --- !u!1001 &2087281586
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18556,6 +21220,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2072379424}
     m_Modifications:
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Name
+      value: Rock Path
+      objectReference: {fileID: 0}
+    - target: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      propertyPath: m_Layer
+      value: 13
+      objectReference: {fileID: 0}
     - target: {fileID: -293203802875518696, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
       propertyPath: m_Name
       value: Rock Path Round Small (3)
@@ -18619,13 +21291,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2087281589}
   m_SourcePrefab: {fileID: -3199799093341109342, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
 --- !u!4 &2087281587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7881466077556996133, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
   m_PrefabInstance: {fileID: 2087281586}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2087281588 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6596052276067340075, guid: 30db2fd1c84ff4306a64d1acedbc2289, type: 3}
+  m_PrefabInstance: {fileID: 2087281586}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &2087281589
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087281588}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.17903, y: 0.10927321, z: 1.2899947}
+  m_Center: {x: -0.0022336245, y: 0.046839345, z: -0.04527402}
 --- !u!1 &2128519666
 GameObject:
   m_ObjectHideFlags: 0
@@ -26597,7 +29298,7 @@ Transform:
   m_GameObject: {fileID: 7657986657397476483}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 59.068527, y: 1.91395, z: 6.2450027}
+  m_LocalPosition: {x: 59.068527, y: 1.91395, z: 0.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
