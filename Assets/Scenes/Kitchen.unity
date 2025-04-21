@@ -3101,7 +3101,7 @@ GameObject:
   - component: {fileID: 846239855}
   - component: {fileID: 846239854}
   - component: {fileID: 846239853}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Entrance to kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3875,7 +3875,7 @@ GameObject:
   - component: {fileID: 945100105}
   - component: {fileID: 945100104}
   - component: {fileID: 945100103}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Near kitchen prepping table
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4459,7 +4459,7 @@ GameObject:
   - component: {fileID: 1048363516}
   - component: {fileID: 1048363515}
   - component: {fileID: 1048363514}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Back of kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6083,7 +6083,7 @@ GameObject:
   - component: {fileID: 1628241915}
   - component: {fileID: 1628241914}
   - component: {fileID: 1628241913}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Near entrance to kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7427,6 +7427,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1165691686}
     m_Modifications:
+    - target: {fileID: 15875030393909171, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 18749857644837039, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_TagString
       value: Grass
@@ -7510,6 +7514,10 @@ PrefabInstance:
     - target: {fileID: 169585887380353034, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 195888068504541348, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 195888068504541348, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
@@ -7703,6 +7711,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 690553296961925345, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Name
+      value: Residential Houses Closer to Market
+      objectReference: {fileID: 0}
     - target: {fileID: 711689721679657954, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Spruce Tree
@@ -7730,6 +7742,10 @@ PrefabInstance:
     - target: {fileID: 723066803257848777, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 791602491924398580, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 798744143720509259, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -7838,6 +7854,10 @@ PrefabInstance:
     - target: {fileID: 1251243288449577475, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 1251398946151249746, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1269531629333247216, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -8427,6 +8447,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 3998971396424555383, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3999640210877972017, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
@@ -8493,7 +8517,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4231505035243646135, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
-      value: Cooking Pot
+      value: Cooking Pots
       objectReference: {fileID: 0}
     - target: {fileID: 4231505035243646135, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
@@ -8766,6 +8790,10 @@ PrefabInstance:
     - target: {fileID: 5938749052585460093, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_TagString
       value: Stone
+      objectReference: {fileID: 0}
+    - target: {fileID: 5969068780444658061, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5996530624497825590, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -9147,6 +9175,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 7507334628382370139, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7639884211023367730, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Market and Warehouse Sector Roads
@@ -9275,6 +9307,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 8184449779174763214, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8191030832494311930, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_TagString
       value: Grass
@@ -9400,6 +9436,10 @@ PrefabInstance:
       value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 8755328374777158666, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8755328374777158666, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -9413,7 +9453,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8827696610455092898, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
-      value: Cooking Pot
+      value: Cooking Pots
       objectReference: {fileID: 0}
     - target: {fileID: 8827696610455092898, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
@@ -9529,6 +9569,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8922662349689853349, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+    - {fileID: 3442970937417327749, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+    - {fileID: 6003568566436784162, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+    - {fileID: 6026518899083065761, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
