@@ -1,6 +1,6 @@
-using UnityEditor;
 using UnityEngine;
-
+using UnityEditor;
+#if UNITY_EDITOR
 [CustomEditor(typeof(FloorDivider))]
 public class FloorDividerEditor : Editor
 {
@@ -15,3 +15,4 @@ public class FloorDividerEditor : Editor
         }
     }
 }
+#endif
