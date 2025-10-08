@@ -152,8 +152,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4.000002, y: 3.6228185, z: 4.0000014}
-  m_Center: {x: 0.0000009536743, y: 1.8114028, z: 0.000002503395}
+  m_Size: {x: 4.000002, y: 50, z: 4.0000014}
+  m_Center: {x: 0.0000009536743, y: 1.8, z: 0.000002503395}
 --- !u!65 &10672330
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11130,6 +11130,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 333376670325966620, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 365702466069715205, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Kitchen Storage Crate
@@ -11189,6 +11193,10 @@ PrefabInstance:
     - target: {fileID: 465614688046550814, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 478373397854630990, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 487598834150452470, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -11602,6 +11610,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 2019939345144114276, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2059026054707786454, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2098985192165354486, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Spruce Forest
@@ -11869,6 +11885,10 @@ PrefabInstance:
     - target: {fileID: 3364813018154326527, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 3388152999286677971, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3388910010430200306, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -12393,6 +12413,14 @@ PrefabInstance:
     - target: {fileID: 5996530624497825590, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6077463884457699038, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6086150948025710694, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6137697705849137941, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -13125,6 +13153,10 @@ PrefabInstance:
     - target: {fileID: 9124139621869262275, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 9135948089555301999, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9151814208806213905, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
