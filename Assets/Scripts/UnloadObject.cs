@@ -14,11 +14,15 @@ public class UnloadObject : MonoBehaviour
     // Variables for scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
     private VRScreenreader m_VRScreenreaderScript;
+    private SwitchTools m_SwitchToolsScript;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("A new object has been spawned for unloading");
+
+        // Grab switch tools script to check for VR Guide and Screenreader status
+        m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
 
         // Grab the unloading bag's existing reference collider and handle collisions with it
         CheckForBagReferenceCollider();
@@ -98,14 +102,24 @@ public class UnloadObject : MonoBehaviour
 
     private void CheckForBagReferenceCollider()
     {
-        // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
-        BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        BoxCollider bagReferenceCollider;
+
+        if (m_SwitchToolsScript.VRGuideActive)
+        {
+            bagReferenceCollider = bag.GetComponentInChildren<BoxCollider>();
+        }
+        else
+        {
+            // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
+            bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        }
+
         Transform colliderTransform = bagReferenceCollider.gameObject.transform;
         Vector3 originalColliderPosition = colliderTransform.position;
 
         // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
         colliderTransform.position = new Vector3(originalColliderPosition.x + 2, originalColliderPosition.y, originalColliderPosition.z);
-        
+
         // Determine how long to wait before shifting back
         StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
     }
