@@ -75,7 +75,7 @@ public class RandomObjectSpawner : MonoBehaviour
         GameObject randomPrefab = (GameObject)objects[Random.Range(0, objects.Length)];
 
         // Get the position and rotation of the spawnSource
-        Vector3 spawnPosition = spawnSource.transform.position + new Vector3(0, 1f, 0); // Can adjust Y position to make it fall from a higher place above spawnSource
+        Vector3 spawnPosition = spawnSource.transform.position + new Vector3(0, 1.5f, 0); // Can adjust Y position to make it fall from a higher place above spawnSource
         Quaternion spawnRotation = Quaternion.identity;
 
         // Instantiate the random prefab on top of the spawnSource

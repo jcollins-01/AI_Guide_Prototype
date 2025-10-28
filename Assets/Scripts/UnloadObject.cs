@@ -114,19 +114,26 @@ public class UnloadObject : MonoBehaviour
             bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
         }
 
-        Transform colliderTransform = bagReferenceCollider.gameObject.transform;
-        Vector3 originalColliderPosition = colliderTransform.position;
+        /* 
+        The following code is used to shift the bag collider/gameObject in order to give IgnoreCollisions enough time to register.
+        It causes the bag to visually disappear and then reappear in its original position (see WaitToShiftCollider function).
+        
+        Currently, we do not need it as we can just have the spawnedObject created from RandomObjectSpawner.cs to spawn a little higher (i.e. more time to fall).
+        If this ever changes in the future, we may need to include this code again.
+        */
+        // Transform colliderTransform = bagReferenceCollider.gameObject.transform;
+        // Vector3 originalColliderPosition = colliderTransform.position;
 
-        // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
-        colliderTransform.position = new Vector3(originalColliderPosition.x + 2, originalColliderPosition.y, originalColliderPosition.z);
+        // // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
+        // colliderTransform.position = new Vector3(originalColliderPosition.x, originalColliderPosition.y, originalColliderPosition.z);
 
-        // Determine how long to wait before shifting back
-        StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
+        // // Determine how long to wait before shifting back
+        // StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
     }
 
-    private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
-    {
-        yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
-        colliderTransform.position = originalColliderPosition;
-    }
+    // private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
+    // {
+    //     yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
+    //     colliderTransform.position = originalColliderPosition;
+    // }
 }
