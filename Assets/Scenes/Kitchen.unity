@@ -4698,7 +4698,7 @@ MonoBehaviour:
   m_OnDeactivate:
     m_PersistentCalls:
       m_Calls: []
-  m_AttachTransform: {fileID: 0}
+  m_AttachTransform: {fileID: 971044629}
   m_SecondaryAttachTransform: {fileID: 0}
   m_UseDynamicAttach: 0
   m_MatchAttachPosition: 1
@@ -5497,6 +5497,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 4.000002, y: 0.2000002, z: 4.0000014}
   m_Center: {x: -0.000015497208, y: 0.10001026, z: -0.0000014305115}
+--- !u!1 &971044628
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 971044629}
+  m_Layer: 7
+  m_Name: KnifeOrientation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &971044629
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 971044628}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.35495022, y: -0.16830975, z: -0.68678373, w: 0.61156386}
+  m_LocalPosition: {x: -63.753, y: 135.299, z: -399.867}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1165691686}
+  m_LocalEulerAnglesHint: {x: 371.71, y: 314.915, z: -101.506}
 --- !u!65 &971670971
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6763,6 +6794,7 @@ Transform:
   - {fileID: 3227426612448985357}
   - {fileID: 595955988}
   - {fileID: 543450652012161850}
+  - {fileID: 971044629}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1175513058
