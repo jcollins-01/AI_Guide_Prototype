@@ -39,6 +39,9 @@ public class ShortTaskController : MonoBehaviour
         // Grab switch tools script to check for VR Guide and Screenreader status
         m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
 
+        // The PrepareObject script needs an active reference to the VRHandling script
+        gameObject.AddComponent<VRHandling>();
+
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
         previousUnloadTaskState = unloadingTaskActive;
