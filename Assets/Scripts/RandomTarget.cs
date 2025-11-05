@@ -16,6 +16,7 @@ public class RandomTarget : MonoBehaviour
     public List<GameObject> randomTargets = new List<GameObject>();
     private SelectedTarget m_SelectedTargetScript;
     public int timesTargetReached = 0;
+    private int previousTargetIndex = -1;
 
     void Start()
     {
@@ -61,8 +62,13 @@ public class RandomTarget : MonoBehaviour
     void RandomTargetSelection()
     {
         //Debug.Log("Select new random target");
-        int totalTargets = randomTargets.Count + 1;
-        int randomTargetIndex = Random.Range(1, totalTargets);
+        int totalTargets = randomTargets.Count;
+        int randomTargetIndex = Random.Range(0, totalTargets);
+        while (randomTargetIndex == previousTargetIndex)
+        {
+            randomTargetIndex = Random.Range(0, totalTargets);
+        }
+        previousTargetIndex = randomTargetIndex;
         GameObject target = randomTargets[randomTargetIndex];
 
         // Add the component to the target that is the script which determines if a player enters it
@@ -116,7 +122,7 @@ public class RandomTarget : MonoBehaviour
                 // Get the child objects and add colliders 
                 foreach (Transform child in obj.transform)
                 {
-                    if (child.gameObject.layer != 13 || child.gameObject.layer != 7 || child.gameObject.layer != 10) // If the child is not a key item or on another important layer
+                    if (child.gameObject.layer != 13 && child.gameObject.layer != 7 && child.gameObject.layer != 10) // If the child is not a key item or on another important layer
                     {
                         child.gameObject.layer = 8; // Obstacles, children must be set to this layer or their colliders will be ignored when considering spawn positions
                         if (!child.gameObject.GetComponentInChildren<BoxCollider>())
