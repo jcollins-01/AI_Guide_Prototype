@@ -14,11 +14,15 @@ public class UnloadObject : MonoBehaviour
     // Variables for scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
     private VRScreenreader m_VRScreenreaderScript;
+    private SwitchTools m_SwitchToolsScript;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("A new object has been spawned for unloading");
+
+        // Grab switch tools script to check for VR Guide and Screenreader status
+        m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
 
         // Grab the unloading bag's existing reference collider and handle collisions with it
         CheckForBagReferenceCollider();
@@ -98,21 +102,38 @@ public class UnloadObject : MonoBehaviour
 
     private void CheckForBagReferenceCollider()
     {
-        // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
-        BoxCollider bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
-        Transform colliderTransform = bagReferenceCollider.gameObject.transform;
-        Vector3 originalColliderPosition = colliderTransform.position;
+        BoxCollider bagReferenceCollider;
 
-        // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
-        colliderTransform.position = new Vector3(originalColliderPosition.x + 2, originalColliderPosition.y, originalColliderPosition.z);
+        if (m_SwitchToolsScript.VRGuideActive)
+        {
+            bagReferenceCollider = bag.GetComponentInChildren<BoxCollider>();
+        }
+        else
+        {
+            // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
+            bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        }
+
+        /* 
+        The following code is used to shift the bag collider/gameObject in order to give IgnoreCollisions enough time to register.
+        It causes the bag to visually disappear and then reappear in its original position (see WaitToShiftCollider function).
         
-        // Determine how long to wait before shifting back
-        StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
+        Currently, we do not need it as we can just have the spawnedObject created from RandomObjectSpawner.cs to spawn a little higher (i.e. more time to fall).
+        If this ever changes in the future, we may need to include this code again.
+        */
+        // Transform colliderTransform = bagReferenceCollider.gameObject.transform;
+        // Vector3 originalColliderPosition = colliderTransform.position;
+
+        // // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
+        // colliderTransform.position = new Vector3(originalColliderPosition.x, originalColliderPosition.y, originalColliderPosition.z);
+
+        // // Determine how long to wait before shifting back
+        // StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
     }
 
-    private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
-    {
-        yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
-        colliderTransform.position = originalColliderPosition;
-    }
+    // private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
+    // {
+    //     yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
+    //     colliderTransform.position = originalColliderPosition;
+    // }
 }
