@@ -63,6 +63,11 @@ public class RandomTarget : MonoBehaviour
     {
         //Debug.Log("Select new random target");
         int totalTargets = randomTargets.Count;
+        if (totalTargets == 0)
+        {
+            Debug.Log("RandomTargetSelection: No targets found!");
+            return;
+        }
         int randomTargetIndex = Random.Range(0, totalTargets);
         while (randomTargetIndex == previousTargetIndex)
         {
