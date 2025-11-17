@@ -6258,7 +6258,7 @@ Transform:
   m_GameObject: {fileID: 629043477}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.2, y: 0, z: -0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6721,7 +6721,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7881466077556996133, guid: 07d33f2e618b841fda1becf3b8fd0ffb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.9350438
+      value: 3.1
       objectReference: {fileID: 0}
     - target: {fileID: 7881466077556996133, guid: 07d33f2e618b841fda1becf3b8fd0ffb, type: 3}
       propertyPath: m_LocalPosition.y
@@ -16622,6 +16622,39 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 16.235813, y: 16.8689, z: 16.081213}
   m_Center: {x: 31.408714, y: 8.49875, z: -3.240647}
+--- !u!1 &1791615721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1791615722}
+  m_Layer: 0
+  m_Name: Flower Shop Outside Decor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1791615722
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1791615721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 505142672353736051}
+  - {fileID: 6370679874871735036}
+  m_Father: {fileID: 4487746525938153669}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1795533401
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19141,12 +19174,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1758230360276392673}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.69999605, y: 6.8, z: -10.680003}
+  m_LocalScale: {x: 1.7237175, y: 1.6844125, z: 1.6844124}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6821482123222650079}
+  m_Father: {fileID: 1791615722}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &510971075639421187
 Transform:
@@ -20084,7 +20117,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1822456843718249586
 Transform:
   m_ObjectHideFlags: 0
@@ -21489,6 +21522,7 @@ Transform:
   m_Children:
   - {fileID: 1058523078642951013}
   - {fileID: 561699155}
+  - {fileID: 1791615722}
   - {fileID: 6821482123222650079}
   m_Father: {fileID: 525373342}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
@@ -22931,12 +22965,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1049687928850116320}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.10000397, y: 0.47031578, z: -0.0592605}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 0.75, y: 6.8, z: -10.852382}
+  m_LocalScale: {x: 1.7237175, y: 1.6844125, z: 1.6844124}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6821482123222650079}
+  m_Father: {fileID: 1791615722}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &6388251270280022229
 MeshCollider:
@@ -23055,8 +23089,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7446356671404334588}
-  - {fileID: 6370679874871735036}
-  - {fileID: 505142672353736051}
   - {fileID: 1822456843718249586}
   - {fileID: 90234369748846468}
   - {fileID: 7796638216737923417}
