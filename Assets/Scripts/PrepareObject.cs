@@ -54,10 +54,11 @@ public class PrepareObject : MonoBehaviour
                 prepTool = GameObject.Find("Sonic Screwdriver");
                 break;
             case "Flower Shop":
-                prepTool = GameObject.Find("Watering Can");
+                prepTool = GameObject.Find("Watering Can Tool");
                 break;
         }
 
+        prepTool.gameObject.layer = 7;
         prepToolSpawnPosition = prepTool.transform.position;
         prepToolSpawnRotation = prepTool.transform.rotation;
 
@@ -101,6 +102,7 @@ public class PrepareObject : MonoBehaviour
             //Debug.Log("Entered mid prep");
             playerMidPreparation = true;
             holdTime += Time.deltaTime;
+            // Debug.Log(holdTime);
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
                 XRGrabInteractable grab = prepTool.GetComponentInChildren<XRGrabInteractable>();
