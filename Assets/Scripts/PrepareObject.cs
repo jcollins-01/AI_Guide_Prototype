@@ -53,6 +53,9 @@ public class PrepareObject : MonoBehaviour
             case "Alien Spaceship Repair Shop":
                 prepTool = GameObject.Find("Sonic Screwdriver");
                 break;
+            case "Flower Shop":
+                prepTool = GameObject.Find("Watering Can");
+                break;
         }
 
         prepToolSpawnPosition = prepTool.transform.position;
