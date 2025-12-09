@@ -56,6 +56,9 @@ public class PrepareObject : MonoBehaviour
             case "Flower Shop":
                 prepTool = GameObject.Find("Watering Can Tool");
                 break;
+            case "Monster Pet Shop":
+                prepTool = GameObject.Find("Brush");
+                break;
         }
 
         prepTool.gameObject.layer = 7;
@@ -102,6 +105,12 @@ public class PrepareObject : MonoBehaviour
             //Debug.Log("Entered mid prep");
             playerMidPreparation = true;
             holdTime += Time.deltaTime;
+            /* 
+            If you encounter an issue where you hear the preparation sound, but the object is never "prepared",
+            then uncomment the debug statement right after this comment. 
+            For some reason, the existence of this debug statement will fix the issue and the preparation task with start to work again. 
+            After the task starts working again, you can then comment it out and the task will continue to work.
+            */
             // Debug.Log(holdTime);
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
