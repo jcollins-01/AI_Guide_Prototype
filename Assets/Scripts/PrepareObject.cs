@@ -62,6 +62,9 @@ public class PrepareObject : MonoBehaviour
             case "Witch Cottage":
                 prepTool = GameObject.Find("Magic Wand Tool");
                 break;
+            case "Pharmacy":
+                prepTool = GameObject.Find("High Tech Scanner Tool");
+                break;
         }
 
         prepTool.gameObject.layer = 7;
