@@ -51,7 +51,7 @@ public class PrepareObject : MonoBehaviour
                 prepTool = GameObject.Find("Knife");
                 break;
             case "Alien Spaceship Repair Shop":
-                prepTool = GameObject.Find("Sonic Screwdriver");
+                prepTool = GameObject.Find("Sonic Screwdriver Tool");
                 break;
             case "Flower Shop":
                 prepTool = GameObject.Find("Watering Can Tool");
