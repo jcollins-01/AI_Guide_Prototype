@@ -45,6 +45,9 @@ public class RandomObjectSpawner : MonoBehaviour
             case "Monster Pet Shop":
                 preparing = Resources.Load<AudioClip>("Audio/chop");
                 break;
+            case "Witch Cottage":
+                preparing = Resources.Load<AudioClip>("Audio/chop");
+                break;
         }
     }
 
