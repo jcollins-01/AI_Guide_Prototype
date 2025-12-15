@@ -59,7 +59,9 @@ public class TeleportationHandler : MonoBehaviour
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
         if (screenreaderActive && rightIsPressed)
+        {
             CheckForReticleHit(rightTarget, rightRay);
+        }
 
         if (!leftIsPressed && !rightIsPressed)
         {
@@ -104,7 +106,7 @@ public class TeleportationHandler : MonoBehaviour
         {
             //Debug.Log("Teleport reticle hit an object");
             // Hitting a teleportable object, so activate screenreader and share position of reticle
-            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
+            // m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
         }
         else
             Debug.Log("No objects detected at reticle position.");
