@@ -51,10 +51,23 @@ public class PrepareObject : MonoBehaviour
                 prepTool = GameObject.Find("Knife");
                 break;
             case "Alien Spaceship Repair Shop":
-                prepTool = GameObject.Find("Sonic Screwdriver");
+                prepTool = GameObject.Find("Sonic Screwdriver Tool");
+                break;
+            case "Flower Shop":
+                prepTool = GameObject.Find("Watering Can Tool");
+                break;
+            case "Monster Pet Shop":
+                prepTool = GameObject.Find("Brush");
+                break;
+            case "Witch Cottage":
+                prepTool = GameObject.Find("Magic Wand Tool");
+                break;
+            case "Pharmacy":
+                prepTool = GameObject.Find("High Tech Scanner Tool");
                 break;
         }
 
+        prepTool.gameObject.layer = 7;
         prepToolSpawnPosition = prepTool.transform.position;
         prepToolSpawnRotation = prepTool.transform.rotation;
 
@@ -98,6 +111,7 @@ public class PrepareObject : MonoBehaviour
             //Debug.Log("Entered mid prep");
             playerMidPreparation = true;
             holdTime += Time.deltaTime;
+            // Debug.Log(holdTime);
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
                 XRGrabInteractable grab = prepTool.GetComponentInChildren<XRGrabInteractable>();
