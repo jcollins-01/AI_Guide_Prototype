@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ShortTaskController : MonoBehaviour
@@ -9,7 +10,7 @@ public class ShortTaskController : MonoBehaviour
     public GameObject interactionTable;
     [HideInInspector]
     public string taskName;
-    
+
     // Bools to control set-up and take down of short tasks from editor
     public bool navigationTaskActive;
     private bool previousNavTaskState;
@@ -22,6 +23,7 @@ public class ShortTaskController : MonoBehaviour
     private RandomTarget m_RandomTargetScript;
     private RandomObjectSpawner m_UnloadSpawnerScript;
     private RandomObjectSpawner m_PrepareSpawnerScript;
+    private SwitchTools m_SwitchToolsScript;
 
     // Variables to track scores
     public int navigationTaskScore = 0;
@@ -33,6 +35,12 @@ public class ShortTaskController : MonoBehaviour
     {
         // All desired components should be on the Task Manager prefab with this controller
         m_RandomTargetScript = gameObject.GetComponent<RandomTarget>();
+
+        // Grab switch tools script to check for VR Guide and Screenreader status
+        m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
+
+        // The PrepareObject script needs an active reference to the VRHandling script
+        gameObject.AddComponent<VRHandling>();
 
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
@@ -84,9 +92,18 @@ public class ShortTaskController : MonoBehaviour
     {
         if (unloadingTaskActive != previousUnloadTaskState)
         {
-            // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
-            BoxCollider bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
-            
+            BoxCollider bagReferenceCollider;
+
+            if (m_SwitchToolsScript.VRGuideActive)
+            {
+                bagReferenceCollider = unloadingBag.GetComponentInChildren<BoxCollider>();
+            }
+            else
+            {
+                // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
+                bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+            }
+
             if (unloadingTaskActive)
             {
                 // Set reference collider to IgnoreCollisions layer
