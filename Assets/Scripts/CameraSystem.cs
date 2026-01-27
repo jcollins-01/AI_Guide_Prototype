@@ -108,7 +108,7 @@ public class CameraSystem : MonoBehaviour
 
     // Image Shack API Key, requested from "https://imageshack.com/contact/api", website link is: https://oauth.pstmn.io/v1/callback
     // For resetting Image Shack account, go to Settings > Basic > Manage Exceptions > find/add imageshack.com > Delete Data
-    private string imageApiKey = "0256ILOWff1f5c397ff1cdb70e22c0ee277dd862"; //57FHJMUW5f5f4f64b3010decf4d5cd786af1e016 <- for full account
+    private string imageApiKey = "7AHQRSWXdc4f83d0a828ca6b2e2c4ff99a97c259"; //57FHJMUW5f5f4f64b3010decf4d5cd786af1e016 <- for full account
 
     [HideInInspector]
     public string viewpointImageLink;

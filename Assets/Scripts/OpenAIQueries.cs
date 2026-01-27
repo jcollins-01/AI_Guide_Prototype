@@ -18,15 +18,11 @@ public class OpenAIQueries : MonoBehaviour
     // OpenAI variables
     public static OpenAIClient client { get; set; }
     // OpenAI API key
-    [HideInInspector]
-    public string apiKey;
-    [HideInInspector]
-    public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
-    [HideInInspector]
-    public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
+    [HideInInspector] public string apiKey;
+    [HideInInspector] public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
+    [HideInInspector] public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
     // Config file to hold api keys, credentials
-    [HideInInspector]
-    private const string configFileName = "config";
+    [HideInInspector] private const string configFileName = "config";
 
     // Variables to hold scripts we need access to
     private CameraSystem m_CameraSystemScript;
@@ -34,12 +30,23 @@ public class OpenAIQueries : MonoBehaviour
     private AIGuide m_AIGuideScript;
     public RealtimeAvatarVoice _avatarVoice;
 
+    // Performance variables
+    private float latencyStartTime;
+    private bool capturedFirstTokenTime;
+    private bool capturedFirstAudioTime;
+
     // Variables to construct OpenAI queries
     private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to PlayHT
+    private StringBuilder fullResponseBuilder = new StringBuilder(); // String to store past responses in conversation history
     private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
     private bool isPlayingAudio = false;
     private bool isProcessingAudioChunk = false;
     private Queue<string> chunkQueue = new Queue<string>();
+
+    // Variables to construct and maintain conversation history
+    private List<Message> conversationHistory = new List<Message>();
+    private const int maxHistoryLength = 10; // Save tokens by keeping last 10 messages only
+    private int allQueriesCount = 0;
 
     private string objectNames;
     public List<string> roles = new List<string>
@@ -49,7 +56,7 @@ public class OpenAIQueries : MonoBehaviour
         "computer-like, succinct assistant, who gives the straight facts",
         "very friendly, excited companion, who is eager to please who you're talking to",
         "wise, old-fashioned, slightly Shakespearean-sounding mentor", //posh
-        "gentle, sweet, soft-spoken assistant who gives very brief statements, as though slipping in words to someone without trying to interrupt what they're doing"
+        "gentle, sweet, soft-spoken assistant slipping in words here and there"
     };
     [HideInInspector]
     public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
@@ -82,18 +89,12 @@ public class OpenAIQueries : MonoBehaviour
     }
 
     // OpenAI audio, text message, result variables
-    [HideInInspector]
-    public string text;
-    [HideInInspector]
-    public GameObject targetForGuidance;
-    //[HideInInspector]
-    public string modeOfTransportation;
-    [HideInInspector]
-    public GameObject targetForModification;
-    //[HideInInspector]
-    public string modeOfModification;
-    [HideInInspector]
-    public GameObject targetForDescription;
+    [HideInInspector] public string text;
+    [HideInInspector] public GameObject targetForGuidance;
+    [HideInInspector] public string modeOfTransportation;
+    [HideInInspector] public GameObject targetForModification;
+    [HideInInspector] public string modeOfModification;
+    [HideInInspector] public GameObject targetForDescription;
 
     public string query;
     public string role;
@@ -101,14 +102,10 @@ public class OpenAIQueries : MonoBehaviour
     public AudioClip guideVoice;
 
     // Monitoring bools
-    [HideInInspector]
-    public bool recordingInProgress = false;
-    [HideInInspector]
-    public bool whisperCompleted = false;
-    [HideInInspector]
-    public bool completionCompleted = false;
-    [HideInInspector]
-    public bool alloyCompleted = false;
+    [HideInInspector] public bool recordingInProgress = false;
+    [HideInInspector] public bool whisperCompleted = false;
+    [HideInInspector] public bool completionCompleted = false;
+    [HideInInspector] public bool alloyCompleted = false;
 
     private void Start()
     {
@@ -117,7 +114,6 @@ public class OpenAIQueries : MonoBehaviour
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadConfig();
         LoadRoomDescriptions();
-        //Debug.Log("OpenAI is ready to be queried.");
 
         // Create an instance of the OpenAI client
         client = new OpenAIClient(apiKey);
@@ -182,11 +178,16 @@ public class OpenAIQueries : MonoBehaviour
 
     public async Task<string> CallWhisper(AudioClip audioClip)
     {
+        // Start timers for tracking the length of response time
+        latencyStartTime = Time.realtimeSinceStartup;
+        capturedFirstTokenTime = false; // Reset the timing flags for a new call to whisper/new query from user
+        capturedFirstAudioTime = false;
+        
         // Rebuild the audio stream in Normcore to send microphone data again
         if (_avatarVoice != null)
             _avatarVoice._rebuildAudioStream = true;
 
-        Debug.Log("Reached Call Whisper");
+        //Debug.Log("Reached Call Whisper");
         var transcriptionRequest = new OpenAI.Audio.AudioTranscriptionRequest(audioClip, "whisper-1");
 
         string output = "N/A";
@@ -194,7 +195,7 @@ public class OpenAIQueries : MonoBehaviour
         {
             var transcriptionResponse = await client.AudioEndpoint.CreateTranscriptionAsync(transcriptionRequest);
             output = transcriptionResponse.ToString();
-            Debug.Log("Response from GPT-4: " + output);
+            //Debug.Log("Transcription of user query: " + output);
             query = output;
             whisperCompleted = true;
         }
@@ -205,22 +206,55 @@ public class OpenAIQueries : MonoBehaviour
         return output;
     }
 
-    public async Task CallChatGPTAndStreamAudioCompletions(string prompt)
+    public async Task CallChatGPTAndStreamAudioCompletions() // was string prompt, holding full query constructed in AIGuide script
     {
-        // Prepare the chat request body for API
+        // Log the initial recording of the user query so that it isn't overwritten/doesn't change while the guide is generating a response (in case of calling while it is processing)
+        string currentQuery = this.query;
+
+        // Abort if the string was empty...
+        if (string.IsNullOrEmpty(currentQuery) || currentQuery == "you" || currentQuery == "You")
+        {
+            Debug.LogWarning("Aborting GPT call: Invalid Query -> " + currentQuery);
+            // In the future, send a message that the guide did not hear the question properly at this point and stop the audio in AIGuide.
+            return;
+        }
+
+        // Reset buffers for a new response
+        fullResponseBuilder.Clear();
+        textBuffer.Clear();
+
+        // If conversation history gets too long, remove the oldest pair of user query + guide response stored (indices 1 and 2), we keep the basePrompt (at 0)
+        while (conversationHistory.Count > maxHistoryLength)
+        {
+            if (conversationHistory.Count > 1)
+                conversationHistory.RemoveAt(1);
+        }
+
+        // Construct static, base query to send to GPT
+        string basePrompt = "You are a " + role + ", named Giddy. " + contextClassification + " " + memoClassifications +
+                                     " The names and descriptions of key objects are: " + objectClassifications +
+                                     " " + queryClassifications;
+
+        // Update query with conversation history and user prompt - index 0 should always remain the basePrompt with guide instructions + most up-to-date roles, object descriptions depending on the scene
+        if (conversationHistory.Count == 0 || conversationHistory[0].Role != Role.System)
+            conversationHistory.Insert(0, new Message(Role.System, basePrompt)); // If history is empty, insert new basePrompt
+        else
+            conversationHistory[0] = new Message(Role.System, basePrompt); // If history exists, update it again since the prompt info can change as the user moves between scenes
+
+        // Prepare chat request body for API
         var content = new List<Content>
         {
-            new Content(ContentType.Text, prompt),
+            new Content(ContentType.Text, query),
             new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
             new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
         };
 
-        var chatPrompts = new List<Message>
-        {
-            new Message(Role.User, content)
-        };
+        // Add the user's prompt/recorded message + images to conversation history
+        conversationHistory.Add(new Message(Role.User, content));
 
-        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4o", maxTokens: 300); // was gpt-4-vision-preview, deprecated in Dec 2024
+        // Send the ENTIRE history with the basePrompt instructions
+        // might try using a faster model like gpt-3.5-turbo, fewer max tokens, figure out how to implement caching, optimize the prompt
+        var chatRequest = new ChatRequest(conversationHistory, model: "gpt-4o", maxTokens: 300); // was gpt-4-vision-preview, deprecated in Dec 2024
 
         // Use StreamCompletionAsync to stream the responses
         try
@@ -235,19 +269,55 @@ public class OpenAIQueries : MonoBehaviour
                     // Make sure the delta and content are not null
                     if (delta != null && delta.Content != null)
                     {
-                        // Serialize the full partial response to JSON
+                        // Check if this is the first token streamed for our timing
+                        if (!capturedFirstTokenTime)
+                        {
+                            float timeToFirstToken = Time.realtimeSinceStartup - latencyStartTime;
+                            capturedFirstTokenTime = true;
+                        }
+
+                        // Accumulate each partial response into the full response text for conversation history
+                        fullResponseBuilder.Append(delta.Content);
+                        
+                        // Serialize each partial response as it comes to JSON for audio streaming logic
                         var jsonResponse = JsonConvert.SerializeObject(partialResponse);
-                        // Pass the JSON response to the audio streaming coroutine
                         StartCoroutine(StreamChatGptResponseToAudio(jsonResponse));
                     }
                 }
             });
-            Debug.Log("Finished streaming GPT response.");
+            
+            // After the full stream is complete, save full guide response to conversation history
+            string finalResponseText = fullResponseBuilder.ToString();
+            conversationHistory.Add(new Message(Role.Assistant, finalResponseText));
+            allQueriesCount++;
+            float totalResponseGenerationTime = Time.realtimeSinceStartup - latencyStartTime;
+
+            Debug.Log("Finished streaming response text. Added to history.");
+            Debug.Log($"History Count: {conversationHistory.Count}");
+            Debug.Log("Response from guide: " + finalResponseText);
+            Debug.Log("User question: " + currentQuery.ToString());
+
+            // Save some info here, like the guide response, the user query, the timestamp, and the time it took to process, save that and output it
+            // Might also save the traces of which methods it called, as a way to tell what its thought process was and if it was answering accurately
+            // (e.g., the prompt was about being taking to a building, but the guide selected a target for description, not guidance)
+            // Though this part seems to call multiple times, so it might not be the right spot for true counting
+
+            LogInteractionData(
+                query,
+                finalResponseText,
+                role,
+                totalResponseGenerationTime
+            );
         }
         catch (Exception e)
         {
             Debug.LogError("Error in streaming GPT-4 response: " + e.Message);
         }
+    }
+
+    private void LogInteractionData(string query, string guideResponse, string guideRole, float totalResponseGenerationTime)
+    {
+        // timestamp, query number/allQueriesCount, response time, user prompt, guide response
     }
 
     // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
@@ -271,7 +341,7 @@ public class OpenAIQueries : MonoBehaviour
                 string textToSend = textBuffer.ToString().Trim();
                 if (!string.IsNullOrEmpty(textToSend))
                 {
-                    Debug.Log("Queuing chunk for PlayHT: " + textToSend);
+                    //Debug.Log("Queuing chunk for PlayHT: " + textToSend);
                     chunkQueue.Enqueue(textToSend);
                     CheckForTargetForDescription(textToSend);
                     textBuffer.Clear();  // Clear the buffer after queuing
@@ -287,9 +357,9 @@ public class OpenAIQueries : MonoBehaviour
                 string remainingText = textBuffer.ToString().Trim();
                 if (!string.IsNullOrEmpty(remainingText))
                 {
-                    Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
+                    //Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
                     chunkQueue.Enqueue(CheckForGuidanceOrModification(remainingText));  // Add the final chunk to the queue
-                    Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
+                    //Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -298,7 +368,7 @@ public class OpenAIQueries : MonoBehaviour
         // Start processing the chunks in the queue (if not already processing)
         if (!isProcessingAudioChunk && chunkQueue.Count > 0)
         {
-            Debug.Log("Starting chunk processing...");
+            //Debug.Log("Starting chunk processing...");
             StartCoroutine(ProcessChunkQueue());
         }
         yield return null; // Yield to keep the coroutine responsive
@@ -313,7 +383,7 @@ public class OpenAIQueries : MonoBehaviour
             isProcessingAudioChunk = true;
 
             string textToSend = chunkQueue.Dequeue();  // Get the next chunk from the queue
-            Debug.Log("Sending chunk to PlayHT: " + textToSend);
+            //Debug.Log("Sending chunk to PlayHT: " + textToSend);
 
             // If the response needs to be shared over network, use GuideAudioSync to share audio; if local, start the coroutine locally
             if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
@@ -325,7 +395,7 @@ public class OpenAIQueries : MonoBehaviour
             // Wait for a short delay between chunks (optional)
             yield return new WaitForSeconds(0.1f);  // Adjust the delay as needed
         }
-        Debug.Log("All chunks processed.");
+        //Debug.Log("All chunks processed.");
     }
 
     // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
@@ -400,6 +470,14 @@ public class OpenAIQueries : MonoBehaviour
                 audioSource.loop = false;
                 float startTime = Time.time;  // Capture the time when the audio starts
                 float clipLength = audioSource.clip.length;
+
+                // Check if this is the first audio playback for timing
+                if (!capturedFirstAudioTime)
+                {
+                    float timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
+                    capturedFirstAudioTime = true;
+                }
+
                 audioSource.Play();
 
                 // Wait until the audio has finished playing before allowing the next chunk
