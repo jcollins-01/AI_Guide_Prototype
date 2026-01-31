@@ -13,6 +13,22 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.XR;
 
+public class InteractionLog
+{
+    public string timestamp;
+    public string queryNumber;
+    public string userQuery;
+    public string guideResponse;
+    public string guideRole;
+    public string chosenObjectTarget;
+    public string chosenAction;
+
+    // Metrics
+    public float latencyToFirstToken;
+    public float latencyToFirstAudio;
+    public float totalGenerationTime;
+}
+
 public class OpenAIQueries : MonoBehaviour
 {
     // OpenAI variables
@@ -21,6 +37,13 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public string apiKey;
     [HideInInspector] public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
     [HideInInspector] public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
+
+    // ElevenLabs test variables
+    [HideInInspector] public string elevenLabsApiKey = "sk_25c3b009eb65e25d179e6f3fe10d20fd03ac7f9556308175";
+    [HideInInspector] public string elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM"; // Temp "Rachel" voice, gonna have to check out voice switching
+    [HideInInspector] public string elevenLabsModelId = "eleven_turbo_v2";
+    private string elevenLabsUrl = "https://api.elevenlabs.io/v1/text-to-speech";
+
     // Config file to hold api keys, credentials
     [HideInInspector] private const string configFileName = "config";
 
@@ -32,6 +55,8 @@ public class OpenAIQueries : MonoBehaviour
 
     // Performance variables
     private float latencyStartTime;
+    private float timeToFirstToken;
+    private float timeToFirstAudio;
     private bool capturedFirstTokenTime;
     private bool capturedFirstAudioTime;
 
@@ -272,7 +297,8 @@ public class OpenAIQueries : MonoBehaviour
                         // Check if this is the first token streamed for our timing
                         if (!capturedFirstTokenTime)
                         {
-                            float timeToFirstToken = Time.realtimeSinceStartup - latencyStartTime;
+                            timeToFirstToken = Time.realtimeSinceStartup - latencyStartTime;
+                            Debug.Log($"[Timing] Time to First Token (GPT Response): {timeToFirstToken:F2} seconds");
                             capturedFirstTokenTime = true;
                         }
 
@@ -306,7 +332,8 @@ public class OpenAIQueries : MonoBehaviour
                 query,
                 finalResponseText,
                 role,
-                totalResponseGenerationTime
+                totalResponseGenerationTime,
+                allQueriesCount
             );
         }
         catch (Exception e)
@@ -315,9 +342,28 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
-    private void LogInteractionData(string query, string guideResponse, string guideRole, float totalResponseGenerationTime)
+    private void LogInteractionData(string userText, string aiText, string currentRole, float generationTime, int currentQueryCount)
     {
-        // timestamp, query number/allQueriesCount, response time, user prompt, guide response
+        InteractionLog newLog = new InteractionLog();
+
+        newLog.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
+        newLog.queryNumber = currentQueryCount.ToString();
+        newLog.userQuery = userText;
+        newLog.guideResponse = aiText;
+        newLog.guideRole = currentRole;
+
+        // Check if we reset the targets between selection
+        if (targetForDescription != null)
+            newLog.chosenObjectTarget = targetForDescription.ToString();
+
+        newLog.latencyToFirstToken = timeToFirstToken;
+        newLog.latencyToFirstAudio = timeToFirstAudio;
+        newLog.totalGenerationTime = generationTime;
+
+        /*
+        public string chosenObjectTarget;
+        public string chosenAction;
+         */
     }
 
     // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
@@ -359,7 +405,7 @@ public class OpenAIQueries : MonoBehaviour
                 {
                     //Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
                     chunkQueue.Enqueue(CheckForGuidanceOrModification(remainingText));  // Add the final chunk to the queue
-                    //Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
+                    // Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
                     textBuffer.Clear();  // Clear the buffer after queuing
                 }
             }
@@ -383,11 +429,14 @@ public class OpenAIQueries : MonoBehaviour
             isProcessingAudioChunk = true;
 
             string textToSend = chunkQueue.Dequeue();  // Get the next chunk from the queue
-            //Debug.Log("Sending chunk to PlayHT: " + textToSend);
+            Debug.Log("Sending chunk to PlayHT: " + textToSend);
 
             // If the response needs to be shared over network, use GuideAudioSync to share audio; if local, start the coroutine locally
-            if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
-                yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
+            //if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
+                //yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
+
+            // Uncomment the above when we have the architecture and move to GuideAudioSync - GAS is what calls the streaming UNLESS we're local only (invisible guide)
+            yield return StartCoroutine(StreamTextToPlayHT(textToSend));
 
             // Regardless of output above, we should factor in a delay so we don't send calls overlapping over the network or locally
             isProcessingAudioChunk = false;  // Mark the chunk processing as complete
@@ -395,13 +444,187 @@ public class OpenAIQueries : MonoBehaviour
             // Wait for a short delay between chunks (optional)
             yield return new WaitForSeconds(0.1f);  // Adjust the delay as needed
         }
-        //Debug.Log("All chunks processed.");
+        Debug.Log("All chunks processed.");
     }
 
     // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
     private IEnumerator StreamTextToPlayHT(string textChunk)
     {
         Debug.Log("Started coroutine for audio");
+
+        // Customize the voice as per the role
+        // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
+        // Human - River "SAz9YHcvj6GT2YYXdXww"
+        // Robot - Will "bIHbv24MWmeRgasZH58o"
+        // Cane - Callum "N2lVS1w4EtoT3dr4eOWO" / Adam "pNInz6obpgDQGcFmaJgB"
+        // Dog -  Jessica "cgSgspJ2msm6clMCkdW9" / Harry "SOYHLrjzK2X1ezoPC6cr"
+        // Bird - George "JBFqnCBsd6RMkjVDRZzb" / Lily "pFZP5JQG7iQjIQuC4Bku"
+        // Invisible - Matilda "XrExE9yKIg1WjnnlVkGX"
+
+        string voiceId = "SAz9YHcvj6GT2YYXdXww"; // Human default
+
+        // Default payload for voices that don't require special prompting / human voice
+        var payloadObj = new
+        {
+            text = textChunk,
+            model_id = elevenLabsModelId,
+            voice_settings = new
+            {
+                stability = 0.5f,
+                similarity_boost = 0.7f,
+                style = 0.02f,
+                use_speaker_boost = true
+            }
+        };
+
+        if (m_AIGuideScript.role == 2)
+        {
+            voiceId = "bIHbv24MWmeRgasZH58o";
+
+            payloadObj = new
+            {
+                text = textChunk,
+                model_id = elevenLabsModelId,
+                voice_settings = new
+                {
+                    stability = 1.0f, // Max stability makes voice monotone and predictable (less breathy)
+                    similarity_boost = 0.0f, // Min similarity makes voice less like a specific person, more general
+                    style = 0.0f, // Disable all emotional "flair"
+                    use_speaker_boost = false
+                }
+            };
+        }
+        else if (m_AIGuideScript.role == 3)
+        {
+            voiceId = "N2lVS1w4EtoT3dr4eOWO";
+
+            payloadObj = new
+            {
+                text = textChunk,
+                model_id = elevenLabsModelId,
+                voice_settings = new
+                {
+                    stability = 0.5f,
+                    similarity_boost = 0.75f,
+                    style = 0.3f, // Increased style to help the AI follow the "serious" flair we added
+                    use_speaker_boost = true
+                }
+            };
+        }
+        else if (m_AIGuideScript.role == 4)
+        {
+            voiceId = "cgSgspJ2msm6clMCkdW9";
+
+            payloadObj = new
+            {
+                text = textChunk,
+                model_id = elevenLabsModelId,
+                voice_settings = new
+                {
+                    stability = 0.4f, // Lower the stability to make it more emotive / breathier
+                    similarity_boost = 0.75f,
+                    style = 0.3f, // Increased style to help the AI follow the "eager" flair we added
+                    use_speaker_boost = true
+                }
+            };
+        }
+        else if (m_AIGuideScript.role == 5)
+        {
+            voiceId = "JBFqnCBsd6RMkjVDRZzb";
+
+            payloadObj = new
+            {
+                text = textChunk,
+                model_id = elevenLabsModelId,
+                voice_settings = new
+                {
+                    stability = 0.4f, // Lower the stability to make it more emotive / breathier
+                    similarity_boost = 0.75f,
+                    style = 0.5f, // Increased style to help the AI follow the "dramatic" flair we added
+                    use_speaker_boost = true
+                }
+            };
+        }
+        else if (m_AIGuideScript.role == 6)
+        {
+            voiceId = "XrExE9yKIg1WjnnlVkGX";
+
+            payloadObj = new
+            {
+                text = textChunk,
+                model_id = elevenLabsModelId,
+                voice_settings = new
+                {
+                    stability = 0.3f, // Lower the stability to make it more emotive / breathier
+                    similarity_boost = 0.75f,
+                    style = 0.5f, // Increased style to help the AI follow the "whisper" flair we added
+                    use_speaker_boost = true
+                }
+            };
+        }
+
+        // Combine the variables into the url for posting
+        string finalUrl = $"https://api.elevenlabs.io/v1/text-to-speech/{voiceId}/stream?optimize_streaming_latency=3";
+
+        // Default payload without extra voice prompts
+        /*payloadObj = new
+        {
+            text = textChunk,
+            model_id = elevenLabsModelId,
+            voice_settings = new
+            {
+                stability = 0.5f,
+                similarity_boost = 0.7f
+            }
+        };*/
+
+        // Convert object to JSON string
+        string jsonBody = JsonConvert.SerializeObject(payloadObj);
+
+        Debug.Log($"Using API Key: {elevenLabsApiKey}");
+
+        using (UnityWebRequest elevenLabsRequest = UnityWebRequestMultimedia.GetAudioClip(finalUrl, AudioType.MPEG))
+        {
+            elevenLabsRequest.method = UnityWebRequest.kHttpVerbPOST;
+
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+            elevenLabsRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            elevenLabsRequest.downloadHandler = new DownloadHandlerAudioClip(finalUrl, AudioType.MPEG);
+
+            elevenLabsRequest.SetRequestHeader("Content-Type", "application/json");
+            elevenLabsRequest.SetRequestHeader("xi-api-key", elevenLabsApiKey); // Use 'xi-api-key', NOT 'Authorization'
+            elevenLabsRequest.SetRequestHeader("Accept", "audio/mpeg");
+
+            // Send the request
+            yield return elevenLabsRequest.SendWebRequest();
+
+            if (elevenLabsRequest.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error calling ElevenLabs: " + elevenLabsRequest.error);
+                //Debug.LogError("Response Text: " + elevenLabsRequest.downloadHandler.text);
+
+                Debug.LogError("Error Code: " + elevenLabsRequest.responseCode);
+                if (elevenLabsRequest.downloadHandler.data != null)
+                {
+                    string errorJson = Encoding.UTF8.GetString(elevenLabsRequest.downloadHandler.data);
+                    Debug.LogError("ElevenLabs Detailed Error: " + errorJson);
+                }
+            }
+            else
+            {
+                // Debug.Log("ElevenLabs audio chunk conversion successful!");
+                // DownloadHandlerAudioClip automatically converts the MP3 data into a Unity AudioClip
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(elevenLabsRequest);
+
+                if (clip != null)
+                {
+                    // Assuming PlayAudioSequentially now accepts AudioClip:
+                    yield return StartCoroutine(PlayAudioSequentially(clip));
+                }
+            }
+        }
+
+        /*
         string playHTUrl = "https://play.ht/api/v2/tts/stream";
         string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
 
@@ -440,10 +663,11 @@ public class OpenAIQueries : MonoBehaviour
                 yield return StartCoroutine(PlayAudioSequentially(mp3Data));
             }
         }
+        */
     }
 
     // Coroutine to play audio chunks sequentially without overlapping
-    private IEnumerator PlayAudioSequentially(byte[] mp3Data)
+    private IEnumerator PlayAudioSequentially(AudioClip clip) // was byte[] mp3Data
     {
         // Wait until the previous audio chunk is finished
         while (isPlayingAudio)
@@ -452,6 +676,51 @@ public class OpenAIQueries : MonoBehaviour
         // Mark as playing
         isPlayingAudio = true;
 
+        if (clip == null)
+        {
+            Debug.LogError("PlayAudioSequentially received a null AudioClip!");
+            isPlayingAudio = false;
+            yield break;
+        }
+
+        // Set up the audio source
+        audioSource.clip = clip;
+        audioSource.loop = false;
+        float startTime = Time.time;
+        float clipLength = audioSource.clip.length;
+
+        // Check if this is the first audio playback for timing
+        if (!capturedFirstAudioTime)
+        {
+            timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
+            Debug.Log($"[Timing] Time to First Audio (User Hears Voice): {timeToFirstAudio:F2} seconds");
+            capturedFirstAudioTime = true;
+        }
+
+        audioSource.Play();
+        Debug.Log($"Playing audio chunk. Length: {clipLength:F2}s");
+
+        // Wait until the audio has finished playing before allowing the next chunk
+        while (audioSource.isPlaying)
+        {
+            float elapsedTime = Time.time - startTime;
+
+            // Manual stop safety check
+            if (elapsedTime >= clipLength)
+            {
+                audioSource.Stop();
+                Debug.Log("Audio manually stopped based on clip length.");
+                break;
+            }
+            yield return null;
+        }
+
+        Debug.Log("Audio chunk finished playing.");
+
+        // Reset state for the next item in the queue
+        isPlayingAudio = false;
+
+        /*
         // Create a temporary file for the MP3 data
         string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
         File.WriteAllBytes(tempPath, mp3Data);
@@ -474,7 +743,8 @@ public class OpenAIQueries : MonoBehaviour
                 // Check if this is the first audio playback for timing
                 if (!capturedFirstAudioTime)
                 {
-                    float timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
+                    timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
+                    Debug.Log($"[Timing] Time to First Audio (User Hears Voice): {timeToFirstAudio:F2} seconds");
                     capturedFirstAudioTime = true;
                 }
 
@@ -499,6 +769,7 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
         isPlayingAudio = false;
+        */
     }
 
     // Determines if the response needs to be shared and played over the network or just locally

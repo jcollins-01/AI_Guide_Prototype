@@ -51,7 +51,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         {
             if (currentModel.isFreshModel)
                 currentModel.result = null; // Ensure initial state for result
-            currentModel.resultDidChange += ResultDidChange;
+            //currentModel.resultDidChange += ResultDidChange;
         }
     }
 
