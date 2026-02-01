@@ -34,7 +34,9 @@ public class PrepareObject : MonoBehaviour
         m_VRHandlingScript = FindObjectOfType<VRHandling>();
 
         // Add necessary components for spawned object physics + trigger detection with prep tool
-        this.gameObject.layer = 7; // Make the object Interactable if it isn't already
+        
+        // do not uncomment the following line of code unless you have reconfigured the collision matrix for the IgnoreCollisions layer
+        // this.gameObject.layer = 7; // Make the object Interactable if it isn't already
 
         // Add a collider to the table for physics
         if (table != null)
