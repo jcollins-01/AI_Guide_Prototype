@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
+using System.Collections;
 
 public class RandomObjectSpawner : MonoBehaviour
 {
@@ -93,6 +94,15 @@ public class RandomObjectSpawner : MonoBehaviour
         // Instantiate the random prefab on top of the spawnSource
         spawnedObject = Instantiate(randomPrefab, spawnPosition, spawnRotation);
 
+        if(spawnedObject.GetComponent<XRGrabInteractable>() != null && spawnedObject.GetComponent<GrabRequest>() != null)
+        {
+            XRGrabInteractable m_XRGrabInteractableScript = spawnedObject.GetComponent<XRGrabInteractable>();
+            GrabRequest m_GrabRequestScript = spawnedObject.GetComponent<GrabRequest>();
+            m_XRGrabInteractableScript.enabled = false;
+            m_GrabRequestScript.enabled = false;
+            StartCoroutine(StartGrabCheckAfterDelay(m_XRGrabInteractableScript, m_GrabRequestScript));
+        }
+
         // Check if the object is being spawned for unloading or preparation task
         if (m_ShortTaskControllerScript.taskName == "Unloading")
         {
@@ -158,5 +168,12 @@ public class RandomObjectSpawner : MonoBehaviour
                 }
             }
         }
+    }
+
+    private IEnumerator StartGrabCheckAfterDelay(XRGrabInteractable m_XRGrabInteractableScript, GrabRequest m_GrabRequestScript)
+    {
+        yield return new WaitForSeconds(0.6f);
+        m_GrabRequestScript.enabled = true;
+        m_XRGrabInteractableScript.enabled = true;
     }
 }
