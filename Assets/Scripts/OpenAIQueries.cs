@@ -9,9 +9,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net.WebSockets;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.XR;
+using System.Threading;
+using System.Collections.Concurrent;
 
 public class InteractionLog
 {
@@ -27,6 +29,303 @@ public class InteractionLog
     public float latencyToFirstToken;
     public float latencyToFirstAudio;
     public float totalGenerationTime;
+}
+
+public class RealtimeGuideClient : MonoBehaviour
+{
+    public AudioSource outputSource;
+
+    private ClientWebSocket _webSocket;
+    private CancellationTokenSource _cancellationTokenSource;
+    private string _apiKey; // Set this securely
+
+    // Events to hook into legacy existing Audio/UI systems
+    public Action<string> OnTextReceived;
+    public Action<string> OnAudioDeltaReceived; // Base64 PCM16 audio from OpenAI
+
+    private bool _isConnected = false;
+
+    // Microphone Variables
+    private AudioClip _micClip;
+    private string _micDevice;
+    private int _lastMicPos;
+    private bool _isRecording;
+
+    // The Thread-Safe Queue
+    private ConcurrentQueue<float[]> _audioPlaybackQueue = new ConcurrentQueue<float[]>();
+    private const int SAMPLE_RATE = 24000; // OpenAI's native rate
+    private int _totalSamplesSent = 0;
+
+    // Configuration
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
+
+    private void Start()
+    {
+        outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
+
+        _micDevice = Microphone.devices[0];
+    }
+
+    public async Task Connect(string systemInstructions)
+    {
+        _apiKey = ""; // Or pull from your global config
+        _webSocket = new ClientWebSocket();
+        _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
+        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
+
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        try
+        {
+            await _webSocket.ConnectAsync(new Uri(OPENAI_REALTIME_URL), CancellationToken.None);
+            _isConnected = true;
+            Debug.Log("Connected to Realtime API");
+
+            // Start listening for responses immediately
+            _ = ReceiveLoop();
+
+            // Configure the session (Set the "System Prompt")
+            await SendSessionUpdate(systemInstructions);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Connection Failed: {e.Message}");
+        }
+    }
+
+    private async Task SendSessionUpdate(string instructions)
+    {
+        Debug.Log("Adding a new message to the realtime conversation");
+
+        var sessionUpdate = new
+        {
+            type = "session.update",
+            session = new
+            {
+                modalities = new[] { "text", "audio" }, // Ask for both or just audio
+                instructions = instructions,
+                voice = "alloy", // Options: alloy, echo, shimmer
+                input_audio_format = "pcm16",
+                output_audio_format = "pcm16",
+                turn_detection = new { type = "server_vad" } // Auto-detects when user stops talking!
+            }
+        };
+
+        await SendJson(sessionUpdate);
+    }
+
+    public void StartRecording()
+    {
+        Debug.Log("Recording started");
+        _isRecording = true;
+        _lastMicPos = 0;
+        _micClip = Microphone.Start(_micDevice, true, 20, 24000); // 24kHz is standard for OpenAI Realtime
+    }
+
+    public async Task StopRecordingAndCommit(string screenshotUrl = null)
+    {
+        Debug.Log("Recording stopped");
+        // 1. Fully await the final chunk of audio
+        await HandleMicStreaming();
+
+        _isRecording = false;
+        Microphone.End(_micDevice);
+
+        // Might get rid of case A
+        // A. If we have a screenshot, send it NOW as a user message item
+        if (!string.IsNullOrEmpty(screenshotUrl))
+        {
+            await SendImageContext(screenshotUrl);
+        }
+
+        // 3. SAFETY GUARD: OpenAI requires >= 100ms (2400 samples at 24kHz)
+        if (_totalSamplesSent > 2400)
+        {
+            // B. Tell OpenAI we are done talking and want a response
+            await SendJson(new { type = "input_audio_buffer.commit" });
+            await SendJson(new { type = "response.create" });
+            Debug.Log("Requested a response");
+            Debug.Log($"Committed {_totalSamplesSent} samples.");
+        }
+        else
+        {
+            Debug.LogWarning("Recording too short (<100ms). Skipping audio commit to avoid API error.");
+            // Optional: Trigger a 'Response' anyway just for the Image if you want
+            if (!string.IsNullOrEmpty(screenshotUrl))
+            {
+                await SendJson(new { type = "response.create" });
+            }
+        }
+
+        _totalSamplesSent = 0; // Reset for next time
+        _lastMicPos = 0;
+    }
+
+    void Update()
+    {
+        // 1. Microphone Streaming Logic 
+        HandleMicStreaming();
+
+        // 2. Playback Logic: Pull from the thread-safe queue on the Main Thread
+        if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
+        {
+            PlayAudioChunk(nextChunk);
+        }
+    }
+
+    private async Task HandleMicStreaming()
+    {
+        if (!_isRecording || !_isConnected) return;
+
+        int currentPos = Microphone.GetPosition(_micDevice);
+        if (currentPos == _lastMicPos) return;
+
+        float[] samples;
+
+        // Case A: Normal read (head is ahead of last position)
+        if (currentPos > _lastMicPos)
+        {
+            samples = new float[currentPos - _lastMicPos];
+            _micClip.GetData(samples, _lastMicPos);
+        }
+        // Case B: Wrap-around read (head looped back to the start of the clip)
+        else
+        {
+            int samplesToRead = (_micClip.samples - _lastMicPos) + currentPos;
+            samples = new float[samplesToRead];
+
+            // Read from last position to the very end of the clip
+            float[] part1 = new float[_micClip.samples - _lastMicPos];
+            _micClip.GetData(part1, _lastMicPos);
+
+            // Read from the start of the clip to the current position
+            float[] part2 = new float[currentPos];
+            _micClip.GetData(part2, 0);
+
+            // Combine them into one array
+            Array.Copy(part1, 0, samples, 0, part1.Length);
+            Array.Copy(part2, 0, samples, part1.Length, part2.Length);
+        }
+
+        _lastMicPos = currentPos;
+
+        // Convert the float array [-1.0, 1.0] to PCM16 bytes and send
+        if (samples != null && samples.Length > 0)
+        {
+            _totalSamplesSent += samples.Length;
+
+            byte[] pcmData = ConvertFloatsToPCM16(samples);
+            string base64Audio = Convert.ToBase64String(pcmData);
+
+            await SendJson(new { type = "input_audio_buffer.append", audio = base64Audio });
+        }
+
+        _lastMicPos = currentPos;
+    }
+
+    private void PlayAudioChunk(float[] data)
+    {
+        Debug.Log("Got a response chunk to play as audio");
+        AudioClip clip = AudioClip.Create("ResponseChunk", data.Length, 1, SAMPLE_RATE, false);
+        clip.SetData(data, 0);
+        outputSource.clip = clip;
+        outputSource.Play();
+    }
+
+    public async Task SendImageContext(string screenshotLink)
+    {
+        var imageMessage = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new[] {
+                    new { type = "image_url", image_url = new { url = screenshotLink } }
+                }
+            }
+        };
+        await SendJson(imageMessage);
+        Debug.Log("Sent Image Context to Realtime API for " + screenshotLink);
+    }
+
+    private async Task ReceiveLoop()
+    {
+        var buffer = new byte[1024 * 64];
+        while (_webSocket.State == WebSocketState.Open)
+        {
+            var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationTokenSource.Token);
+            string json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+            // Realtime API sends many events. We filter for the ones we need.
+            HandleServerEvent(json);
+        }
+    }
+
+    private void HandleServerEvent(string json)
+    {
+        try
+        {
+            JObject jsonObj = JObject.Parse(json);
+            string type = (string)jsonObj["type"];
+
+            switch (type)
+            {
+                case "response.audio.delta":
+                    // Native Audio stream from OpenAI (Fastest possible latency)
+                    Debug.Log("Got response audio");
+                    string base64Audio = (string)jsonObj["delta"];
+                    OnAudioDeltaReceived?.Invoke(base64Audio);
+                    break;
+
+                case "response.text.delta":
+                    // If you still want to use ElevenLabs, use this text
+                    Debug.Log("Got response text to use in ElevenLabs");
+                    string textDelta = (string)jsonObj["delta"];
+                    OnTextReceived?.Invoke(textDelta);
+                    break;
+
+                case "response.done":
+                    Debug.Log("Response generation complete.");
+                    break;
+
+                case "error":
+                    Debug.LogError($"Realtime Error: {json}");
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Realtime Error, Exception Thrown: {e}");
+        }
+    }
+
+    private async Task SendJson(object data)
+    {
+        if (_webSocket.State != WebSocketState.Open) return;
+        string json = JsonConvert.SerializeObject(data);
+        byte[] bytes = Encoding.UTF8.GetBytes(json);
+        await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+    }
+
+    // CONVERTERS
+    private byte[] ConvertFloatsToPCM16(float[] samples)
+    {
+        byte[] bytes = new byte[samples.Length * 2];
+        for (int i = 0; i < samples.Length; i++)
+        {
+            short val = (short)(samples[i] * 32767f);
+            BitConverter.GetBytes(val).CopyTo(bytes, i * 2);
+        }
+        return bytes;
+    }
+
+    private void OnDestroy()
+    {
+        _cancellationTokenSource?.Cancel();
+        _webSocket?.Dispose();
+    }
 }
 
 public class OpenAIQueries : MonoBehaviour
@@ -132,6 +431,14 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public bool completionCompleted = false;
     [HideInInspector] public bool alloyCompleted = false;
 
+    // Pre-saved messages
+    public AudioClip humanApology;
+    public AudioClip robotApology;
+    public AudioClip dogApology;
+    public AudioClip caneApology;
+    public AudioClip birdApology;
+    public AudioClip invisibleApology;
+
     private void Start()
     {
         // Find and load appropriate resources
@@ -139,6 +446,7 @@ public class OpenAIQueries : MonoBehaviour
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadConfig();
         LoadRoomDescriptions();
+        //LoadPredeterminedAudio();
 
         // Create an instance of the OpenAI client
         client = new OpenAIClient(apiKey);
@@ -153,6 +461,16 @@ public class OpenAIQueries : MonoBehaviour
 
         // Calls continously to check for a role change
         getGuideRole();
+    }
+    
+    private void LoadPredeterminedAudio()
+    {
+        humanApology = Resources.Load<AudioClip>("Audio/humanApologyRiver");
+        robotApology = Resources.Load<AudioClip>("Audio/robotApologyWill");
+        caneApology = Resources.Load<AudioClip>("Audio/caneApologyCallum");
+        dogApology = Resources.Load<AudioClip>("Audio/dogApologyJessica");
+        birdApology = Resources.Load<AudioClip>("Audio/birdApologyGeorge");
+        invisibleApology = Resources.Load<AudioClip>("Audio/invisibleApologyMatilda");
     }
 
     private void getAvatarVoice()
@@ -220,7 +538,7 @@ public class OpenAIQueries : MonoBehaviour
         {
             var transcriptionResponse = await client.AudioEndpoint.CreateTranscriptionAsync(transcriptionRequest);
             output = transcriptionResponse.ToString();
-            //Debug.Log("Transcription of user query: " + output);
+            Debug.Log("Transcription of user query: " + output);
             query = output;
             whisperCompleted = true;
         }
@@ -240,7 +558,37 @@ public class OpenAIQueries : MonoBehaviour
         if (string.IsNullOrEmpty(currentQuery) || currentQuery == "you" || currentQuery == "You")
         {
             Debug.LogWarning("Aborting GPT call: Invalid Query -> " + currentQuery);
-            // In the future, send a message that the guide did not hear the question properly at this point and stop the audio in AIGuide.
+            audioSource.loop = false;
+            // Send a customized message telling the user that the query was invalid and ask to try again
+            switch (role)
+            {
+                case "warm, friendly, but still professional sighted guide":
+                    Debug.Log("trying to play human apology");
+                    audioSource.clip = humanApology;
+                    audioSource.Play();
+                    break;
+                case "formal and assertive assistant, who talks like a robot":
+                    audioSource.clip = robotApology;
+                    audioSource.Play();
+                    break;
+                case "computer-like, succinct assistant, who gives the straight facts":
+                    audioSource.clip = caneApology;
+                    audioSource.Play();
+                    break;
+                case "very friendly, excited companion, who is eager to please who you're talking to":
+                    audioSource.clip = dogApology;
+                    audioSource.Play();
+                    break;
+                case "wise, old-fashioned, slightly Shakespearean-sounding mentor":
+                    audioSource.clip = birdApology;
+                    audioSource.Play();
+                    break;
+                case "gentle, sweet, soft-spoken assistant slipping in words here and there":
+                    audioSource.clip = invisibleApology;
+                    audioSource.Play();
+                    break;
+            }
+            
             return;
         }
 
@@ -322,11 +670,6 @@ public class OpenAIQueries : MonoBehaviour
             Debug.Log($"History Count: {conversationHistory.Count}");
             Debug.Log("Response from guide: " + finalResponseText);
             Debug.Log("User question: " + currentQuery.ToString());
-
-            // Save some info here, like the guide response, the user query, the timestamp, and the time it took to process, save that and output it
-            // Might also save the traces of which methods it called, as a way to tell what its thought process was and if it was answering accurately
-            // (e.g., the prompt was about being taking to a building, but the guide selected a target for description, not guidance)
-            // Though this part seems to call multiple times, so it might not be the right spot for true counting
 
             LogInteractionData(
                 query,

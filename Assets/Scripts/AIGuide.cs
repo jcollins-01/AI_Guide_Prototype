@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class AIGuide : MonoBehaviour
@@ -25,6 +26,9 @@ public class AIGuide : MonoBehaviour
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
+
+    // TEST NEW ARCHITECTURE
+    private RealtimeGuideClient realtimeClient;
 
     // Start is called before the first frame update
     void Start()
@@ -55,10 +59,20 @@ public class AIGuide : MonoBehaviour
 
         // This line is needed if we use the invisible guide role
         if (role == 6)
-            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject); 
+            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
 
         // Line to test guide changes over network
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
+
+        // TEST NEW ARCHITECTURE
+        realtimeClient = new RealtimeGuideClient();
+
+        string basePrompt = "You are a " + role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
+                                     " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
+                                     " " + m_OpenAIQueriesScript.queryClassifications;
+
+        // Connect
+        realtimeClient.Connect(basePrompt);
     }
 
     // For testing the role change over the network
@@ -90,6 +104,9 @@ public class AIGuide : MonoBehaviour
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
         {
+            // TEST NEW ARCHITECTURE
+            //RealtimeGuide();
+
             // Check for space button or A button press from user
             checkUserInput();
 
@@ -113,6 +130,32 @@ public class AIGuide : MonoBehaviour
 
             // Check if both confederates are present and send guide roles each time they are (in case of confederates leaving and coming back)
             BothConfederatesPresent();
+        }
+    }
+
+    // TEST NEW ARCHITECTURE
+    private void RealtimeGuide()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            realtimeClient.StartRecording();
+
+            FindObjectOfType<CameraSystem>().CaptureScreenshot();
+            string birdsEyeUrl = "";
+            string viewpointUrl = "";
+            if (FindObjectOfType<CameraSystem>().uploaded)
+            {
+                birdsEyeUrl = FindObjectOfType<CameraSystem>().birdsEyeImageLink;
+                viewpointUrl = FindObjectOfType<CameraSystem>().viewpointImageLink;
+
+                realtimeClient.SendImageContext(birdsEyeUrl);
+                realtimeClient.SendImageContext(viewpointUrl);
+            }
+        }
+
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            _ = realtimeClient.StopRecordingAndCommit();
         }
     }
 
@@ -195,6 +238,24 @@ public class AIGuide : MonoBehaviour
                     audioSource.clip = Resources.Load<AudioClip>("Audio/processing");
                     audioSource.mute = false;
                     audioSource.loop = true;
+                    audioSource.Play();
+                    break;
+                }
+            case "listening":
+                {
+                    //Debug.Log("Played listening sound");
+                    audioSource.clip = Resources.Load<AudioClip>("Audio/listening");
+                    audioSource.mute = false;
+                    audioSource.loop = false;
+                    audioSource.Play();
+                    break;
+                }
+            case "done_listening":
+                {
+                    //Debug.Log("Played done listening sound");
+                    audioSource.clip = Resources.Load<AudioClip>("Audio/done_listening");
+                    audioSource.mute = false;
+                    audioSource.loop = false;
                     audioSource.Play();
                     break;
                 }
@@ -338,7 +399,7 @@ public class AIGuide : MonoBehaviour
     private void sendUserInput()
     {
         // If PC user lifts finger off space, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0 && screenshotsCaptured == 0)
+        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)// && screenshotsCaptured == 0)
         {
             // End microphone ownership from OpenAI and mark that the recording is not in progress
             Microphone.End(Microphone.devices[0]);
@@ -346,12 +407,12 @@ public class AIGuide : MonoBehaviour
             Debug.Log("Recording ended");
 
             // Take screenshots and upload to ImageShack
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            screenshotsCaptured += 1;
+            //FindObjectOfType<CameraSystem>().CaptureScreenshot(); // Move this to be captured as the user is talking
+            //screenshotsCaptured += 1;
             //Debug.Log("Screenshot captured");
 
             // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
+            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip); // Still keep this so we have a transcribed result
             whisperCalls += 1;
         }
 
@@ -384,6 +445,8 @@ public class AIGuide : MonoBehaviour
         if (Input.GetKey(KeyCode.Space))
         {
             m_OpenAIQueriesScript.CaptureAudio();
+            FindObjectOfType<CameraSystem>().CaptureScreenshot(); 
+            screenshotsCaptured += 1;
 
             // Reset call counters so they can each be called once more
             screenshotsCaptured = 0;
