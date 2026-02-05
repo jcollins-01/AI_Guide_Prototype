@@ -25,12 +25,12 @@ public class RandomObjectSpawner : MonoBehaviour
     {
         // Assign spawnSource to be the GameObject this script is on
         spawnSource = this.gameObject;
-        Debug.Log("Spawn source is " +  this.gameObject.name);
+        Debug.Log("Spawn source is " + this.gameObject.name);
         m_ShortTaskControllerScript = FindObjectOfType<ShortTaskController>();
 
         // Assign audio components for indicating an object has been unloaded / prepared
         audioSource = this.gameObject.AddComponent<AudioSource>();
-        unloaded = Resources.Load<AudioClip>("Audio/completion"); 
+        unloaded = Resources.Load<AudioClip>("Audio/completion");
         string sceneName = SceneManager.GetActiveScene().name;
         switch (sceneName)
         {
@@ -41,16 +41,16 @@ public class RandomObjectSpawner : MonoBehaviour
                 preparing = Resources.Load<AudioClip>("Audio/repair");
                 break;
             case "Flower Shop":
-                preparing = Resources.Load<AudioClip>("Audio/water-walk");
+                preparing = Resources.Load<AudioClip>("Audio/watering");
                 break;
             case "Monster Pet Shop":
-                preparing = Resources.Load<AudioClip>("Audio/chop");
+                preparing = Resources.Load<AudioClip>("Audio/brush");
                 break;
             case "Witch Cottage":
-                preparing = Resources.Load<AudioClip>("Audio/chop");
+                preparing = Resources.Load<AudioClip>("Audio/cast");
                 break;
             case "Pharmacy":
-                preparing = Resources.Load<AudioClip>("Audio/chop");
+                preparing = Resources.Load<AudioClip>("Audio/scan");
                 break;
         }
     }
@@ -94,7 +94,7 @@ public class RandomObjectSpawner : MonoBehaviour
         // Instantiate the random prefab on top of the spawnSource
         spawnedObject = Instantiate(randomPrefab, spawnPosition, spawnRotation);
 
-        if(spawnedObject.GetComponent<XRGrabInteractable>() != null && spawnedObject.GetComponent<GrabRequest>() != null)
+        if (spawnedObject.GetComponent<XRGrabInteractable>() != null && spawnedObject.GetComponent<GrabRequest>() != null)
         {
             XRGrabInteractable m_XRGrabInteractableScript = spawnedObject.GetComponent<XRGrabInteractable>();
             GrabRequest m_GrabRequestScript = spawnedObject.GetComponent<GrabRequest>();
@@ -155,7 +155,7 @@ public class RandomObjectSpawner : MonoBehaviour
                         audioSource.Play();
                     }
                 }
-                
+
                 // If player finishes preparation
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
