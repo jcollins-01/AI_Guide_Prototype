@@ -94,7 +94,9 @@ public class RandomObjectSpawner : MonoBehaviour
         // Instantiate the random prefab on top of the spawnSource
         spawnedObject = Instantiate(randomPrefab, spawnPosition, spawnRotation);
 
-        if (spawnedObject.GetComponent<XRGrabInteractable>() != null && spawnedObject.GetComponent<GrabRequest>() != null)
+        if (m_ShortTaskControllerScript.taskName == "Unloading" && 
+            spawnedObject.GetComponent<XRGrabInteractable>() != null && 
+            spawnedObject.GetComponent<GrabRequest>() != null)
         {
             XRGrabInteractable m_XRGrabInteractableScript = spawnedObject.GetComponent<XRGrabInteractable>();
             GrabRequest m_GrabRequestScript = spawnedObject.GetComponent<GrabRequest>();
@@ -165,7 +167,14 @@ public class RandomObjectSpawner : MonoBehaviour
                     audioSource.clip = unloaded;
                     audioSource.Play();
                     SpawnRandomObject();
+                } else if (!spawnedObject.GetComponent<PrepareObject>().playerMidPreparation && !spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
+                {
+                    if (audioSource.isPlaying && audioSource.clip != unloaded)
+                    {
+                        audioSource.Stop();
+                    }
                 }
+
             }
         }
     }

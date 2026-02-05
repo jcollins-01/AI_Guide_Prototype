@@ -87,7 +87,14 @@ public class PrepareObject : MonoBehaviour
         // Set up a new collider for the prep tool as a trigger so we can detect when it gets close to this spawned object
         BoxCollider triggerCollider = trigger.AddComponent<BoxCollider>();
         triggerCollider.isTrigger = true;
-        triggerCollider.size = new Vector3(1f, 1f, 1f);
+
+        if (sceneName == "Pharmacy")
+        {
+            triggerCollider.size = new Vector3(0.7f, 0.7f, 0.7f);
+        } else
+        {
+            triggerCollider.size = new Vector3(1f, 1f, 1f);
+        }
     }
 
     // Update is called once per frame
