@@ -338,10 +338,9 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
 
     // ElevenLabs test variables
-    [HideInInspector] public string elevenLabsApiKey = "sk_25c3b009eb65e25d179e6f3fe10d20fd03ac7f9556308175";
+    [HideInInspector] public string elevenLabsApiKey;
     [HideInInspector] public string elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM"; // Temp "Rachel" voice, gonna have to check out voice switching
     [HideInInspector] public string elevenLabsModelId = "eleven_turbo_v2";
-    private string elevenLabsUrl = "https://api.elevenlabs.io/v1/text-to-speech";
 
     // Config file to hold api keys, credentials
     [HideInInspector] private const string configFileName = "config";
@@ -1230,6 +1229,7 @@ public class OpenAIQueries : MonoBehaviour
             apiKey = configData.APIKey;
             playHTApiKey = configData.PlayHTAPIKey;
             playHTUserId = configData.PlayHTUserID;
+            elevenLabsApiKey = configData.ElevenLabsAPIKey;
         }
         else
         {
@@ -1290,5 +1290,6 @@ public class OpenAIQueries : MonoBehaviour
         public string APIKey;
         public string PlayHTAPIKey;
         public string PlayHTUserID;
+        public string ElevenLabsAPIKey;
     }
 }

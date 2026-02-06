@@ -35,6 +35,7 @@ public class GenerateReaderReferences : MonoBehaviour
     public string playHTApiKey;
     [HideInInspector]
     public string playHTUserId;
+    private string elevenLabsApiKey;
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
@@ -336,28 +337,47 @@ public class GenerateReaderReferences : MonoBehaviour
 
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        string playHTUrl = "https://play.ht/api/v2/tts/stream";
-        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
+        string playHTUrl = "https://api.elevenlabs.io/v1/text-to-speech";
+        string voice = "SAz9YHcvj6GT2YYXdXww"; // Default voice, Human
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
         var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + description + "\"}";
 
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        var payloadObj = new
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
-            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
-
-            Debug.Log("Sending request to PlayHT: " + playHTData);
-
-            yield return playHTRequest.SendWebRequest();
-
-            if (playHTRequest.result == UnityWebRequest.Result.Success)
+            text = description,
+            model_id = "eleven_turbo_v2",
+            voice_settings = new
             {
-                byte[] audioData = playHTRequest.downloadHandler.data;
+                stability = 0.5f,
+                similarity_boost = 0.7f,
+                style = 0.02f,
+                use_speaker_boost = true
+            }
+        };
+
+        string finalUrl = $"https://api.elevenlabs.io/v1/text-to-speech/{voice}/";
+        string jsonBody = JsonConvert.SerializeObject(payloadObj);
+
+        using (UnityWebRequest elevenLabsRequest = new UnityWebRequest(finalUrl, "POST"))
+        {
+            elevenLabsRequest.method = UnityWebRequest.kHttpVerbPOST;
+
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+            elevenLabsRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            elevenLabsRequest.downloadHandler = new DownloadHandlerAudioClip(finalUrl, AudioType.MPEG);
+
+            elevenLabsRequest.SetRequestHeader("Content-Type", "application/json");
+            elevenLabsRequest.SetRequestHeader("xi-api-key", elevenLabsApiKey); // Use 'xi-api-key', NOT 'Authorization'
+            elevenLabsRequest.SetRequestHeader("Accept", "audio/mpeg");
+
+            Debug.Log($"Sending a request to ElevenLabs: {jsonBody}");
+
+            yield return elevenLabsRequest.SendWebRequest();
+
+            if (elevenLabsRequest.result == UnityWebRequest.Result.Success)
+            {
+                byte[] audioData = elevenLabsRequest.downloadHandler.data;
                 Debug.Log($"Received audio data of size: {audioData.Length} bytes");
                 File.WriteAllBytes(audioFilePath, audioData);
                 Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
@@ -372,8 +392,15 @@ public class GenerateReaderReferences : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
+                Debug.LogError("Error calling ElevenLabs: " + elevenLabsRequest.error);
+                //Debug.LogError("Response Text: " + elevenLabsRequest.downloadHandler.text);
+
+                Debug.LogError("Error Code: " + elevenLabsRequest.responseCode);
+                if (elevenLabsRequest.downloadHandler.data != null)
+                {
+                    string errorJson = Encoding.UTF8.GetString(elevenLabsRequest.downloadHandler.data);
+                    Debug.LogError("ElevenLabs Detailed Error: " + errorJson);
+                }
                 yield break;
             }
         }
@@ -432,6 +459,7 @@ public class GenerateReaderReferences : MonoBehaviour
             ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
             playHTApiKey = configData.PlayHTAPIKey;
             playHTUserId = configData.PlayHTUserID;
+            elevenLabsApiKey = configData.ElevenLabsAPIKey;
         }
         else
         {
@@ -444,5 +472,6 @@ public class GenerateReaderReferences : MonoBehaviour
         public string APIKey;
         public string PlayHTAPIKey;
         public string PlayHTUserID;
+        public string ElevenLabsAPIKey;
     }
 }
