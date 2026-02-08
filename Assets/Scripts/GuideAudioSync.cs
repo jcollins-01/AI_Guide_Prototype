@@ -57,8 +57,8 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private async void ResultDidChange(GuideAudioSyncModel model, string result)
     {
-        Debug.Log("Detected that the result did change: " + result);
-        Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
+        //Debug.Log("Detected that the result did change: " + result);
+        //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
 
         if (!string.IsNullOrEmpty(result))
             StartCoroutine(StreamTextToPlayHT(result));

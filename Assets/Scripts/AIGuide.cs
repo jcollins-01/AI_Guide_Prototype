@@ -326,24 +326,9 @@ public class AIGuide : MonoBehaviour
             // Start to play processing sound
             playEffect("processing");
 
-            // Construct the query to send to GPT-4
-            m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + " The names and descriptions of key objects in the environment are as follows: " + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
+            // Stream GPT response and audio
+            var guideResult = m_OpenAIQueriesScript.CallChatGPTAndStreamAudioCompletions();
 
-            // [DEPRECATED] If this is the first query, send all classifcations - after that, only send user query to speed up guide response time
-            /*if (firstQuery)
-            {
-                m_OpenAIQueriesScript.text = "You are a " + m_OpenAIQueriesScript.role + ". " + m_OpenAIQueriesScript.contextClassification + m_OpenAIQueriesScript.memoClassifications + m_OpenAIQueriesScript.objectClassifications + " Imagine the player said this: " + m_OpenAIQueriesScript.query + ". " + m_OpenAIQueriesScript.queryClassifications;
-                firstQuery = false;
-            }
-            else
-            {
-                m_OpenAIQueriesScript.text = "Now, imagine the player said this: " + m_OpenAIQueriesScript.query;
-            }*/
-
-
-            // Stream GPT response and audio with the user's recorded voice query
-            var guideResult = m_OpenAIQueriesScript.CallChatGPTAndStreamAudioCompletions(m_OpenAIQueriesScript.text);
-            //StartCoroutine(m_OpenAIQueriesScript.CallChatGPTAndStreamAudio(m_OpenAIQueriesScript.text));
             Debug.Log("Called GPT for streaming");
 
             completionCalls += 1;
@@ -363,7 +348,7 @@ public class AIGuide : MonoBehaviour
             // Take screenshots and upload to ImageShack
             FindObjectOfType<CameraSystem>().CaptureScreenshot();
             screenshotsCaptured += 1;
-            Debug.Log("Screenshot captured");
+            //Debug.Log("Screenshot captured");
 
             // Call the Whisper API to transcribe the recorded speech to text
             var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
