@@ -76,7 +76,11 @@ public class TeleportationHandler : MonoBehaviour
             characterController.center = new Vector3(0f, characterControllerCenterY, 0f);
             characterController.height = characterControllerHeight;
             if (m_VRScreenreaderScript.sharedMovementFound)
+            {
                 m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
+                Debug.Log("TP Handler Triggers Post Teleport Audio");
+
+            }
         }
     }
 

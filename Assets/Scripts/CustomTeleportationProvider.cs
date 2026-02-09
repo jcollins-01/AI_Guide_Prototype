@@ -11,9 +11,24 @@ public class CustomTeleportationProvider : TeleportationProvider
     [System.NonSerialized] float m_DelayTime; // prevents duplicate serialization
 
     [Header("Teleport Validation")]
-    public LayerMask teleportableLayers = 1 << 10; // Floors
-    public LayerMask obstacleLayers = ~0;          // Everything
+    [Tooltip("Valid landing surfaces. Set to Floors | Water.")]
+    public LayerMask teleportableLayers = 0; // set in Inspector
+
+    [Tooltip("Major blockers. Example: Obstacles | Interactable | Person | NPC | Key Items (and maybe Default).")]
+    public LayerMask majorObstacleLayers = 0; // set in Inspector
+
+    [Tooltip("Minor blockers with smaller radius. Example: Plants.")]
+    public LayerMask minorObstacleLayers = 0; // set in Inspector
+
+    [Tooltip("If you already use a Restricted tag, keep it as a hard override.")]
+    public string restrictedTag = "Restricted";
+
+    [Tooltip("Major collision radius in meters.")]
     public float checkRadius = 0.5f;
+
+    [Tooltip("Minor collision radius in meters.")]
+    public float minorCheckRadius = 0.12f;
+
     public float maxSlope = 10f;
 
     public float delayTimeCustom = 0.1f; // if you need editable delay time, use this one
@@ -104,81 +119,73 @@ public class CustomTeleportationProvider : TeleportationProvider
 
     bool IsTeleportDestinationValid(Vector3 pos)
     {
-        float minDistance = 0.5f; // Minimum allowed distance from objects
-        int layerMask = ~0; // Check all layers
-        Collider[] nearby = Physics.OverlapSphere(pos, minDistance, layerMask, QueryTriggerInteraction.Ignore);
-
-        Debug.Log($"[Provider] Checking teleport at {pos}, found {nearby.Length} colliders within {minDistance}m");
-
-        foreach (Collider col in nearby)
+        // 1) Floor or water check using raycast is more reliable than CheckSphere alone
+        if (!Physics.Raycast(pos + Vector3.up * 1.0f, Vector3.down, out RaycastHit floorHit, 2.5f, teleportableLayers, QueryTriggerInteraction.Ignore))
         {
-            if (col == null) continue;
-
-            string layerName = LayerMask.LayerToName(col.gameObject.layer);
-            Debug.Log($"[Provider] Colliders Detected: {col.name} (Layer: {layerName}) on {col.gameObject.name}");
+            Debug.LogWarning("[Provider] No valid teleport surface under destination");
+            return false;
         }
 
-        foreach (Collider col in nearby)
+        // Use the hit point for slope and collision checks so we are aligned to the real surface
+        Vector3 feetPos = floorHit.point;
+
+        // 2) Slope validation
+        float slope = Vector3.Angle(floorHit.normal, Vector3.up);
+        if (slope > maxSlope)
         {
-            if (!col.enabled) continue;
+            Debug.LogWarning($"[Provider] Surface too steep: {slope:F1} degrees");
+            return false;
+        }
 
-            // Skip floor or teleport-related surfaces
-            if (col.CompareTag("Travel Target") ||  col.CompareTag("Everything"))
+        // 3) Major collision check (big blockers)
+        Collider[] majorNearby = Physics.OverlapSphere(feetPos, checkRadius, majorObstacleLayers, QueryTriggerInteraction.Ignore);
+        Debug.Log($"[Provider] Major check at {feetPos}, found {majorNearby.Length} colliders within {checkRadius}m");
+
+        foreach (Collider col in majorNearby)
+        {
+            if (col == null || !col.enabled) continue;
+
+            // Hard override: restricted tag blocks always
+            if (!string.IsNullOrEmpty(restrictedTag) && col.CompareTag(restrictedTag))
             {
-                Debug.Log($"[Provider] Ignoring floor collider: {col.name}");
-                continue;
+                Debug.LogWarning($"[Provider] Blocked by Restricted: {col.name}");
+                return false;
             }
 
-            // Skip layers you mark as safe
-            int layer = col.gameObject.layer;
-            if (layer == LayerMask.NameToLayer("Teleportable") ||
-                layer == LayerMask.NameToLayer("Ground") ||
-                layer == LayerMask.NameToLayer("Ignore Raycast") ||
-                layer == LayerMask.NameToLayer("Floors"))
+            float dist = Vector3.Distance(col.ClosestPoint(feetPos), feetPos);
+            if (dist < checkRadius)
             {
-                Debug.Log($"[Provider] Ignoring safe layer collider: {col.name}");
-                continue;
-            }
-
-            // Check actual distance
-            float dist = Vector3.Distance(col.ClosestPoint(pos), pos);
-            if (dist < minDistance)
-            {
-                Debug.LogWarning($"[Provider] Blocked teleport, too close to {col.name} ({dist:F2}m)");
+                Debug.LogWarning($"[Provider] Blocked teleport (major), too close to {col.name} ({dist:F2}m)");
                 return false;
             }
         }
 
-        // Standard floor check
-        bool onFloor = Physics.CheckSphere(pos, 0.05f, teleportableLayers);
-        Debug.Log($"[Provider] OnFloor={onFloor}");
-        if (!onFloor)
+        // 4) Minor collision check (small clutter)
+        if (minorObstacleLayers.value != 0 && minorCheckRadius > 0f)
         {
-            Debug.LogWarning("[Provider] Not on a valid floor surface");
-            return false;
-        }
+            Collider[] minorNearby = Physics.OverlapSphere(feetPos, minorCheckRadius, minorObstacleLayers, QueryTriggerInteraction.Ignore);
+            Debug.Log($"[Provider] Minor check at {feetPos}, found {minorNearby.Length} colliders within {minorCheckRadius}m");
 
-        // Slope validation
-        if (Physics.Raycast(pos + Vector3.up, Vector3.down, out RaycastHit hit, 2f, teleportableLayers))
-        {
-            float slope = Vector3.Angle(hit.normal, Vector3.up);
-            if (slope > maxSlope)
+            foreach (Collider col in minorNearby)
             {
-                Debug.LogWarning($"[Provider] Surface too steep: {slope:F1}°");
-                return false;
+                if (col == null || !col.enabled) continue;
+
+                if (!string.IsNullOrEmpty(restrictedTag) && col.CompareTag(restrictedTag))
+                {
+                    Debug.LogWarning($"[Provider] Blocked by Restricted (minor): {col.name}");
+                    return false;
+                }
+
+                float dist = Vector3.Distance(col.ClosestPoint(feetPos), feetPos);
+                if (dist < minorCheckRadius)
+                {
+                    Debug.LogWarning($"[Provider] Blocked teleport (minor), inside/too close to {col.name} ({dist:F2}m)");
+                    return false;
+                }
             }
-        }
-        else
-        {
-            Debug.LogWarning("[Provider] No floor raycast hit");
-            return false;
         }
 
         Debug.Log("[Provider] Teleport destination approved");
         return true;
     }
-
-
-
-
 }
