@@ -67,14 +67,24 @@ public class AIGuide : MonoBehaviour
         // TEST NEW ARCHITECTURE
         realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
 
-        string basePrompt = "You are a " + role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
-                                     " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
-                                     " " + m_OpenAIQueriesScript.queryClassifications;
+        string basePrompt = GetFormattedPrompt();
 
         // Load config info then connect
         realtimeClient.LoadConfig();
         realtimeClient._voiceDetectionOn = false;
         realtimeClient.Connect(basePrompt);
+    }
+
+    // For ensuring proper realtime data
+    public string GetFormattedPrompt()
+    {
+        // Ensure data is fresh
+        m_OpenAIQueriesScript.LoadRoomDescriptions();
+        m_OpenAIQueriesScript.getGuideRole();
+
+        return "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
+                                     " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
+                                     " " + m_OpenAIQueriesScript.queryClassifications;
     }
 
     // For testing the role change over the network

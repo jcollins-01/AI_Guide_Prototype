@@ -93,6 +93,7 @@ public class RealtimeGuideClient : MonoBehaviour
             await _webSocket.ConnectAsync(new Uri(OPENAI_REALTIME_URL), CancellationToken.None);
             _isConnected = true;
             Debug.Log("Connected to Realtime API");
+            Debug.Log("The instructions received were: " + systemInstructions);
 
             // Start listening for responses immediately
             _ = ReceiveLoop();
@@ -575,9 +576,12 @@ public class OpenAIQueries : MonoBehaviour
             _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
     }
 
-    private void getGuideRole()
+    public void getGuideRole()
     {
         // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
+        if (m_AIGuideScript == null)
+            m_AIGuideScript = GetComponent<AIGuide>(); // This check happens when we call it from the realtime set-up
+
         int index = m_AIGuideScript.role - 1;
 
         if (index < 0 || index >= roles.Count)
@@ -1334,8 +1338,9 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
-    private void LoadRoomDescriptions()
+    public void LoadRoomDescriptions()
     {
+        Debug.Log("We loaded our room descriptions");
         TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
         string jsonFilePath = Path.Combine(Application.dataPath, "Resources", "RoomDescriptions.json");
 
