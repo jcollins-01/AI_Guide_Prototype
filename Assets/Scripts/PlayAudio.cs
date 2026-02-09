@@ -7,7 +7,7 @@ using Normal.Realtime;
 public class PlayAudio : MonoBehaviour
 {
     // Components to grab from scripts
-    private TeleportationProvider teleport;
+    private CustomTeleportationProvider teleport;
     private ActionBasedContinuousMoveProvider move;
     private XRInteractionManager interactionManager;
     private GameObject thePlayer;
@@ -45,6 +45,8 @@ public class PlayAudio : MonoBehaviour
     private AudioClip walkEffect;
     private AudioClip woodEffect;
     private AudioClip waterEffect;
+    private AudioClip generalWalkEffect;
+
     private AudioClip grassEffect;
     private AudioClip turnEffect;
     private AudioClip woodCollisionEffect;
@@ -61,16 +63,22 @@ public class PlayAudio : MonoBehaviour
     public AudioClip currentClip;
     private string surfaceMaterial;
 
+    // for dealing with trailing footstep sounds when stopping and changing direction - if the position changes back to the previous position, we don't want to play a footstep sound
+    private Vector3 previousPosition;
+
     // Start is called before the first frame update
     void Start()
     {
         // Grab necessary components from scene
         interactionManager = FindObjectOfType<XRInteractionManager>();
-        teleport = FindObjectOfType<TeleportationProvider>();
+        teleport = FindObjectOfType<CustomTeleportationProvider>();
         move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
         characterController = GetComponentInParent<CharacterController>();
         if (characterController != null)
+        {
             lastKnownPosition = characterController.transform.position;
+            previousPosition = lastKnownPosition;
+        }
 
         // Assign sounds from Resources
         teleportEffect = Resources.Load<AudioClip>("Audio/teleport");
@@ -78,6 +86,7 @@ public class PlayAudio : MonoBehaviour
         woodEffect = Resources.Load<AudioClip>("Audio/wood-walk");
         waterEffect = Resources.Load<AudioClip>("Audio/water-walk");
         grassEffect = Resources.Load<AudioClip>("Audio/grass-walk");
+        generalWalkEffect = Resources.Load<AudioClip>("Audio/general-walk");
         turnEffect = Resources.Load<AudioClip>("Audio/turn");
         woodCollisionEffect = Resources.Load<AudioClip>("Audio/wooden-collision");
         collisionEffect = Resources.Load<AudioClip>("Audio/general-collision");
@@ -115,8 +124,8 @@ public class PlayAudio : MonoBehaviour
             assignAudioClipSync();
 
         // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
-        if (sharedMovementFound || GameObject.FindWithTag("Confederate"))
-        {
+        bool hasConfederate = GameObject.FindWithTag("Confederate");
+        if (sharedMovementFound || hasConfederate || playerAudio != null)        {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())
                 playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>(); // Ensure we grab the audio source for Play Audio, not Open AI
@@ -160,9 +169,14 @@ public class PlayAudio : MonoBehaviour
                 CheckTurning();
 
                 Vector3 currPosition = characterController.transform.position;
-                playAudioForMovingPlayer(currPosition, lastKnownPosition);
-                playAudioForMovingGuide(currPosition, lastKnownPosition);
+
+                // compute movement using previous frame, not stale data
+                previousPosition = lastKnownPosition;
                 lastKnownPosition = currPosition;
+
+                playAudioForMovingPlayer(currPosition, previousPosition);
+                playAudioForMovingGuide(currPosition, previousPosition);
+
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -172,8 +186,7 @@ public class PlayAudio : MonoBehaviour
         }
         else
         {
-            Debug.Log("[PlayAudio] Update skipped: neither shared movement found nor Confederate tag present.");
-        }
+            Debug.Log("[PlayAudio] Update skipped: neither shared movement found nor Confederate tag present.");        }
     }
 
     public void CheckTeleport()
@@ -237,11 +250,24 @@ public class PlayAudio : MonoBehaviour
         bool isMoving = currPosition != lastPosition;
         string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
         Debug.Log($"[PlayAudio] Player path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, sourceTag={playerAudio.transform.tag}");
+        
+        // HARD STOP: immediately cut walking audio when movement stops
+        if (!isMoving)
+        {
+            if (playerAudio.isPlaying && IsWalkClip(playerAudio.clip))
+            {
+                playerAudio.Stop();
+                playerAudio.clip = noEffect;
+                LogClip("Player stopped moving; force stop walk audio", playerAudio.clip);
+            }
+            return;
+        }
+
         // If our audio is not coming from a guide, use the player audio clips
         if (playerAudio.transform.tag != "Guide")
         {
             // If our last clip playing was any of the walking effects, we don't wait for them to be done playing before switching
-            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect)
+            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect || playerAudio.clip == generalWalkEffect)
             {
                 if (isMoving)
                 {
@@ -259,6 +285,11 @@ public class PlayAudio : MonoBehaviour
                     {
                         playerAudio.clip = grassEffect;
                         //m_audioClipSync.SetClipName(grassEffect.name);
+                    }
+                    else if (surfaceMaterial == "floor")
+                    {
+                        playerAudio.clip = generalWalkEffect;
+                        //m_audioClipSync.SetClipName(generalWalkEffect.name);
                     }
                     else
                     {
@@ -298,6 +329,11 @@ public class PlayAudio : MonoBehaviour
                             playerAudio.clip = grassEffect;
                             //m_audioClipSync.SetClipName(grassEffect.name);
                         }
+                        else if (surfaceMaterial == "floor")
+                        {
+                            playerAudio.clip = generalWalkEffect;
+                            //m_audioClipSync.SetClipName(generalWalkEffect.name);
+                        }
                         else
                         {
                             playerAudio.clip = walkEffect;
@@ -334,9 +370,20 @@ public class PlayAudio : MonoBehaviour
                 lastLoggedRole = role;
             }
             Debug.Log($"[PlayAudio] Guide path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, role={role}");
+            // HARD STOP: immediately cut walking audio when movement stops
+            if (!isMoving)
+            {
+                if (playerAudio.isPlaying && IsWalkClip(playerAudio.clip))
+                {
+                    playerAudio.Stop();
+                    playerAudio.clip = noEffect;
+                    LogClip("Guide stopped moving; force stop walk audio", playerAudio.clip);
+                }
+                return;
+            }
 
             // If our last clip playing was any of the walking effects, we don't wait for them to be done playing before switching
-            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect ||
+            if (playerAudio.clip == walkEffect || playerAudio.clip == woodEffect || playerAudio.clip == grassEffect || playerAudio.clip == waterEffect || playerAudio.clip == generalWalkEffect ||
                 playerAudio.clip == robotWalkEffect || playerAudio.clip == caneWalkEffect || playerAudio.clip == dogWalkEffect || playerAudio.clip == birdFlyEffect)
             {
                 if (isMoving)
@@ -421,6 +468,36 @@ public class PlayAudio : MonoBehaviour
                             case 4: // dog
                                 playerAudio.clip = grassEffect;
                                 //m_audioClipSync.SetClipName(grassEffect.name);
+                                break;
+                            case 5: // bird
+                                playerAudio.clip = birdFlyEffect;
+                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
+                                break;
+                            case 6: // invisible
+                                playerAudio.clip = noEffect;
+                                //m_audioClipSync.SetClipName(noEffect.name);
+                                break;
+                        }
+                    }
+                    else if (surfaceMaterial == "floor")
+                    {
+                        switch (role)
+                        {
+                            case 1: // human
+                                playerAudio.clip = generalWalkEffect;
+                                //m_audioClipSync.SetClipName(generalWalkEffect.name);
+                                break;
+                            case 2: // robot
+                                playerAudio.clip = robotWalkEffect;
+                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
+                                break;
+                            case 3: // cane
+                                playerAudio.clip = caneWalkEffect;
+                                //m_audioClipSync.SetClipName(caneWalkEffect.name);
+                                break;
+                            case 4: // dog
+                                playerAudio.clip = dogWalkEffect;
+                                //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
@@ -574,6 +651,36 @@ public class PlayAudio : MonoBehaviour
                                     break;
                             }
                         }
+                        else if (surfaceMaterial == "floor")
+                        {
+                            switch (role)
+                            {
+                                case 1: // human
+                                    playerAudio.clip = generalWalkEffect;
+                                    //m_audioClipSync.SetClipName(generalWalkEffect.name);
+                                    break;
+                                case 2: // robot
+                                    playerAudio.clip = robotWalkEffect;
+                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
+                                    break;
+                                case 3: // cane
+                                    playerAudio.clip = caneWalkEffect;
+                                    //m_audioClipSync.SetClipName(caneWalkEffect.name);
+                                    break;
+                                case 4: // dog
+                                    playerAudio.clip = dogWalkEffect;
+                                    //m_audioClipSync.SetClipName(dogWalkEffect.name);
+                                    break;
+                                case 5: // bird
+                                    playerAudio.clip = birdFlyEffect;
+                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
+                                    break;
+                                case 6: // invisible
+                                    playerAudio.clip = noEffect;
+                                    //m_audioClipSync.SetClipName(noEffect.name);
+                                    break;
+                            }
+                        }
                         else
                         {
                             // Decide walking clip based on guide role
@@ -636,6 +743,8 @@ public class PlayAudio : MonoBehaviour
             surfaceMaterial = "water";
         else if (hit.transform.tag == "Grass")
             surfaceMaterial = "grass";
+        else if (hit.transform.tag == "floor")
+            surfaceMaterial = "floor";
         else
             surfaceMaterial = "other";
         if (surfaceMaterial != lastSurfaceMaterial)
@@ -745,7 +854,18 @@ public class PlayAudio : MonoBehaviour
             }
         }
     }
-
+    private bool IsWalkClip(AudioClip clip)
+    {
+        return clip == walkEffect ||
+               clip == woodEffect ||
+               clip == waterEffect ||
+               clip == grassEffect ||
+               clip == generalWalkEffect ||
+               clip == robotWalkEffect ||
+               clip == caneWalkEffect ||
+               clip == dogWalkEffect ||
+               clip == birdFlyEffect;
+    }
     private void LogClip(string reason, AudioClip clip)
     {
         string clipName = clip ? clip.name : "null";
