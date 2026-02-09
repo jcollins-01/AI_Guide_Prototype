@@ -65,13 +65,15 @@ public class AIGuide : MonoBehaviour
         //InvokeRepeating("ChangeGuideRole", 0f, 10f);
 
         // TEST NEW ARCHITECTURE
-        realtimeClient = new RealtimeGuideClient();
+        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
 
         string basePrompt = "You are a " + role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
                                      " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
                                      " " + m_OpenAIQueriesScript.queryClassifications;
 
-        // Connect
+        // Load config info then connect
+        realtimeClient.LoadConfig();
+        realtimeClient._voiceDetectionOn = false;
         realtimeClient.Connect(basePrompt);
     }
 
@@ -105,16 +107,16 @@ public class AIGuide : MonoBehaviour
         if (FindObjectOfType<GuideFollow>())
         {
             // TEST NEW ARCHITECTURE
-            //RealtimeGuide();
+            RealtimeGuide();
 
             // Check for space button or A button press from user
-            checkUserInput();
+            //checkUserInput();
 
             // Send recorded input to Whisper
-            sendUserInput();
+            //sendUserInput();
 
             // Take transcribed input as query and send to GPT-4
-            sendQueryToGPT();
+            //sendQueryToGPT();
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -136,7 +138,7 @@ public class AIGuide : MonoBehaviour
     // TEST NEW ARCHITECTURE
     private void RealtimeGuide()
     {
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             realtimeClient.StartRecording();
 

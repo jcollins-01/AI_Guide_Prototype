@@ -15,6 +15,14 @@ using UnityEngine.Networking;
 using System.Threading;
 using System.Collections.Concurrent;
 
+public class ConfigData
+{
+    public string APIKey;
+    public string PlayHTAPIKey;
+    public string PlayHTUserID;
+    public string ElevenLabsAPIKey;
+}
+
 public class InteractionLog
 {
     public string timestamp;
@@ -37,6 +45,8 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private ClientWebSocket _webSocket;
     private CancellationTokenSource _cancellationTokenSource;
+
+    [HideInInspector] private const string configFileName = "config"; // Config file to hold api keys, credentials
     private string _apiKey; // Set this securely
 
     // Events to hook into legacy existing Audio/UI systems
@@ -44,6 +54,8 @@ public class RealtimeGuideClient : MonoBehaviour
     public Action<string> OnAudioDeltaReceived; // Base64 PCM16 audio from OpenAI
 
     private bool _isConnected = false;
+    private bool _guideAudioSourceFound = false;
+    private bool _isAiSpeaking = false;
 
     // Microphone Variables
     private AudioClip _micClip;
@@ -51,24 +63,25 @@ public class RealtimeGuideClient : MonoBehaviour
     private int _lastMicPos;
     private bool _isRecording;
 
+    // Variables for voice detection
+    public bool _voiceDetectionOn; // Set from AIGuide
+
     // The Thread-Safe Queue
     private ConcurrentQueue<float[]> _audioPlaybackQueue = new ConcurrentQueue<float[]>();
     private const int SAMPLE_RATE = 24000; // OpenAI's native rate
     private int _totalSamplesSent = 0;
 
     // Configuration
-    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
 
     private void Start()
     {
-        outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
-
+        LoadConfig();
         _micDevice = Microphone.devices[0];
     }
 
     public async Task Connect(string systemInstructions)
     {
-        _apiKey = ""; // Or pull from your global config
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
         _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
@@ -107,7 +120,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 voice = "alloy", // Options: alloy, echo, shimmer
                 input_audio_format = "pcm16",
                 output_audio_format = "pcm16",
-                turn_detection = new { type = "server_vad" } // Auto-detects when user stops talking!
+                turn_detection = (object)null //new { type = "server_vad" } // Auto-detects when user stops talking!
             }
         };
 
@@ -116,45 +129,52 @@ public class RealtimeGuideClient : MonoBehaviour
 
     public void StartRecording()
     {
+        if (!_isConnected) return;
         Debug.Log("Recording started");
+
+        // Interrupt any current AI speech if the user interrupts
+        outputSource.Stop();
+        _audioPlaybackQueue = new ConcurrentQueue<float[]>(); // Clear pending audio
+
+        // Check if the AI is speaking, and interrupt it if so to let the user record/talk
+        if (_isAiSpeaking)
+        {
+            _ = SendJson(new { type = "response.cancel" }); // Tell API to stop generating
+            _isAiSpeaking = false;
+        }
+
+        _ = SendJson(new { type = "input_audio_buffer.clear" }); // Clear the buffer so it hears only our new audio
+
         _isRecording = true;
         _lastMicPos = 0;
+        _totalSamplesSent = 0;
         _micClip = Microphone.Start(_micDevice, true, 20, 24000); // 24kHz is standard for OpenAI Realtime
     }
 
     public async Task StopRecordingAndCommit(string screenshotUrl = null)
     {
         Debug.Log("Recording stopped");
-        // 1. Fully await the final chunk of audio
+        // Flush the final bits of audio
         await HandleMicStreaming();
 
         _isRecording = false;
         Microphone.End(_micDevice);
 
-        // Might get rid of case A
-        // A. If we have a screenshot, send it NOW as a user message item
+        // If we have a screenshot, send it NOW as a user message item
         if (!string.IsNullOrEmpty(screenshotUrl))
-        {
             await SendImageContext(screenshotUrl);
-        }
 
-        // 3. SAFETY GUARD: OpenAI requires >= 100ms (2400 samples at 24kHz)
-        if (_totalSamplesSent > 2400)
+        // Only commit if we actually sent audio (prevents empty call errors)
+        if (_totalSamplesSent > 0)
         {
-            // B. Tell OpenAI we are done talking and want a response
+            // Tell OpenAI we are done talking and want a response
             await SendJson(new { type = "input_audio_buffer.commit" });
             await SendJson(new { type = "response.create" });
-            Debug.Log("Requested a response");
-            Debug.Log($"Committed {_totalSamplesSent} samples.");
+            Debug.Log($"Committed {_totalSamplesSent} samples and requested response.");
         }
         else
         {
-            Debug.LogWarning("Recording too short (<100ms). Skipping audio commit to avoid API error.");
-            // Optional: Trigger a 'Response' anyway just for the Image if you want
-            if (!string.IsNullOrEmpty(screenshotUrl))
-            {
-                await SendJson(new { type = "response.create" });
-            }
+            Debug.LogWarning("Recording too short (no audio sent). Skipping audio commit to avoid API error.");
         }
 
         _totalSamplesSent = 0; // Reset for next time
@@ -163,13 +183,21 @@ public class RealtimeGuideClient : MonoBehaviour
 
     void Update()
     {
-        // 1. Microphone Streaming Logic 
+        // Call continuous microphone streaming logic
         HandleMicStreaming();
 
-        // 2. Playback Logic: Pull from the thread-safe queue on the Main Thread
-        if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
+        // Find guide audio source before handling anything with output audio
+        if (!_guideAudioSourceFound)
         {
-            PlayAudioChunk(nextChunk);
+            outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
+            _guideAudioSourceFound = true;
+            Debug.Log("Got our guide's audio source!");
+        }
+        else
+        {
+            // Pull from the thread-safe queue on the Main Thread to figure out audio playback logic
+            if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
+                PlayAudioChunk(nextChunk);
         }
     }
 
@@ -182,13 +210,13 @@ public class RealtimeGuideClient : MonoBehaviour
 
         float[] samples;
 
-        // Case A: Normal read (head is ahead of last position)
+        // Normal read (head is ahead of last position)
         if (currentPos > _lastMicPos)
         {
             samples = new float[currentPos - _lastMicPos];
             _micClip.GetData(samples, _lastMicPos);
         }
-        // Case B: Wrap-around read (head looped back to the start of the clip)
+        // Wrap-around read (head looped back to the start of the clip)
         else
         {
             int samplesToRead = (_micClip.samples - _lastMicPos) + currentPos;
@@ -214,13 +242,25 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             _totalSamplesSent += samples.Length;
 
+            // DEBUG: Check for silence
+            float maxVol = 0f;
+            foreach (var s in samples) if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
+
+            if (maxVol < 0.001f)
+            {
+                // If this keeps spamming, your mic is dead/muted!
+                Debug.LogWarning("Mic is capturing silence! Check OS Permissions or Device Name.");
+            }
+            else
+            {
+                Debug.Log("Mic active: " + maxVol);
+            }
+
             byte[] pcmData = ConvertFloatsToPCM16(samples);
             string base64Audio = Convert.ToBase64String(pcmData);
 
             await SendJson(new { type = "input_audio_buffer.append", audio = base64Audio });
         }
-
-        _lastMicPos = currentPos;
     }
 
     private void PlayAudioChunk(float[] data)
@@ -232,34 +272,25 @@ public class RealtimeGuideClient : MonoBehaviour
         outputSource.Play();
     }
 
-    public async Task SendImageContext(string screenshotLink)
-    {
-        var imageMessage = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "user",
-                content = new[] {
-                    new { type = "image_url", image_url = new { url = screenshotLink } }
-                }
-            }
-        };
-        await SendJson(imageMessage);
-        Debug.Log("Sent Image Context to Realtime API for " + screenshotLink);
-    }
-
     private async Task ReceiveLoop()
     {
         var buffer = new byte[1024 * 64];
         while (_webSocket.State == WebSocketState.Open)
         {
-            var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationTokenSource.Token);
-            string json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            using (var ms = new MemoryStream())
+            {
+                WebSocketReceiveResult result;
+                do
+                {
+                    result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationTokenSource.Token);
+                    ms.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage); // Continuously appends the new chnks of the result until we hit the EndOfMessage
 
-            // Realtime API sends many events. We filter for the ones we need.
-            HandleServerEvent(json);
+                string json = Encoding.UTF8.GetString(ms.ToArray());
+                // Realtime API has many events. We filter for the ones we need.
+                HandleServerEvent(json);
+            }
         }
     }
 
@@ -272,10 +303,18 @@ public class RealtimeGuideClient : MonoBehaviour
 
             switch (type)
             {
+                case "response.created":
+                    _isAiSpeaking = true;
+                    break;
+                
                 case "response.audio.delta":
                     // Native Audio stream from OpenAI (Fastest possible latency)
                     Debug.Log("Got response audio");
                     string base64Audio = (string)jsonObj["delta"];
+                    byte[] pcmData = Convert.FromBase64String(base64Audio);
+                    float[] floatData = ConvertPCM16ToFloats(pcmData);
+                    _audioPlaybackQueue.Enqueue(floatData);
+
                     OnAudioDeltaReceived?.Invoke(base64Audio);
                     break;
 
@@ -287,7 +326,18 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
 
                 case "response.done":
-                    Debug.Log("Response generation complete.");
+                    _isAiSpeaking = false;
+                    // Log the FULL details to see why it finished
+                    var responseObj = jsonObj["response"];
+                    string status = (string)responseObj["status"];
+
+                    if (status != "completed")
+                    {
+                        Debug.LogError($"Response Finished with Error: {status}");
+                        Debug.LogError($"Details: {responseObj["status_details"]}");
+                    }
+                    else
+                        Debug.Log("Response generation success.");
                     break;
 
                 case "error":
@@ -309,22 +359,69 @@ public class RealtimeGuideClient : MonoBehaviour
         await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
+    public async Task SendImageContext(string screenshotLink)
+    {
+        var imageMessage = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new[] {
+                    new { type = "image_url", image_url = new { url = screenshotLink } }
+                }
+            }
+        };
+        await SendJson(imageMessage);
+        Debug.Log("Sent Image Context to Realtime API for " + screenshotLink);
+    }
+
     // CONVERTERS
     private byte[] ConvertFloatsToPCM16(float[] samples)
     {
         byte[] bytes = new byte[samples.Length * 2];
         for (int i = 0; i < samples.Length; i++)
         {
-            short val = (short)(samples[i] * 32767f);
-            BitConverter.GetBytes(val).CopyTo(bytes, i * 2);
+            float sample = Math.Clamp(samples[i], -1f, 1f);
+            short val = (short)(sample * 32767f);
+            bytes[i * 2] = (byte)(val & 0xff);
+            bytes[i * 2 + 1] = (byte)((val >> 8) & 0xff);
         }
         return bytes;
+    }
+
+    private float[] ConvertPCM16ToFloats(byte[] bytes)
+    {
+        float[] floats = new float[bytes.Length / 2];
+        for (int i = 0; i < floats.Length; i++)
+        {
+            short val = BitConverter.ToInt16(bytes, i * 2);
+            floats[i] = val / 32768f;
+        }
+        return floats;
     }
 
     private void OnDestroy()
     {
         _cancellationTokenSource?.Cancel();
         _webSocket?.Dispose();
+    }
+
+    public void LoadConfig()
+    {
+        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
+        if (configAsset != null)
+        {
+            // Parse the JSON data from config.json and assign apiKey values accordingly
+            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
+            _apiKey = configData.APIKey;
+            //_elevenLabsApiKey = configData.ElevenLabsAPIKey;
+        }
+        else
+        {
+            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+        }
     }
 }
 
@@ -1283,13 +1380,5 @@ public class OpenAIQueries : MonoBehaviour
             m_GuideAudioSync.SetResult(result);
         else
             Debug.LogError("GuideAudioSync is not initialized.");
-    }
-
-    private class ConfigData
-    {
-        public string APIKey;
-        public string PlayHTAPIKey;
-        public string PlayHTUserID;
-        public string ElevenLabsAPIKey;
     }
 }
