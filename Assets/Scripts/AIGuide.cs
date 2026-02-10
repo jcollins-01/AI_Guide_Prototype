@@ -12,6 +12,7 @@ public class AIGuide : MonoBehaviour
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
     public GuideAudioSync m_guideAudioSync;
+    private RealtimeGuideClient realtimeClient;
 
     // Variables for monitoring
     private int screenshotsCaptured = 0;
@@ -26,9 +27,7 @@ public class AIGuide : MonoBehaviour
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
-
-    // TEST NEW ARCHITECTURE
-    private RealtimeGuideClient realtimeClient;
+    private bool realtimeQueryMode;
 
     // Start is called before the first frame update
     void Start()
@@ -37,42 +36,30 @@ public class AIGuide : MonoBehaviour
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
 
         // Add necessary components to the attached GameObject
-        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
+        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
 
-        Debug.Log("AIGuide is active!");
+        // Determine if using realtime version of guide or REST version
+        realtimeQueryMode = FindObjectOfType<SwitchTools>().realtimeQueryOn;
+        if (realtimeQueryMode)
+        {
+            realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
 
-        // Set avatars to correct roles in separate scenes for the guide
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("Tutorial"))
-            role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked"))
-            role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked"))
-            role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked"))
-            role = 4; // robot
-        else
-            role = 1; // human is default guide for all other rooms
+            string basePrompt = GetFormattedPrompt();
+
+            // Load config and connect to client
+            realtimeClient.LoadConfig();
+            realtimeClient._voiceDetectionOn = false;
+            realtimeClient.Connect(basePrompt);
+        }
 
         // This line is needed if we use the invisible guide role
         if (role == 6)
             DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
 
-        // Line to test guide changes over network
-        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
-
-        // TEST NEW ARCHITECTURE
-        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
-
-        string basePrompt = GetFormattedPrompt();
-
-        // Load config info then connect
-        realtimeClient.LoadConfig();
-        realtimeClient._voiceDetectionOn = false;
-        realtimeClient.Connect(basePrompt);
+        Debug.Log("AIGuide is active!");
     }
 
     // For ensuring proper realtime data
@@ -85,6 +72,22 @@ public class AIGuide : MonoBehaviour
         return "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
                                      " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
                                      " " + m_OpenAIQueriesScript.queryClassifications;
+    }
+
+    private void PresetAvatarRoles()
+    {
+        // Set avatars to correct roles in separate scenes for the guide
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("Tutorial"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
+            role = 2; // human
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
+            role = 4; // dog
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
+            role = 4; // robot
+        else
+            role = 1; // human is default guide for all other rooms
     }
 
     // For testing the role change over the network
@@ -116,17 +119,20 @@ public class AIGuide : MonoBehaviour
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
         {
-            // TEST NEW ARCHITECTURE
-            RealtimeGuide();
+            // Switch between REST and realtime modes
+            if (realtimeQueryMode)
+                RealtimeGuide();
+            else
+            {
+                // Check for space button or A button press from user
+                checkUserInput();
 
-            // Check for space button or A button press from user
-            //checkUserInput();
+                // Send recorded input to Whisper
+                sendUserInput();
 
-            // Send recorded input to Whisper
-            //sendUserInput();
-
-            // Take transcribed input as query and send to GPT-4
-            //sendQueryToGPT();
+                // Take transcribed input as query and send to GPT-4
+                sendQueryToGPT();
+            }
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -331,6 +337,8 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
+            Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
+
             // Calls to highlight the object
             if (!isHighlighted)
                 HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);

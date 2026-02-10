@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class SwitchTools : MonoBehaviour
 {
-    // Set these in Unity Editor to switch tools
+    // Set these in Unity Editor to switch tools/features
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
+    public bool realtimeQueryOn = false;
     
     // Start is called before the first frame update
     void Start()

@@ -41,6 +41,9 @@ public class InteractionLog
 
 public class RealtimeGuideClient : MonoBehaviour
 {
+    // Access the OpenAIQueries class so we can change variables as needed
+    private OpenAIQueries _openAIQueriesScript;
+    
     public AudioSource outputSource;
 
     private ClientWebSocket _webSocket;
@@ -74,9 +77,21 @@ public class RealtimeGuideClient : MonoBehaviour
     // Configuration
     private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
 
+    // OpenAI audio, text message, result variables
+    [HideInInspector] public string text;
+    [HideInInspector] public GameObject targetForGuidance;
+    [HideInInspector] public string modeOfTransportation;
+    [HideInInspector] public GameObject targetForModification;
+    [HideInInspector] public string modeOfModification;
+    [HideInInspector] public GameObject targetForDescription;
+
+    private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs/logging
+
     private void Start()
     {
-        LoadConfig();
+        _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
+        if (_openAIQueriesScript != null)
+            Debug.Log("Found the queries script");
         _micDevice = Microphone.devices[0];
     }
 
@@ -243,19 +258,7 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             _totalSamplesSent += samples.Length;
 
-            // DEBUG: Check for silence
-            float maxVol = 0f;
-            foreach (var s in samples) if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
-
-            if (maxVol < 0.001f)
-            {
-                // If this keeps spamming, your mic is dead/muted!
-                Debug.LogWarning("Mic is capturing silence! Check OS Permissions or Device Name.");
-            }
-            else
-            {
-                Debug.Log("Mic active: " + maxVol);
-            }
+            // MicCheck(samples);
 
             byte[] pcmData = ConvertFloatsToPCM16(samples);
             string base64Audio = Convert.ToBase64String(pcmData);
@@ -264,9 +267,26 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
+    private void MicCheck(float[] samples)
+    {
+        // Checks when mic is silent/active
+        float maxVol = 0f;
+        foreach (var s in samples) if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
+
+        if (maxVol < 0.001f)
+        {
+            // If this keeps spamming, your mic is dead/muted!
+            Debug.LogWarning("Mic is capturing silence! Check OS Permissions or Device Name.");
+        }
+        else
+        {
+            Debug.Log("Mic active: " + maxVol);
+        }
+    }
+
     private void PlayAudioChunk(float[] data)
     {
-        Debug.Log("Got a response chunk to play as audio");
+        // Debug.Log("Got a response chunk to play as audio");
         AudioClip clip = AudioClip.Create("ResponseChunk", data.Length, 1, SAMPLE_RATE, false);
         clip.SetData(data, 0);
         outputSource.clip = clip;
@@ -305,6 +325,8 @@ public class RealtimeGuideClient : MonoBehaviour
             switch (type)
             {
                 case "response.created":
+                    
+                    _textBuffer.Clear();
                     _isAiSpeaking = true;
                     break;
                 
@@ -319,10 +341,19 @@ public class RealtimeGuideClient : MonoBehaviour
                     OnAudioDeltaReceived?.Invoke(base64Audio);
                     break;
 
+                case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
+                    string transcriptDelta = (string)jsonObj["delta"];
+                    _textBuffer.Append(transcriptDelta);
+                    Debug.Log($"Transcript Chunk: {transcriptDelta}");
+                    break;
+
                 case "response.text.delta":
                     // If you still want to use ElevenLabs, use this text
-                    Debug.Log("Got response text to use in ElevenLabs");
+                    Debug.Log("Got response text to use in ElevenLabs or log");
                     string textDelta = (string)jsonObj["delta"];
+                    _textBuffer.Append(textDelta);
+                    _openAIQueriesScript.CheckForTargetForDescription(textDelta);
+
                     OnTextReceived?.Invoke(textDelta);
                     break;
 
@@ -332,13 +363,29 @@ public class RealtimeGuideClient : MonoBehaviour
                     var responseObj = jsonObj["response"];
                     string status = (string)responseObj["status"];
 
-                    if (status != "completed")
+                    if (status == "completed")
+                    {
+                        string remainingText = _textBuffer.ToString().Trim();
+                        Debug.Log($"Full Response Captured: {remainingText}");
+                        // Send the last generated text chunk to see if there was a target identified
+                        string customResponse = _openAIQueriesScript.CheckForGuidanceOrModification(remainingText);
+
+                        // If it was actually changed into one of the random responses chosen by the CheckForGuidance... function
+                        if (!string.IsNullOrEmpty(customResponse) && customResponse != remainingText)
+                        {
+                            // STOP the current audio (the "Cube, guide" whisper) 
+                            outputSource.Stop();
+                            _audioPlaybackQueue = new ConcurrentQueue<float[]>();
+
+                            // Make the AI speak our custom confirmation for the user
+                            _ = SpeakCustomText(customResponse);
+                        }
+                    }
+                    else
                     {
                         Debug.LogError($"Response Finished with Error: {status}");
                         Debug.LogError($"Details: {responseObj["status_details"]}");
                     }
-                    else
-                        Debug.Log("Response generation success.");
                     break;
 
                 case "error":
@@ -409,6 +456,32 @@ public class RealtimeGuideClient : MonoBehaviour
         _webSocket?.Dispose();
     }
 
+    public async Task SpeakCustomText(string customText)
+    {
+        if (!_isConnected) return;
+        Debug.Log($"Injecting custom TTS: {customText}");
+
+        // Create a conversation item (the text we want it to say)
+        var textItem = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "assistant",
+                content = new[]
+                {
+                new { type = "text", text = customText }
+            }
+            }
+        };
+
+        await SendJson(textItem);
+
+        // Ask the API to generate the audio for that item
+        await SendJson(new { type = "response.create" });
+    }
+
     public void LoadConfig()
     {
         TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
@@ -432,8 +505,6 @@ public class OpenAIQueries : MonoBehaviour
     public static OpenAIClient client { get; set; }
     // OpenAI API key
     [HideInInspector] public string apiKey;
-    [HideInInspector] public string playHTApiKey; // 4f450dba6e4c4a4195b430cf4ba1e6f8 ----- 3VkVgj0xRAfAA7VLT2IzCadC7h13
-    [HideInInspector] public string playHTUserId; // J1wAOyXmKrak4arON6JtwT94xuA2 ---- a4acf316cf734b12b96410f11134c5d0
 
     // ElevenLabs test variables
     [HideInInspector] public string elevenLabsApiKey;
@@ -457,7 +528,7 @@ public class OpenAIQueries : MonoBehaviour
     private bool capturedFirstAudioTime;
 
     // Variables to construct OpenAI queries
-    private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to PlayHT
+    private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs
     private StringBuilder fullResponseBuilder = new StringBuilder(); // String to store past responses in conversation history
     private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
     private bool isPlayingAudio = false;
@@ -529,12 +600,12 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public bool alloyCompleted = false;
 
     // Pre-saved messages
-    public AudioClip humanApology;
-    public AudioClip robotApology;
-    public AudioClip dogApology;
-    public AudioClip caneApology;
-    public AudioClip birdApology;
-    public AudioClip invisibleApology;
+    [HideInInspector] public AudioClip humanApology;
+    [HideInInspector] public AudioClip robotApology;
+    [HideInInspector] public AudioClip dogApology;
+    [HideInInspector] public AudioClip caneApology;
+    [HideInInspector] public AudioClip birdApology;
+    [HideInInspector] public AudioClip invisibleApology;
 
     private void Start()
     {
@@ -1009,18 +1080,6 @@ public class OpenAIQueries : MonoBehaviour
         // Combine the variables into the url for posting
         string finalUrl = $"https://api.elevenlabs.io/v1/text-to-speech/{voiceId}/stream?optimize_streaming_latency=3";
 
-        // Default payload without extra voice prompts
-        /*payloadObj = new
-        {
-            text = textChunk,
-            model_id = elevenLabsModelId,
-            voice_settings = new
-            {
-                stability = 0.5f,
-                similarity_boost = 0.7f
-            }
-        };*/
-
         // Convert object to JSON string
         string jsonBody = JsonConvert.SerializeObject(payloadObj);
 
@@ -1066,47 +1125,6 @@ public class OpenAIQueries : MonoBehaviour
                 }
             }
         }
-
-        /*
-        string playHTUrl = "https://play.ht/api/v2/tts/stream";
-        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
-
-        // Customize the voice as per the role
-        if (m_AIGuideScript.role == 2) voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json";
-        else if (m_AIGuideScript.role == 3) voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json";
-        else if (m_AIGuideScript.role == 4) voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json";
-        else if (m_AIGuideScript.role == 5) voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json";
-        else if (m_AIGuideScript.role == 6) voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json";
-
-        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + textChunk + "\"}";
-
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
-        {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
-            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
-
-            // Send the request
-            yield return playHTRequest.SendWebRequest();
-
-            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
-                yield break;
-            }
-            else
-            {
-                //Debug.Log("PlayHT audio chunk conversion successful!");
-                // Get the binary MP3 data from the response and play it sequentially
-                byte[] mp3Data = playHTRequest.downloadHandler.data;
-                yield return StartCoroutine(PlayAudioSequentially(mp3Data));
-            }
-        }
-        */
     }
 
     // Coroutine to play audio chunks sequentially without overlapping
@@ -1162,57 +1180,6 @@ public class OpenAIQueries : MonoBehaviour
 
         // Reset state for the next item in the queue
         isPlayingAudio = false;
-
-        /*
-        // Create a temporary file for the MP3 data
-        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
-        File.WriteAllBytes(tempPath, mp3Data);
-
-        // Load the audio file as an AudioClip
-        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
-        {
-            yield return audioRequest.SendWebRequest();
-
-            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
-                Debug.LogError("Error loading audio: " + audioRequest.error);
-            else
-            {
-                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
-                audioSource.clip = audioClip;
-                audioSource.loop = false;
-                float startTime = Time.time;  // Capture the time when the audio starts
-                float clipLength = audioSource.clip.length;
-
-                // Check if this is the first audio playback for timing
-                if (!capturedFirstAudioTime)
-                {
-                    timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
-                    Debug.Log($"[Timing] Time to First Audio (User Hears Voice): {timeToFirstAudio:F2} seconds");
-                    capturedFirstAudioTime = true;
-                }
-
-                audioSource.Play();
-
-                // Wait until the audio has finished playing before allowing the next chunk
-                while (audioSource.isPlaying) // was just yield return null in the while loop
-                {
-                    float elapsedTime = Time.time - startTime;
-                    // If the audio has reached a not playing state, or the time it is active is longer than the length of the clip, manually stop it
-                    // For highlights
-                    if (elapsedTime >= clipLength)
-                    {
-                        audioSource.Stop();  // Force stop if it somehow keeps playing
-                        Debug.Log("Audio manually stopped.");
-                        break;
-                    }
-                    yield return null;
-                }
-
-                Debug.Log("Audio chunk finished playing.");
-            }
-        }
-        isPlayingAudio = false;
-        */
     }
 
     // Determines if the response needs to be shared and played over the network or just locally
@@ -1232,14 +1199,17 @@ public class OpenAIQueries : MonoBehaviour
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
-    private string CheckForGuidanceOrModification(string result)
+    public string CheckForGuidanceOrModification(string result)
     {
         // If the result was a GameObject for guidance, create a custom speech message
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
             Debug.Log("Two word response for guidance or modification");
-            string secondWord = words[1].Trim();
+
+            // Define characters to strip: whitespace, periods, commas, and quotes
+            char[] charsToTrim = { ' ', '.', ',', '"', '\'', '!', '?' };
+            string secondWord = words[1].Trim(charsToTrim);
             Debug.Log(words[1]);
             if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
             {
@@ -1298,10 +1268,11 @@ public class OpenAIQueries : MonoBehaviour
                 }
             }
         }
+        Debug.Log("We have a target for guidance " + targetForGuidance + " or a target for modification " + targetForModification);
         return result;
     }
 
-    private void CheckForTargetForDescription(string textToSend)
+    public void CheckForTargetForDescription(string textToSend)
     {
         // Split objectNames by commas into an array
         string[] names = objectNames.Split(',');
@@ -1328,8 +1299,6 @@ public class OpenAIQueries : MonoBehaviour
             // Parse the JSON data from config.json and assign apiKey values accordingly
             ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
             apiKey = configData.APIKey;
-            playHTApiKey = configData.PlayHTAPIKey;
-            playHTUserId = configData.PlayHTUserID;
             elevenLabsApiKey = configData.ElevenLabsAPIKey;
         }
         else
@@ -1340,7 +1309,6 @@ public class OpenAIQueries : MonoBehaviour
 
     public void LoadRoomDescriptions()
     {
-        Debug.Log("We loaded our room descriptions");
         TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
         string jsonFilePath = Path.Combine(Application.dataPath, "Resources", "RoomDescriptions.json");
 
