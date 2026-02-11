@@ -36,14 +36,21 @@ public class GenerateReaderReferences : MonoBehaviour
     [HideInInspector]
     public string playHTUserId;
     private string elevenLabsApiKey;
+    private string openAIApiKey;
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
+
+    // Variable to handle which voice is used for generation
+    public bool personalVoicesMode = false;
 
     void Start()
     {
         // Load relevant credentials from config file
         LoadConfig();
+
+        // Determine which version of audio generation is to be used
+        personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
 
         // Load the Reader Reference prefab from Resources
         readerReferencePrefab = Resources.Load<GameObject>("Screenreader/Reader Reference");
@@ -312,7 +319,10 @@ public class GenerateReaderReferences : MonoBehaviour
                 }
 
                 // Generate the audio if not cached
-                yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
+                if (personalVoicesMode)
+                    yield return StartCoroutine(GenerateAndSavePersonalAudio(objectName, description, descriptionHash));
+                else
+                    yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
             }
             else
             {
@@ -330,14 +340,68 @@ public class GenerateReaderReferences : MonoBehaviour
                 }
 
                 // Generate the audio if not cached
-                yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
+                if (personalVoicesMode)
+                    yield return StartCoroutine(GenerateAndSavePersonalAudio(objectName, description, descriptionHash));
+                else
+                    yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
             }
         }
     }
 
+    // Version that uses OpenAI default voices
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        string playHTUrl = "https://api.elevenlabs.io/v1/text-to-speech";
+        string playHTUrl = "https://api.openai.com/v1/audio/speech";
+        audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
+
+        var openAIData = new
+        {
+            model = "tts-1",
+            input = description,
+            voice = "alloy", // Default voice, human
+            response_format = "mp3" // Ensure we get an MP3 back
+        };
+
+        string jsonData = JsonUtility.ToJson(openAIData);
+
+        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
+            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
+            playHTRequest.SetRequestHeader("Content-Type", "application/json");
+            playHTRequest.SetRequestHeader("Authorization", "Bearer " + openAIApiKey);
+
+            Debug.Log("Sending request to OpenAI TTS: " + jsonData);
+
+            yield return playHTRequest.SendWebRequest();
+
+            if (playHTRequest.result == UnityWebRequest.Result.Success)
+            {
+                byte[] audioData = playHTRequest.downloadHandler.data;
+                Debug.Log($"Received audio data of size: {audioData.Length} bytes");
+                File.WriteAllBytes(audioFilePath, audioData);
+                Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
+
+                // Save the hash for future reference
+                audioHashes[objectName] = descriptionHash;
+                SaveAudioHashes();
+
+#if UNITY_EDITOR
+                UnityEditor.AssetDatabase.Refresh();
+#endif
+            }
+            else
+            {
+                Debug.LogError("Error calling OpenAI TTS: " + playHTRequest.error);
+                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
+                yield break;
+            }
+        }
+    }
+
+    private IEnumerator GenerateAndSavePersonalAudio(string objectName, string description, string descriptionHash)
+    {
         string voice = "SAz9YHcvj6GT2YYXdXww"; // Default voice, Human
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
@@ -460,6 +524,7 @@ public class GenerateReaderReferences : MonoBehaviour
             playHTApiKey = configData.PlayHTAPIKey;
             playHTUserId = configData.PlayHTUserID;
             elevenLabsApiKey = configData.ElevenLabsAPIKey;
+            openAIApiKey = configData.APIKey;
         }
         else
         {

@@ -9,6 +9,7 @@ public class SwitchTools : MonoBehaviour
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
     public bool realtimeQueryOn = false;
+    public bool personalVoicesOn = false;
     
     // Start is called before the first frame update
     void Start()

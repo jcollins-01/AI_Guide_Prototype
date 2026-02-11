@@ -68,6 +68,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     // Variables for voice detection
     public bool _voiceDetectionOn; // Set from AIGuide
+    private bool personalVoicesMode = false;
 
     // The Thread-Safe Queue
     private ConcurrentQueue<float[]> _audioPlaybackQueue = new ConcurrentQueue<float[]>();
@@ -92,6 +93,10 @@ public class RealtimeGuideClient : MonoBehaviour
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
+
+        // Determine which version of audio generation is to be used
+        personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
+
         _micDevice = Microphone.devices[0];
     }
 
@@ -333,13 +338,19 @@ public class RealtimeGuideClient : MonoBehaviour
                 case "response.audio.delta":
                     // Native Audio stream from OpenAI (Fastest possible latency)
                     Debug.Log("Got response audio");
-                    string base64Audio = (string)jsonObj["delta"];
-                    byte[] pcmData = Convert.FromBase64String(base64Audio);
-                    float[] floatData = ConvertPCM16ToFloats(pcmData);
-                    _audioPlaybackQueue.Enqueue(floatData);
+                    if (personalVoicesMode) // Don't do anything with the native audio stream from OpenAI
+                        break;
+                    else
+                    {
+                        // If we aren't using personal voices, then stream from the native audio
+                        string base64Audio = (string)jsonObj["delta"];
+                        byte[] pcmData = Convert.FromBase64String(base64Audio);
+                        float[] floatData = ConvertPCM16ToFloats(pcmData);
+                        _audioPlaybackQueue.Enqueue(floatData);
 
-                    OnAudioDeltaReceived?.Invoke(base64Audio);
-                    break;
+                        OnAudioDeltaReceived?.Invoke(base64Audio);
+                        break;
+                    }
 
                 case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
                     string transcriptDelta = (string)jsonObj["delta"];
@@ -348,14 +359,26 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
 
                 case "response.text.delta":
-                    // If you still want to use ElevenLabs, use this text
+                    // Use the text grabbed here to pass to ElevenLabs
                     Debug.Log("Got response text to use in ElevenLabs or log");
-                    string textDelta = (string)jsonObj["delta"];
-                    _textBuffer.Append(textDelta);
-                    _openAIQueriesScript.CheckForTargetForDescription(textDelta);
+                    if (personalVoicesMode) // Still capture the text, but additionally pass it to ElevenLabs
+                    {
+                        string textDelta = (string)jsonObj["delta"];
+                        _textBuffer.Append(textDelta);
+                        _openAIQueriesScript.CheckForTargetForDescription(textDelta);
 
-                    OnTextReceived?.Invoke(textDelta);
-                    break;
+                        OnTextReceived?.Invoke(textDelta);
+                        break;
+                    }
+                    else // Only capture the text
+                    {
+                        string textDelta = (string)jsonObj["delta"];
+                        _textBuffer.Append(textDelta);
+                        _openAIQueriesScript.CheckForTargetForDescription(textDelta);
+
+                        OnTextReceived?.Invoke(textDelta);
+                        break;
+                    } 
 
                 case "response.done":
                     _isAiSpeaking = false;
@@ -378,7 +401,14 @@ public class RealtimeGuideClient : MonoBehaviour
                             _audioPlaybackQueue = new ConcurrentQueue<float[]>();
 
                             // Make the AI speak our custom confirmation for the user
-                            _ = SpeakCustomText(customResponse);
+                            if (personalVoicesMode)
+                            {
+                                // Call ElevenLabs to speak the text instead
+                            }
+                            else
+                            {
+                                _ = SpeakCustomText(customResponse);
+                            }
                         }
                     }
                     else
