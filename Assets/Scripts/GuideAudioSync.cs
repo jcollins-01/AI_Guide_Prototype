@@ -57,6 +57,8 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         _guideClient = GetComponent<RealtimeGuideClient>();
         if (_guideClient == null)
             _guideClient = FindObjectOfType<RealtimeGuideClient>();
+
+        gameObject.AddComponent<GuideController>();
     }
 
     // Called by the Host when they get a chunk from OpenAI
@@ -321,12 +323,6 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             model.result = result;
         else
             Debug.LogError("Model is not initialized.");
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        gameObject.AddComponent<GuideController>();
     }
 
     private void LoadConfig()
