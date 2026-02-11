@@ -976,11 +976,8 @@ public class OpenAIQueries : MonoBehaviour
             Debug.Log("Sending chunk to PlayHT: " + textToSend);
 
             // If the response needs to be shared over network, use GuideAudioSync to share audio; if local, start the coroutine locally
-            //if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
-                //yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
-
-            // Uncomment the above when we have the architecture and move to GuideAudioSync - GAS is what calls the streaming UNLESS we're local only (invisible guide)
-            yield return StartCoroutine(StreamTextToPlayHT(textToSend));
+            if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
+                yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
 
             // Regardless of output above, we should factor in a delay so we don't send calls overlapping over the network or locally
             isProcessingAudioChunk = false;  // Mark the chunk processing as complete
