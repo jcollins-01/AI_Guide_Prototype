@@ -426,11 +426,6 @@ public class AIGuide : MonoBehaviour
             m_OpenAIQueriesScript.recordingInProgress = false;
             Debug.Log("Recording ended");
 
-            // Take screenshots and upload to ImageShack
-            //FindObjectOfType<CameraSystem>().CaptureScreenshot(); // Move this to be captured as the user is talking
-            //screenshotsCaptured += 1;
-            //Debug.Log("Screenshot captured");
-
             // Call the Whisper API to transcribe the recorded speech to text
             var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip); // Still keep this so we have a transcribed result
             whisperCalls += 1;
@@ -443,10 +438,6 @@ public class AIGuide : MonoBehaviour
             Microphone.End(Microphone.devices[0]);
             m_OpenAIQueriesScript.recordingInProgress = false;
             Debug.Log("Recording ended");
-
-            // Take screenshots and upload to ImageShack
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            screenshotsCaptured += 1;
 
             // Call the Whisper API to transcribe the recorded speech to 
             if (!Microphone.IsRecording(Microphone.devices[0]))
@@ -478,6 +469,8 @@ public class AIGuide : MonoBehaviour
         if (m_VRHandlingScript.isButtonPressed)
         {
             m_OpenAIQueriesScript.CaptureAudio();
+            FindObjectOfType<CameraSystem>().CaptureScreenshot();
+            screenshotsCaptured += 1;
 
             // Reset call counters so they can each be called once more
             screenshotsCaptured = 0;
