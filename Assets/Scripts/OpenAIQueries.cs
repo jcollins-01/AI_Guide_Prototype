@@ -43,7 +43,9 @@ public class RealtimeGuideClient : MonoBehaviour
 {
     // Access the OpenAIQueries class so we can change variables as needed
     private OpenAIQueries _openAIQueriesScript;
-    
+    private GuideAudioSync guideAudioSync;
+    private AIGuide aiGuideScript;
+
     public AudioSource outputSource;
 
     private ClientWebSocket _webSocket;
@@ -91,6 +93,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private void Start()
     {
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
+        aiGuideScript = GetComponent<AIGuide>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
 
@@ -204,6 +207,9 @@ public class RealtimeGuideClient : MonoBehaviour
 
     void Update()
     {
+        // Find the guide audio sync component to share over network
+        getAudioSync();
+        
         // Call continuous microphone streaming logic
         HandleMicStreaming();
 
@@ -289,6 +295,30 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
+    // Handle the incoming RPC data on Remote Clients
+    public void ReceiveRemoteAudio(string base64Audio)
+    {
+        // Convert Base64 back to float[] and play it
+        byte[] pcmData = System.Convert.FromBase64String(base64Audio);
+        float[] floatData = ConvertPCM16ToFloats(pcmData);
+
+        // Add to queue just like normal
+        _audioPlaybackQueue.Enqueue(floatData);
+    }
+
+    // Define the logic for sharing voice over network
+    private bool ShouldShareResponse()
+    {
+        if (aiGuideScript == null) return true; // Default to share if no script found
+
+        // If role is 6, it's private (Local only). Otherwise, share.
+        if (aiGuideScript.role == 6)
+        {
+            return false;
+        }
+        return true;
+    }
+
     private void PlayAudioChunk(float[] data)
     {
         // Debug.Log("Got a response chunk to play as audio");
@@ -347,6 +377,10 @@ public class RealtimeGuideClient : MonoBehaviour
                         byte[] pcmData = Convert.FromBase64String(base64Audio);
                         float[] floatData = ConvertPCM16ToFloats(pcmData);
                         _audioPlaybackQueue.Enqueue(floatData);
+
+                        // Check if we should broadcast this to the network
+                        if (ShouldShareResponse() && guideAudioSync != null)
+                            guideAudioSync.BroadcastAudioChunk(base64Audio);
 
                         OnAudioDeltaReceived?.Invoke(base64Audio);
                         break;
@@ -510,6 +544,12 @@ public class RealtimeGuideClient : MonoBehaviour
 
         // Ask the API to generate the audio for that item
         await SendJson(new { type = "response.create" });
+    }
+
+    private void getAudioSync()
+    {
+        if (guideAudioSync == null)
+            guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 
     public void LoadConfig()

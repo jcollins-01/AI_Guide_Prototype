@@ -15,6 +15,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
     private AIGuide m_AIGuideScript;
     private OpenAIQueries m_openAIQueriesScript;
     private VRHandling m_VRHandlingScript;
+    private RealtimeGuideClient _guideClient;
 
     public AudioSource _audioSource;
     private bool isPlayingAudio;
@@ -48,6 +49,35 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
         if (m_AIGuideScript == null)
             Debug.LogError("AI Guide missing from this GameObject");
+    }
+
+    private void Start()
+    {
+        // Find the main client script on this object or the human model
+        _guideClient = GetComponent<RealtimeGuideClient>();
+        if (_guideClient == null)
+            _guideClient = FindObjectOfType<RealtimeGuideClient>();
+    }
+
+    // Called by the Host when they get a chunk from OpenAI
+    public void BroadcastAudioChunk(string base64Audio)
+    {
+        // Send this string to everyone in the room via RPC
+        //realtimeView.Rpc("RpcReceiveAudioChunk", RpcTarget.All, base64Audio);
+    }
+
+    // This method runs on EVERY client (Host and Remotes)
+    //[RealtimeRpc(Reliable = true)] // True prevents popping/clicking from lost packets
+    private void RpcReceiveAudioChunk(string base64Audio)
+    {
+        // If we are the Host (the one who sent it), we already played it directly to ensure zero latency. So we ignore this RPC.
+        if (realtimeView.isOwnedLocallySelf) return;
+
+        // If we are a Remote Client, send this data to our audio player
+        if (_guideClient != null)
+        {
+            _guideClient.ReceiveRemoteAudio(base64Audio);
+        }
     }
 
     protected override void OnRealtimeModelReplaced(GuideAudioSyncModel previousModel, GuideAudioSyncModel currentModel)
