@@ -1,17 +1,13 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Normal.Realtime;
-using OpenAI;
-using OpenAI.Chat;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.WebSockets;
 using UnityEngine;
-using UnityEngine.Networking;
 using System.Threading;
 using System.Collections.Concurrent;
 
@@ -569,468 +565,10 @@ public class RealtimeGuideClient : MonoBehaviour
             Debug.LogError("Config file not found in Resources folder: " + configFileName);
         }
     }
-}
 
-public class OpenAIQueries : MonoBehaviour
-{
-    // OpenAI variables
-    public static OpenAIClient client { get; set; }
-    // OpenAI API key
-    [HideInInspector] public string apiKey;
-
-    // ElevenLabs test variables
-    [HideInInspector] public string elevenLabsApiKey;
-    [HideInInspector] public string elevenLabsVoiceId = "21m00Tcm4TlvDq8ikWAM"; // Temp "Rachel" voice, gonna have to check out voice switching
-    [HideInInspector] public string elevenLabsModelId = "eleven_turbo_v2";
-
-    // Config file to hold api keys, credentials
-    [HideInInspector] private const string configFileName = "config";
-
-    // Variables to hold scripts we need access to
-    private CameraSystem m_CameraSystemScript;
-    private GuideAudioSync m_GuideAudioSync;
-    private AIGuide m_AIGuideScript;
-    public RealtimeAvatarVoice _avatarVoice;
-
-    // Performance variables
-    private float latencyStartTime;
-    private float timeToFirstToken;
-    private float timeToFirstAudio;
-    private bool capturedFirstTokenTime;
-    private bool capturedFirstAudioTime;
-
-    // Variables to construct OpenAI queries
-    private StringBuilder textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs
-    private StringBuilder fullResponseBuilder = new StringBuilder(); // String to store past responses in conversation history
-    private const int chunkSizeThreshold = 200;  // Adjust this size to control how much text to send at once
-    private bool isPlayingAudio = false;
-    private bool isProcessingAudioChunk = false;
-    private Queue<string> chunkQueue = new Queue<string>();
-
-    // Variables to construct and maintain conversation history
-    private List<Message> conversationHistory = new List<Message>();
-    private const int maxHistoryLength = 10; // Save tokens by keeping last 10 messages only
-    private int allQueriesCount = 0;
-
-    private string objectNames;
-    public List<string> roles = new List<string>
-    {
-        "warm, friendly, but still professional sighted guide",
-        "formal and assertive assistant, who talks like a robot",
-        "computer-like, succinct assistant, who gives the straight facts",
-        "very friendly, excited companion, who is eager to please who you're talking to",
-        "wise, old-fashioned, slightly Shakespearean-sounding mentor", //posh
-        "gentle, sweet, soft-spoken assistant slipping in words here and there"
-    };
-    [HideInInspector]
-    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
-        "The other photo is the player's current perspective and what they are currently looking at in the scene." +
-        "The player is going to ask you questions about the contents in these photos.";
-    [HideInInspector]
-    public string memoClassifications = "Limit your reply to 150 words or less - DO NOT GO OVER THIS WORD LIMIT. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
-    [HideInInspector]
-    public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
-    [HideInInspector]
-    public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
-    {
-        get
-        {//succintly summarize?
-            return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
-                   "If the player seems like they want to describe the entire scene, then succinctly summarize the scene as though you are helping the player understand the game they are in. " +
-                   "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-                   "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
-                   "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
-                   "and 'guide' after a comma if they don't specify teleportation." +
-                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to go to an object." +
-                   "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
-                   "plus the word 'modify' after a comma." +
-                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to add a sound." +
-                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
-                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
-        }
-    }
-
-    // OpenAI audio, text message, result variables
-    [HideInInspector] public string text;
-    [HideInInspector] public GameObject targetForGuidance;
-    [HideInInspector] public string modeOfTransportation;
-    [HideInInspector] public GameObject targetForModification;
-    [HideInInspector] public string modeOfModification;
-    [HideInInspector] public GameObject targetForDescription;
-
-    public string query;
-    public string role;
-    public AudioSource audioSource;
-    public AudioClip guideVoice;
-
-    // Monitoring bools
-    [HideInInspector] public bool recordingInProgress = false;
-    [HideInInspector] public bool whisperCompleted = false;
-    [HideInInspector] public bool completionCompleted = false;
-    [HideInInspector] public bool alloyCompleted = false;
-
-    // Pre-saved messages
-    [HideInInspector] public AudioClip humanApology;
-    [HideInInspector] public AudioClip robotApology;
-    [HideInInspector] public AudioClip dogApology;
-    [HideInInspector] public AudioClip caneApology;
-    [HideInInspector] public AudioClip birdApology;
-    [HideInInspector] public AudioClip invisibleApology;
-
-    private void Start()
-    {
-        // Find and load appropriate resources
-        m_AIGuideScript = GetComponent<AIGuide>();
-        audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
-        LoadConfig();
-        LoadRoomDescriptions();
-        //LoadPredeterminedAudio();
-
-        // Create an instance of the OpenAI client
-        client = new OpenAIClient(apiKey);
-    }
-
-    private void Update()
-    {
-        // Calls until the camera system and audio sync scripts are assigned
-        getCameraSystem();
-        getAudioSync();
-        getAvatarVoice();
-
-        // Calls continously to check for a role change
-        getGuideRole();
-    }
-    
-    private void LoadPredeterminedAudio()
-    {
-        humanApology = Resources.Load<AudioClip>("Audio/humanApologyRiver");
-        robotApology = Resources.Load<AudioClip>("Audio/robotApologyWill");
-        caneApology = Resources.Load<AudioClip>("Audio/caneApologyCallum");
-        dogApology = Resources.Load<AudioClip>("Audio/dogApologyJessica");
-        birdApology = Resources.Load<AudioClip>("Audio/birdApologyGeorge");
-        invisibleApology = Resources.Load<AudioClip>("Audio/invisibleApologyMatilda");
-    }
-
-    private void getAvatarVoice()
-    {
-        if (_avatarVoice == null)
-            _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
-    }
-
-    public void getGuideRole()
-    {
-        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
-        if (m_AIGuideScript == null)
-            m_AIGuideScript = GetComponent<AIGuide>(); // This check happens when we call it from the realtime set-up
-
-        int index = m_AIGuideScript.role - 1;
-
-        if (index < 0 || index >= roles.Count)
-            return;
-        
-        // The role becomes the string value contained at the index we sent over from AIGuide
-        role = roles[index];
-    }
-
-    private void getCameraSystem()
-    {
-        if (m_CameraSystemScript == null)
-            m_CameraSystemScript = FindObjectOfType<CameraSystem>();
-    }
-
-    public void CaptureAudio()
-    {
-        // Resets all monitoring variables to mark the start of a new query
-        whisperCompleted = false;
-        completionCompleted = false;
-        alloyCompleted = false;
-
-        // Records 10 secs by default
-        if (!recordingInProgress)
-        {
-            recordingInProgress = true;
-            audioSource.mute = false;
-            audioSource.loop = false;
-            audioSource.spatialBlend = 1;
-            audioSource.clip = Microphone.Start(Microphone.devices[0], false, 10, 44100);
-            Debug.Log("Recording audio");
-        }
-
-        if (audioSource == null)
-            Debug.Log("microphone not detected, audio not recorded");
-    }
-
-    public async Task<string> CallWhisper(AudioClip audioClip)
-    {
-        // Start timers for tracking the length of response time
-        latencyStartTime = Time.realtimeSinceStartup;
-        capturedFirstTokenTime = false; // Reset the timing flags for a new call to whisper/new query from user
-        capturedFirstAudioTime = false;
-        
-        // Rebuild the audio stream in Normcore to send microphone data again
-        if (_avatarVoice != null)
-            _avatarVoice._rebuildAudioStream = true;
-
-        //Debug.Log("Reached Call Whisper");
-        var transcriptionRequest = new OpenAI.Audio.AudioTranscriptionRequest(audioClip, "whisper-1");
-
-        string output = "N/A";
-        try
-        {
-            var transcriptionResponse = await client.AudioEndpoint.CreateTranscriptionAsync(transcriptionRequest);
-            output = transcriptionResponse.ToString();
-            Debug.Log("Transcription of user query: " + output);
-            query = output;
-            whisperCompleted = true;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning("Exception in CallWhisper:\n" + e);
-        }
-        return output;
-    }
-
-    public async Task CallChatGPTAndStreamAudioCompletions() // was string prompt, holding full query constructed in AIGuide script
-    {
-        // Log the initial recording of the user query so that it isn't overwritten/doesn't change while the guide is generating a response (in case of calling while it is processing)
-        string currentQuery = this.query;
-
-        // Abort if the string was empty...
-        if (string.IsNullOrEmpty(currentQuery) || currentQuery == "you" || currentQuery == "You")
-        {
-            Debug.LogWarning("Aborting GPT call: Invalid Query -> " + currentQuery);
-            audioSource.loop = false;
-            // Send a customized message telling the user that the query was invalid and ask to try again
-            switch (role)
-            {
-                case "warm, friendly, but still professional sighted guide":
-                    Debug.Log("trying to play human apology");
-                    audioSource.clip = humanApology;
-                    audioSource.Play();
-                    break;
-                case "formal and assertive assistant, who talks like a robot":
-                    audioSource.clip = robotApology;
-                    audioSource.Play();
-                    break;
-                case "computer-like, succinct assistant, who gives the straight facts":
-                    audioSource.clip = caneApology;
-                    audioSource.Play();
-                    break;
-                case "very friendly, excited companion, who is eager to please who you're talking to":
-                    audioSource.clip = dogApology;
-                    audioSource.Play();
-                    break;
-                case "wise, old-fashioned, slightly Shakespearean-sounding mentor":
-                    audioSource.clip = birdApology;
-                    audioSource.Play();
-                    break;
-                case "gentle, sweet, soft-spoken assistant slipping in words here and there":
-                    audioSource.clip = invisibleApology;
-                    audioSource.Play();
-                    break;
-            }
-            
-            return;
-        }
-
-        // Reset buffers for a new response
-        fullResponseBuilder.Clear();
-        textBuffer.Clear();
-
-        // If conversation history gets too long, remove the oldest pair of user query + guide response stored (indices 1 and 2), we keep the basePrompt (at 0)
-        while (conversationHistory.Count > maxHistoryLength)
-        {
-            if (conversationHistory.Count > 1)
-                conversationHistory.RemoveAt(1);
-        }
-
-        // Construct static, base query to send to GPT
-        string basePrompt = "You are a " + role + ", named Giddy. " + contextClassification + " " + memoClassifications +
-                                     " The names and descriptions of key objects are: " + objectClassifications +
-                                     " " + queryClassifications;
-
-        // Update query with conversation history and user prompt - index 0 should always remain the basePrompt with guide instructions + most up-to-date roles, object descriptions depending on the scene
-        if (conversationHistory.Count == 0 || conversationHistory[0].Role != Role.System)
-            conversationHistory.Insert(0, new Message(Role.System, basePrompt)); // If history is empty, insert new basePrompt
-        else
-            conversationHistory[0] = new Message(Role.System, basePrompt); // If history exists, update it again since the prompt info can change as the user moves between scenes
-
-        // Prepare chat request body for API
-        var content = new List<Content>
-        {
-            new Content(ContentType.Text, query),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.birdsEyeImageLink),
-            new Content(ContentType.ImageUrl, m_CameraSystemScript.viewpointImageLink)
-        };
-
-        // Add the user's prompt/recorded message + images to conversation history
-        conversationHistory.Add(new Message(Role.User, content));
-
-        // Send the ENTIRE history with the basePrompt instructions
-        // might try using a faster model like gpt-3.5-turbo, fewer max tokens, figure out how to implement caching, optimize the prompt
-        var chatRequest = new ChatRequest(conversationHistory, model: "gpt-4o", maxTokens: 300); // was gpt-4-vision-preview, deprecated in Dec 2024
-
-        // Use StreamCompletionAsync to stream the responses
-        try
-        {
-            await client.ChatEndpoint.StreamCompletionAsync(chatRequest, partialResponse =>
-            {
-                // Check if the partial response has choices and if the content is not null
-                if (partialResponse.Choices != null && partialResponse.Choices.Count > 0)
-                {
-                    var delta = partialResponse.Choices[0].Delta;
-
-                    // Make sure the delta and content are not null
-                    if (delta != null && delta.Content != null)
-                    {
-                        // Check if this is the first token streamed for our timing
-                        if (!capturedFirstTokenTime)
-                        {
-                            timeToFirstToken = Time.realtimeSinceStartup - latencyStartTime;
-                            Debug.Log($"[Timing] Time to First Token (GPT Response): {timeToFirstToken:F2} seconds");
-                            capturedFirstTokenTime = true;
-                        }
-
-                        // Accumulate each partial response into the full response text for conversation history
-                        fullResponseBuilder.Append(delta.Content);
-                        
-                        // Serialize each partial response as it comes to JSON for audio streaming logic
-                        var jsonResponse = JsonConvert.SerializeObject(partialResponse);
-                        StartCoroutine(StreamChatGptResponseToAudio(jsonResponse));
-                    }
-                }
-            });
-            
-            // After the full stream is complete, save full guide response to conversation history
-            string finalResponseText = fullResponseBuilder.ToString();
-            conversationHistory.Add(new Message(Role.Assistant, finalResponseText));
-            allQueriesCount++;
-            float totalResponseGenerationTime = Time.realtimeSinceStartup - latencyStartTime;
-
-            Debug.Log("Finished streaming response text. Added to history.");
-            Debug.Log($"History Count: {conversationHistory.Count}");
-            Debug.Log("Response from guide: " + finalResponseText);
-            Debug.Log("User question: " + currentQuery.ToString());
-
-            LogInteractionData(
-                query,
-                finalResponseText,
-                role,
-                totalResponseGenerationTime,
-                allQueriesCount
-            );
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Error in streaming GPT-4 response: " + e.Message);
-        }
-    }
-
-    private void LogInteractionData(string userText, string aiText, string currentRole, float generationTime, int currentQueryCount)
-    {
-        InteractionLog newLog = new InteractionLog();
-
-        newLog.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
-        newLog.queryNumber = currentQueryCount.ToString();
-        newLog.userQuery = userText;
-        newLog.guideResponse = aiText;
-        newLog.guideRole = currentRole;
-
-        // Check if we reset the targets between selection
-        if (targetForDescription != null)
-            newLog.chosenObjectTarget = targetForDescription.ToString();
-
-        newLog.latencyToFirstToken = timeToFirstToken;
-        newLog.latencyToFirstAudio = timeToFirstAudio;
-        newLog.totalGenerationTime = generationTime;
-
-        /*
-        public string chosenObjectTarget;
-        public string chosenAction;
-         */
-    }
-
-    // Coroutine to aggregate the GPT response and stream text to PlayHT in chunks
-    private IEnumerator StreamChatGptResponseToAudio(string jsonResponse)
-    {
-        //Debug.Log("Received JSON response: " + jsonResponse);
-        // Parse the JSON response
-        var jsonObject = JObject.Parse(jsonResponse);
-        var content = jsonObject["choices"]?[0]?["delta"]?["content"]?.ToString();
-        var finishReason = jsonObject["choices"]?[0]?["finish_reason"]?.ToString();
-
-        // Check if content is null or empty
-        if (!string.IsNullOrEmpty(content))
-        {
-            //Debug.Log("content added " + content);
-            textBuffer.Append(content); // Add the extracted content to the buffer
-
-            // If the buffer reaches a certain size, send it to PlayHT for real-time audio conversion
-            if (textBuffer.Length >= chunkSizeThreshold || content.EndsWith(".") || content.EndsWith("!"))
-            {
-                string textToSend = textBuffer.ToString().Trim();
-                if (!string.IsNullOrEmpty(textToSend))
-                {
-                    //Debug.Log("Queuing chunk for PlayHT: " + textToSend);
-                    chunkQueue.Enqueue(textToSend);
-                    CheckForTargetForDescription(textToSend);
-                    textBuffer.Clear();  // Clear the buffer after queuing
-                }
-            }
-        }
-
-        // Handle the case where finish_reason is "stop" and the message finished without meeting one of the above requirements
-        if (finishReason == "stop")
-        {
-            if (textBuffer.Length > 0) // Check if there's any remaining content in the buffer to process
-            {
-                string remainingText = textBuffer.ToString().Trim();
-                if (!string.IsNullOrEmpty(remainingText))
-                {
-                    //Debug.Log("Queuing final chunk for PlayHT: " + CheckForGuidanceOrModification(remainingText));
-                    chunkQueue.Enqueue(CheckForGuidanceOrModification(remainingText));  // Add the final chunk to the queue
-                    // Debug.Log("Targets for guidance are: " + targetForGuidance + " // Targets for modification are: " + targetForModification);
-                    textBuffer.Clear();  // Clear the buffer after queuing
-                }
-            }
-        }
-
-        // Start processing the chunks in the queue (if not already processing)
-        if (!isProcessingAudioChunk && chunkQueue.Count > 0)
-        {
-            //Debug.Log("Starting chunk processing...");
-            StartCoroutine(ProcessChunkQueue());
-        }
-        yield return null; // Yield to keep the coroutine responsive
-    }
-
-    // Coroutine to process the chunk queue one by one
-    private IEnumerator ProcessChunkQueue()
-    {
-        while (chunkQueue.Count > 0)
-        {
-            // Wait until the previous chunk is processed before sending the next one
-            isProcessingAudioChunk = true;
-
-            string textToSend = chunkQueue.Dequeue();  // Get the next chunk from the queue
-            Debug.Log("Sending chunk to PlayHT: " + textToSend);
-
-            // If the response needs to be shared over network, use GuideAudioSync to share audio; if local, start the coroutine locally
-            if (!ShareResponseBasedOnRole(textToSend)) // Process based on role if necessary
-                yield return StartCoroutine(StreamTextToPlayHT(textToSend)); // Call the coroutine to send text to PlayHT and convert it to audio
-
-            // Regardless of output above, we should factor in a delay so we don't send calls overlapping over the network or locally
-            isProcessingAudioChunk = false;  // Mark the chunk processing as complete
-
-            // Wait for a short delay between chunks (optional)
-            yield return new WaitForSeconds(0.1f);  // Adjust the delay as needed
-        }
-        Debug.Log("All chunks processed.");
-    }
-
-    // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
+    // ElevenLabs sample code
+    /*
+     * // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
     private IEnumerator StreamTextToPlayHT(string textChunk)
     {
         Debug.Log("Started coroutine for audio");
@@ -1250,21 +788,123 @@ public class OpenAIQueries : MonoBehaviour
         // Reset state for the next item in the queue
         isPlayingAudio = false;
     }
+    */
+}
 
-    // Determines if the response needs to be shared and played over the network or just locally
-    private bool ShareResponseBasedOnRole(string response)
+public class OpenAIQueries : MonoBehaviour
+{
+    // Variables to hold scripts we need access to
+    private AIGuide m_AIGuideScript;
+    public RealtimeAvatarVoice _avatarVoice;
+
+    private string objectNames;
+    public List<string> roles = new List<string>
     {
-        if (m_AIGuideScript.role != 6)
-        {
-            audioSource.mute = true;
-            SetNewResult(response);
-            return true; // Needs to share over network
+        "warm, friendly, but still professional sighted guide",
+        "formal and assertive assistant, who talks like a robot",
+        "computer-like, succinct assistant, who gives the straight facts",
+        "very friendly, excited companion, who is eager to please who you're talking to",
+        "wise, old-fashioned, slightly Shakespearean-sounding mentor", //posh
+        "gentle, sweet, soft-spoken assistant slipping in words here and there"
+    };
+    [HideInInspector]
+    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
+        "The other photo is the player's current perspective and what they are currently looking at in the scene." +
+        "The player is going to ask you questions about the contents in these photos.";
+    [HideInInspector]
+    public string memoClassifications = "Limit your reply to 150 words or less - DO NOT GO OVER THIS WORD LIMIT. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
+    [HideInInspector]
+    public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
+    [HideInInspector]
+    public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
+    {
+        get
+        {//succintly summarize?
+            return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
+                   "If the player seems like they want to describe the entire scene, then succinctly summarize the scene as though you are helping the player understand the game they are in. " +
+                   "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
+                   "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
+                   "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
+                   "and 'guide' after a comma if they don't specify teleportation." +
+                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
+                   "Only do this if you're sure they want to go to an object." +
+                   "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
+                   "plus the word 'modify' after a comma." +
+                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
+                   "Only do this if you're sure they want to add a sound." +
+                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
         }
-        else
-        {
-            audioSource.mute = false;
-            return false; // Needs to only play locally
-        }
+    }
+
+    // OpenAI audio, text message, result variables
+    [HideInInspector] public string text;
+    [HideInInspector] public GameObject targetForGuidance;
+    [HideInInspector] public string modeOfTransportation;
+    [HideInInspector] public GameObject targetForModification;
+    [HideInInspector] public string modeOfModification;
+    [HideInInspector] public GameObject targetForDescription;
+
+    public string query;
+    public string role;
+    public AudioSource audioSource;
+    public AudioClip guideVoice;
+
+    // Pre-saved messages
+    [HideInInspector] public AudioClip humanApology;
+    [HideInInspector] public AudioClip robotApology;
+    [HideInInspector] public AudioClip dogApology;
+    [HideInInspector] public AudioClip caneApology;
+    [HideInInspector] public AudioClip birdApology;
+    [HideInInspector] public AudioClip invisibleApology;
+
+    private void Start()
+    {
+        // Find and load appropriate resources
+        m_AIGuideScript = GetComponent<AIGuide>();
+        audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
+        LoadRoomDescriptions();
+        //LoadPredeterminedAudio();
+    }
+
+    private void Update()
+    {
+        // Calls until the audio sync is assigned
+        getAvatarVoice();
+
+        // Calls continously to check for a role change
+        getGuideRole();
+    }
+    
+    private void LoadPredeterminedAudio()
+    {
+        humanApology = Resources.Load<AudioClip>("Audio/humanApologyRiver");
+        robotApology = Resources.Load<AudioClip>("Audio/robotApologyWill");
+        caneApology = Resources.Load<AudioClip>("Audio/caneApologyCallum");
+        dogApology = Resources.Load<AudioClip>("Audio/dogApologyJessica");
+        birdApology = Resources.Load<AudioClip>("Audio/birdApologyGeorge");
+        invisibleApology = Resources.Load<AudioClip>("Audio/invisibleApologyMatilda");
+    }
+
+    private void getAvatarVoice()
+    {
+        if (_avatarVoice == null)
+            _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
+    }
+
+    public void getGuideRole()
+    {
+        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
+        if (m_AIGuideScript == null)
+            m_AIGuideScript = GetComponent<AIGuide>(); // This check happens when we call it from the realtime set-up
+
+        int index = m_AIGuideScript.role - 1;
+
+        if (index < 0 || index >= roles.Count)
+            return;
+        
+        // The role becomes the string value contained at the index we sent over from AIGuide
+        role = roles[index];
     }
 
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
@@ -1360,22 +1000,6 @@ public class OpenAIQueries : MonoBehaviour
         Debug.Log("No matching object found in the text.");
     }
 
-    private void LoadConfig()
-    {
-        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
-        if (configAsset != null)
-        {
-            // Parse the JSON data from config.json and assign apiKey values accordingly
-            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
-            apiKey = configData.APIKey;
-            elevenLabsApiKey = configData.ElevenLabsAPIKey;
-        }
-        else
-        {
-            Debug.LogError("Config file not found in Resources folder: " + configFileName);
-        }
-    }
-
     public void LoadRoomDescriptions()
     {
         TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
@@ -1407,21 +1031,5 @@ public class OpenAIQueries : MonoBehaviour
         {
             Debug.LogError("RoomDescriptions.json file not found in Resources folder.");
         }
-    }
-
-    private void getAudioSync()
-    {
-        if (m_GuideAudioSync == null)
-            m_GuideAudioSync = FindObjectOfType<GuideAudioSync>();
-    }
-
-    public void SetNewResult(string result)
-    {
-        //Debug.Log("Reached SetNewResult");
-        /*if (m_GuideAudioSync != null)
-            m_GuideAudioSync.SetResult(result);
-        else
-            Debug.LogError("GuideAudioSync is not initialized.");
-        */
     }
 }

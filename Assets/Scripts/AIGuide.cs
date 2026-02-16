@@ -15,11 +15,6 @@ public class AIGuide : MonoBehaviour
     private RealtimeGuideClient realtimeClient;
 
     // Variables for monitoring
-    private int screenshotsCaptured = 0;
-    private int whisperCalls = 0;
-    private int completionCalls = 0;
-    //private bool firstQuery = true;
-    private bool buttonPressed = false;
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
@@ -90,14 +85,6 @@ public class AIGuide : MonoBehaviour
             role = 1; // human is default guide for all other rooms
     }
 
-    // For testing the role change over the network
-    private void ChangeGuideRole()
-    {
-        int randRole = Random.Range(1, 6);
-
-        role = randRole;
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -109,20 +96,8 @@ public class AIGuide : MonoBehaviour
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
         {
-            // Switch between REST and realtime modes
-            if (realtimeQueryMode)
-                RealtimeGuide();
-            else
-            {
-                // Check for space button or A button press from user
-                checkUserInput();
-
-                // Send recorded input to Whisper
-                sendUserInput();
-
-                // Take transcribed input as query and send to GPT-4
-                sendQueryToGPT();
-            }
+            // Call the guide
+            RealtimeGuide();
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -141,7 +116,6 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    // TEST NEW ARCHITECTURE
     private void RealtimeGuide()
     {
         if (Input.GetKeyDown(KeyCode.Space) || m_VRHandlingScript.isButtonPressed)
@@ -386,87 +360,6 @@ public class AIGuide : MonoBehaviour
                 m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                 m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
             }
-        }
-    }
-
-    private void sendQueryToGPT()
-    {
-        // Checking for completion of speech transcription and image upload
-        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0 && FindObjectOfType<CameraSystem>().uploaded)
-        {
-            // Start to play processing sound
-            playEffect("processing");
-
-            // Stream GPT response and audio
-            var guideResult = m_OpenAIQueriesScript.CallChatGPTAndStreamAudioCompletions();
-
-            Debug.Log("Called GPT for streaming");
-
-            completionCalls += 1;
-        }
-    }
-
-    private void sendUserInput()
-    {
-        // If PC user lifts finger off space, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0)// && screenshotsCaptured == 0)
-        {
-            // End microphone ownership from OpenAI and mark that the recording is not in progress
-            Microphone.End(Microphone.devices[0]);
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            Debug.Log("Recording ended");
-
-            // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip); // Still keep this so we have a transcribed result
-            whisperCalls += 1;
-        }
-
-        // If VR user lifts finger off primary button, assume their query is completed
-        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true && screenshotsCaptured == 0)
-        {
-            // End microphone ownership from OpenAI and mark that the recording is not in progress
-            Microphone.End(Microphone.devices[0]);
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            Debug.Log("Recording ended");
-
-            // Call the Whisper API to transcribe the recorded speech to 
-            if (!Microphone.IsRecording(Microphone.devices[0]))
-            {
-                Debug.Log("Mic not recording so we can call");
-                var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-                whisperCalls += 1;
-                buttonPressed = false;
-            }
-        }
-    }
-
-    private void checkUserInput()
-    {
-        // If PC user presses and holds space
-        if (Input.GetKey(KeyCode.Space))
-        {
-            m_OpenAIQueriesScript.CaptureAudio();
-            FindObjectOfType<CameraSystem>().CaptureScreenshot(); 
-            screenshotsCaptured += 1;
-
-            // Reset call counters so they can each be called once more
-            screenshotsCaptured = 0;
-            whisperCalls = 0;
-            completionCalls = 0;
-        }
-
-        // If VR user presses right primary button on an XR controller
-        if (m_VRHandlingScript.isButtonPressed)
-        {
-            m_OpenAIQueriesScript.CaptureAudio();
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            screenshotsCaptured += 1;
-
-            // Reset call counters so they can each be called once more
-            screenshotsCaptured = 0;
-            whisperCalls = 0;
-            completionCalls = 0;
-            buttonPressed = true;
         }
     }
 
