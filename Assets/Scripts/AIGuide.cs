@@ -36,19 +36,15 @@ public class AIGuide : MonoBehaviour
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
 
-        // Determine if using realtime version of guide or REST version
-        realtimeQueryMode = FindObjectOfType<SwitchTools>().realtimeQueryOn;
-        if (realtimeQueryMode)
-        {
-            realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
+        // Set up realtime client
+        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
 
-            string basePrompt = GetFormattedPrompt();
+        string basePrompt = GetFormattedPrompt();
 
-            // Load config and connect to client
-            realtimeClient.LoadConfig();
-            realtimeClient._voiceDetectionOn = false;
-            realtimeClient.Connect(basePrompt);
-        }
+        // Load config and connect to client
+        realtimeClient.LoadConfig();
+        realtimeClient._voiceDetectionOn = false;
+        realtimeClient.Connect(basePrompt);
 
         // This line is needed if we use the invisible guide role
         if (role == 6)
