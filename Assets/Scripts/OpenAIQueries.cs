@@ -73,6 +73,11 @@ public class RealtimeGuideClient : MonoBehaviour
     private const int SAMPLE_RATE = 24000; // OpenAI's native rate
     private int _totalSamplesSent = 0;
 
+    // Variables for jitter on audio sharing over network
+    private Queue<float[]> _jitterBuffer = new Queue<float[]>();
+    private bool _isBuffering = true;
+    private const int BufferThreshold = 5; // Start playing once we have 5 chunks
+
     // Configuration
     private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
 
@@ -209,6 +214,9 @@ public class RealtimeGuideClient : MonoBehaviour
         // Call continuous microphone streaming logic
         HandleMicStreaming();
 
+        // Handle the jittering sound of the audio over the network
+        HandleJitter();
+
         // Find guide audio source before handling anything with output audio
         if (!_guideAudioSourceFound)
         {
@@ -222,6 +230,19 @@ public class RealtimeGuideClient : MonoBehaviour
             if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
                 PlayAudioChunk(nextChunk);
         }
+    }
+
+    private void HandleJitter()
+    {
+        if (!_isBuffering && _jitterBuffer.Count > 0)
+        {
+            // Only pull from buffer if we aren't currently playing something
+            float[] nextChunk = _jitterBuffer.Dequeue();
+            _audioPlaybackQueue.Enqueue(nextChunk);
+        }
+
+        // If buffer runs dry, pause and re-buffer
+        if (_jitterBuffer.Count == 0) _isBuffering = true;
     }
 
     private async Task HandleMicStreaming()
@@ -294,14 +315,15 @@ public class RealtimeGuideClient : MonoBehaviour
     // Handle the incoming RPC data on Remote Clients
     public void ReceiveRemoteAudio(string base64Audio)
     {
-        Debug.Log($"[Client] Received remote audio chunk: {base64Audio.Length} chars");
-
         // Convert Base64 back to float[] and play it
         byte[] pcmData = System.Convert.FromBase64String(base64Audio);
         float[] floatData = ConvertPCM16ToFloats(pcmData);
 
-        // Add to queue just like normal
-        _audioPlaybackQueue.Enqueue(floatData);
+        _jitterBuffer.Enqueue(floatData);
+
+        // If we were empty, start buffering before we play
+        if (_jitterBuffer.Count >= BufferThreshold)
+            _isBuffering = false;
     }
 
     // Define the logic for sharing voice over network
