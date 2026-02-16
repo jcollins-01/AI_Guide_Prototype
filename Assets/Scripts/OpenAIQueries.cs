@@ -298,6 +298,8 @@ public class RealtimeGuideClient : MonoBehaviour
     // Handle the incoming RPC data on Remote Clients
     public void ReceiveRemoteAudio(string base64Audio)
     {
+        Debug.Log($"[Client] Received remote audio chunk: {base64Audio.Length} chars");
+
         // Convert Base64 back to float[] and play it
         byte[] pcmData = System.Convert.FromBase64String(base64Audio);
         float[] floatData = ConvertPCM16ToFloats(pcmData);
@@ -367,7 +369,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 
                 case "response.audio.delta":
                     // Native Audio stream from OpenAI (Fastest possible latency)
-                    Debug.Log("Got response audio");
+                    //Debug.Log("Got response audio");
                     if (personalVoicesMode) // Don't do anything with the native audio stream from OpenAI
                         break;
                     else
@@ -389,12 +391,12 @@ public class RealtimeGuideClient : MonoBehaviour
                 case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
                     string transcriptDelta = (string)jsonObj["delta"];
                     _textBuffer.Append(transcriptDelta);
-                    Debug.Log($"Transcript Chunk: {transcriptDelta}");
+                    //Debug.Log($"Transcript Chunk: {transcriptDelta}");
                     break;
 
                 case "response.text.delta":
                     // Use the text grabbed here to pass to ElevenLabs
-                    Debug.Log("Got response text to use in ElevenLabs or log");
+                    //Debug.Log("Got response text to use in ElevenLabs or log");
                     if (personalVoicesMode) // Still capture the text, but additionally pass it to ElevenLabs
                     {
                         string textDelta = (string)jsonObj["delta"];
@@ -1416,9 +1418,10 @@ public class OpenAIQueries : MonoBehaviour
     public void SetNewResult(string result)
     {
         //Debug.Log("Reached SetNewResult");
-        if (m_GuideAudioSync != null)
+        /*if (m_GuideAudioSync != null)
             m_GuideAudioSync.SetResult(result);
         else
             Debug.LogError("GuideAudioSync is not initialized.");
+        */
     }
 }

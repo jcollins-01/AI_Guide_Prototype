@@ -98,16 +98,6 @@ public class AIGuide : MonoBehaviour
         role = randRole;
     }
 
-    // Method to test if result is working
-    public void SetNewResult(string result)
-    {
-        // Debug.Log("Reached SetNewResult");
-        if (m_guideAudioSync != null)
-            m_guideAudioSync.SetResult(result);
-        else
-            Debug.LogError("GuideAudioSync is not initialized.");
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -154,7 +144,7 @@ public class AIGuide : MonoBehaviour
     // TEST NEW ARCHITECTURE
     private void RealtimeGuide()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) || m_VRHandlingScript.isButtonPressed)
         {
             realtimeClient.StartRecording();
 
@@ -171,7 +161,7 @@ public class AIGuide : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Space) || (m_VRHandlingScript.wasButtonPressedLastFrame && !m_VRHandlingScript.isButtonPressed)) // was being pressed last frame but isn't now
         {
             _ = realtimeClient.StopRecordingAndCommit();
         }

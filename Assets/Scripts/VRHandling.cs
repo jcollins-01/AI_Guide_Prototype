@@ -17,7 +17,7 @@ public class VRHandling : MonoBehaviour
     public bool isButtonPressed = false;
     public bool isMutingButtonPressed = false;
     public bool isPrimaryButtonPressed = false;
-    private bool wasButtonPressedLastFrame = false;
+    public bool wasButtonPressedLastFrame = false;
 
     // Update is called once per frame
     void Update()
