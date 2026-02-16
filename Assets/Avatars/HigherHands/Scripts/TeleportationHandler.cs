@@ -66,7 +66,8 @@ public class TeleportationHandler : MonoBehaviour
         if (!leftIsPressed && !rightIsPressed)
         {
             // If both teleportation triggers are not being held down, reset the lastHitObject
-            m_VRScreenreaderScript.lastHitObject = null;
+            if (m_VRScreenreaderScript != null)
+                m_VRScreenreaderScript.lastHitObject = null;
         }
 
         // If the action of teleportation has completed
