@@ -166,33 +166,22 @@ public class AIGuide : MonoBehaviour
         {
             Debug.Log("Image uploaded. sending to Vision API...");
 
-            string visionContext = "User Visual Context: ";
-            bool visionComplete = false;
+            // Call our helper function to get image descriptions from GPT-4
+            Task<string> viewpointTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageLink);
+            Task<string> birdsEyeTask = realtimeClient.GetImageDescriptionAsync(camSystem.birdsEyeImageLink);
 
-            // Call our helper function
-            StartCoroutine(realtimeClient.GetImageDescription(camSystem.viewpointImageLink, (description) =>
+            while (!viewpointTask.IsCompleted || !birdsEyeTask.IsCompleted)
             {
-                if (!string.IsNullOrEmpty(description))
-                {
-                    visionContext += " [Viewpoint Camera]: " + description;
-                }
-                visionComplete = true;
-            }));
-
-            // Wait for Vision API to return (Timeout 5s)
-            float visionTimer = 0;
-            while (!visionComplete && visionTimer < 5.0f)
-            {
-                visionTimer += Time.deltaTime;
-                yield return null;
+                yield return null; // Let Unity render the next frame
             }
 
-            // Inject the Description into the realtime session
-            // This puts the text into the conversation history as a "System" or "User" note
-            // so the model knows what is happening.
-            Debug.Log("Injecting context: " + visionContext);
-            realtimeClient.SendTextContext(visionContext);
+            string viewpointDesc = viewpointTask.Status == TaskStatus.RanToCompletion ? viewpointTask.Result : "Error reading viewpoint.";
+            string birdsEyeDesc = birdsEyeTask.Status == TaskStatus.RanToCompletion ? birdsEyeTask.Result : "Error reading bird's eye.";
 
+            string fullContext = $"[Visual Context] Viewpoint: {viewpointDesc} | Bird's Eye: {birdsEyeDesc}";
+
+            Debug.Log("Injecting Combined Context: " + fullContext);
+            realtimeClient.SendTextContext(fullContext);
             //realtimeClient.SendImageContext(camSystem.birdsEyeImageLink);
             //realtimeClient.SendImageContext(camSystem.viewpointImageLink);
         }

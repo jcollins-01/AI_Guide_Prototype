@@ -12,6 +12,8 @@ using System.Threading;
 using System.Collections.Concurrent;
 using UnityEngine.Networking;
 using System.Collections;
+using OpenAI;
+using OpenAI.Chat;
 
 public class ConfigData
 {
@@ -37,6 +39,7 @@ public class InteractionLog
     public float totalGenerationTime;
 }
 
+/*
 public class VisionPayload
 {
     public string model = "gpt-4o";
@@ -71,6 +74,7 @@ public class Choice
 {
     public Message message;
 }
+*/
 
 public class RealtimeGuideClient : MonoBehaviour
 {
@@ -83,6 +87,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private ClientWebSocket _webSocket;
     private CancellationTokenSource _cancellationTokenSource;
+    public static OpenAIClient client { get; set; }
 
     [HideInInspector] private const string configFileName = "config"; // Config file to hold api keys, credentials
     private string _apiKey; // Set this securely
@@ -134,6 +139,9 @@ public class RealtimeGuideClient : MonoBehaviour
         aiGuideScript = GetComponent<AIGuide>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
+
+        // Open a client for getting descriptions of images
+        client = new OpenAIClient(_apiKey);
 
         // Determine which version of audio generation is to be used
         personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
@@ -223,8 +231,8 @@ public class RealtimeGuideClient : MonoBehaviour
         Microphone.End(_micDevice);
 
         // If we have a screenshot, send it NOW as a user message item
-        if (!string.IsNullOrEmpty(screenshotUrl))
-            await SendImageContext(screenshotUrl);
+        //if (!string.IsNullOrEmpty(screenshotUrl))
+            //await SendImageContext(screenshotUrl);
 
         // Only commit if we actually sent audio (prevents empty call errors)
         if (_totalSamplesSent > 0)
@@ -528,24 +536,6 @@ public class RealtimeGuideClient : MonoBehaviour
         await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
-    public async Task SendImageContext(string screenshotLink)
-    {
-        var imageMessage = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "user",
-                content = new[] {
-                    new { type = "image_url", image_url = new { url = screenshotLink } }
-                }
-            }
-        };
-        await SendJson(imageMessage);
-        Debug.Log("Sent Image Context to Realtime API for " + screenshotLink);
-    }
-
     public void SendTextContext(string text)
     {
         var eventData = new
@@ -562,70 +552,41 @@ public class RealtimeGuideClient : MonoBehaviour
             }
         };
 
-        string json = Newtonsoft.Json.JsonConvert.SerializeObject(eventData);
-        SendJson(json); // Use your existing send method
+        SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
     // Gets a text description of the images taken to pass to Realtime API
-    public IEnumerator GetImageDescription(string imageUrl, System.Action<string> callback)
+    public async Task<string> GetImageDescriptionAsync(string imageUrl)
     {
-        // Construct the payload
-        VisionPayload payload = new VisionPayload
-        {
-            messages = new List<Message>
-        {
-            new Message
+        List<Content> content = new List<Content>
             {
-                role = "user",
-                content = new List<Content>
-                {
-                    new Content { type = "text", text = "Describe what is in this VR viewpoint in one detailed sentence. Focus on objects and layout." },
-                    new Content { type = "image_url", image_url = new ImageUrl { url = imageUrl } }
-                }
-            }
+                new Content(ContentType.Text, "Describe what is in this VR viewpoint in one sentence. Focus on objects and layout."),
+                new Content(ContentType.ImageUrl, imageUrl)
+            };
+
+        var chatPrompts = new List<Message>
+            {
+                new(Role.User, content),
+            };
+
+        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4o", maxTokens: 300);
+        string output = "N/A";
+        try
+        {
+            // Call the API
+            var chatResponse = await client.ChatEndpoint.GetCompletionAsync(chatRequest);
+
+            output = chatResponse.FirstChoice.ToString();
+            Debug.Log("Image description by GPT-4: " + output);
+            string result = output;
+
+            // Return the text
+            return result;
         }
-        };
-
-        string json = JsonUtility.ToJson(payload);
-
-        // Setup the Web Request
-        using (UnityWebRequest request = new UnityWebRequest("https://api.openai.com/v1/chat/completions", "POST"))
+        catch (System.Exception e)
         {
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
-            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = new DownloadHandlerBuffer();
-
-            // Use the same API key variable used for the Realtime connection
-            request.SetRequestHeader("Authorization", "Bearer " + _apiKey);
-            request.SetRequestHeader("Content-Type", "application/json");
-
-            // Send and wait
-            yield return request.SendWebRequest();
-
-            if (request.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Vision API Error: " + request.error + "\n" + request.downloadHandler.text);
-                callback?.Invoke(null);
-            }
-            else
-            {
-                // Parse the description
-                var response = JsonUtility.FromJson<VisionResponse>(request.downloadHandler.text);
-                if (response.choices != null && response.choices.Count > 0)
-                {
-                    string description = response.choices[0].message.content[0].text;
-                    string jsonText = request.downloadHandler.text;
-                    string key = "\"content\": \"";
-                    int start = jsonText.IndexOf(key) + key.Length;
-                    int end = jsonText.IndexOf("\"", start);
-                    string rawDesc = jsonText.Substring(start, end - start);
-
-                    // Unescape newlines/quotes
-                    string cleanDesc = System.Text.RegularExpressions.Regex.Unescape(rawDesc);
-
-                    callback?.Invoke(cleanDesc);
-                }
-            }
+            Debug.LogError($"Vision Error: {e.Message}");
+            return null; // Return null on failure
         }
     }
 
