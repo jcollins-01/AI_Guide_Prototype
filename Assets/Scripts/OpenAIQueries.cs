@@ -855,7 +855,9 @@ public class OpenAIQueries : MonoBehaviour
                    "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
                    "Only do this if you're sure they want to add a sound." +
                    "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
-                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT.";
+                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT." +
+                   "Finally, please be aware that the list of objects above is NOT exhaustive of everything in the scene. There may be dynamic objects, such as other player avatars who join the scene or objects that are spawned in for minigames, which aren't represented in the list." +
+                   "If a user references or asks about an object that doesn't match anything on the list, look at the contents of the pictures sent with their query and do your best to assist them based on those. RELY ON THE LIST FIRST, AND IMAGE CONTENT ONLY IF NO OBJECTS FROM THE LIST APPLY.";
         }
     }
 
