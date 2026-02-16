@@ -18,11 +18,11 @@ public class AIGuide : MonoBehaviour
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
+    private bool isRecording = false;
 
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
-    private bool realtimeQueryMode;
 
     // Start is called before the first frame update
     void Start()
@@ -114,26 +114,91 @@ public class AIGuide : MonoBehaviour
 
     private void RealtimeGuide()
     {
-        if (Input.GetKeyDown(KeyCode.Space) || m_VRHandlingScript.isButtonPressed)
+        bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
+        bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
+
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            realtimeClient.StartRecording();
-
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            string birdsEyeUrl = "";
-            string viewpointUrl = "";
-            if (FindObjectOfType<CameraSystem>().uploaded)
-            {
-                birdsEyeUrl = FindObjectOfType<CameraSystem>().birdsEyeImageLink;
-                viewpointUrl = FindObjectOfType<CameraSystem>().viewpointImageLink;
-
-                realtimeClient.SendImageContext(birdsEyeUrl);
-                realtimeClient.SendImageContext(viewpointUrl);
-            }
+            StartCoroutine(CaptureAndSendContext());
         }
 
-        if (Input.GetKeyUp(KeyCode.Space) || (m_VRHandlingScript.wasButtonPressedLastFrame && !m_VRHandlingScript.isButtonPressed)) // was being pressed last frame but isn't now
+        if (Input.GetKeyUp(KeyCode.Space))
         {
             _ = realtimeClient.StopRecordingAndCommit();
+        }
+
+        // Separate set with flag vars for VR
+        if (isDown && !isRecording)
+        {
+            isRecording = true; // Lock it immediately
+            StartCoroutine(CaptureAndSendContext());
+        }
+
+        if (isUp && isRecording)
+        {
+            isRecording = false; // Unlock
+            _ = realtimeClient.StopRecordingAndCommit();
+        }
+    }
+
+    // Coroutine for sending info to the realtime API to prevent freezing in VR
+    private IEnumerator CaptureAndSendContext()
+    {
+        // Start Audio Recording immediately
+        realtimeClient.StartRecording();
+
+        // Trigger the screenshot
+        CameraSystem camSystem = FindObjectOfType<CameraSystem>();
+        camSystem.CaptureScreenshot();
+
+        // WAIT for the upload to finish without freezing the frame
+        // This loop lets the VR headset keep rendering while we wait
+        float timeout = 5.0f;
+        float timer = 0;
+        while (!camSystem.uploaded && timer < timeout)
+        {
+            timer += Time.deltaTime;
+            yield return null; // Wait for the next frame
+        }
+
+        // Send the context once we have the links
+        if (camSystem.uploaded)
+        {
+            Debug.Log("Image uploaded. sending to Vision API...");
+
+            string visionContext = "User Visual Context: ";
+            bool visionComplete = false;
+
+            // Call our helper function
+            StartCoroutine(realtimeClient.GetImageDescription(camSystem.viewpointImageLink, (description) =>
+            {
+                if (!string.IsNullOrEmpty(description))
+                {
+                    visionContext += " [Viewpoint Camera]: " + description;
+                }
+                visionComplete = true;
+            }));
+
+            // Wait for Vision API to return (Timeout 5s)
+            float visionTimer = 0;
+            while (!visionComplete && visionTimer < 5.0f)
+            {
+                visionTimer += Time.deltaTime;
+                yield return null;
+            }
+
+            // Inject the Description into the realtime session
+            // This puts the text into the conversation history as a "System" or "User" note
+            // so the model knows what is happening.
+            Debug.Log("Injecting context: " + visionContext);
+            realtimeClient.SendTextContext(visionContext);
+
+            //realtimeClient.SendImageContext(camSystem.birdsEyeImageLink);
+            //realtimeClient.SendImageContext(camSystem.viewpointImageLink);
+        }
+        else
+        {
+            Debug.LogError("Screenshot upload timed out!");
         }
     }
 

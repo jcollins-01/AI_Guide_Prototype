@@ -26,16 +26,17 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     protected override void OnRealtimeModelReplaced(GuideAudioSyncModel previousModel, GuideAudioSyncModel currentModel)
     {
-        if (previousModel != null)
-        {
-            // Unsubscribe from the old model
-            previousModel.audioChunkDidChange -= AudioChunkDidChange;
-        }
+        if (previousModel != null) previousModel.audioChunkDidChange -= AudioChunkDidChange;
 
         if (currentModel != null)
         {
-            // Subscribe to the new model
             currentModel.audioChunkDidChange += AudioChunkDidChange;
+
+            // If they join mid-sentence, try to catch the current chunk immediately
+            if (!string.IsNullOrEmpty(currentModel.audioChunk))
+            {
+                AudioChunkDidChange(currentModel, currentModel.audioChunk);
+            }
         }
     }
 

@@ -10,6 +10,8 @@ using System.Net.WebSockets;
 using UnityEngine;
 using System.Threading;
 using System.Collections.Concurrent;
+using UnityEngine.Networking;
+using System.Collections;
 
 public class ConfigData
 {
@@ -33,6 +35,41 @@ public class InteractionLog
     public float latencyToFirstToken;
     public float latencyToFirstAudio;
     public float totalGenerationTime;
+}
+
+public class VisionPayload
+{
+    public string model = "gpt-4o";
+    public List<Message> messages;
+    public int max_tokens = 300;
+}
+
+public class Message
+{
+    public string role;
+    public List<Content> content;
+}
+
+public class Content
+{
+    public string type;
+    public string text; // For text type
+    public ImageUrl image_url; // For image type
+}
+
+public class ImageUrl
+{
+    public string url;
+}
+
+public class VisionResponse
+{
+    public List<Choice> choices;
+}
+
+public class Choice
+{
+    public Message message;
 }
 
 public class RealtimeGuideClient : MonoBehaviour
@@ -507,6 +544,89 @@ public class RealtimeGuideClient : MonoBehaviour
         };
         await SendJson(imageMessage);
         Debug.Log("Sent Image Context to Realtime API for " + screenshotLink);
+    }
+
+    public void SendTextContext(string text)
+    {
+        var eventData = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new[]
+                {
+                new { type = "input_text", text = text }
+            }
+            }
+        };
+
+        string json = Newtonsoft.Json.JsonConvert.SerializeObject(eventData);
+        SendJson(json); // Use your existing send method
+    }
+
+    // Gets a text description of the images taken to pass to Realtime API
+    public IEnumerator GetImageDescription(string imageUrl, System.Action<string> callback)
+    {
+        // Construct the payload
+        VisionPayload payload = new VisionPayload
+        {
+            messages = new List<Message>
+        {
+            new Message
+            {
+                role = "user",
+                content = new List<Content>
+                {
+                    new Content { type = "text", text = "Describe what is in this VR viewpoint in one detailed sentence. Focus on objects and layout." },
+                    new Content { type = "image_url", image_url = new ImageUrl { url = imageUrl } }
+                }
+            }
+        }
+        };
+
+        string json = JsonUtility.ToJson(payload);
+
+        // Setup the Web Request
+        using (UnityWebRequest request = new UnityWebRequest("https://api.openai.com/v1/chat/completions", "POST"))
+        {
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+
+            // Use the same API key variable used for the Realtime connection
+            request.SetRequestHeader("Authorization", "Bearer " + _apiKey);
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send and wait
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Vision API Error: " + request.error + "\n" + request.downloadHandler.text);
+                callback?.Invoke(null);
+            }
+            else
+            {
+                // Parse the description
+                var response = JsonUtility.FromJson<VisionResponse>(request.downloadHandler.text);
+                if (response.choices != null && response.choices.Count > 0)
+                {
+                    string description = response.choices[0].message.content[0].text;
+                    string jsonText = request.downloadHandler.text;
+                    string key = "\"content\": \"";
+                    int start = jsonText.IndexOf(key) + key.Length;
+                    int end = jsonText.IndexOf("\"", start);
+                    string rawDesc = jsonText.Substring(start, end - start);
+
+                    // Unescape newlines/quotes
+                    string cleanDesc = System.Text.RegularExpressions.Regex.Unescape(rawDesc);
+
+                    callback?.Invoke(cleanDesc);
+                }
+            }
+        }
     }
 
     // CONVERTERS
