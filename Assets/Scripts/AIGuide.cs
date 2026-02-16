@@ -164,26 +164,22 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.uploaded)
         {
-            Debug.Log("Image uploaded. sending to Vision API...");
+            Debug.Log("Images uploaded. Sending to Vision API...");
 
             // Call our helper function to get image descriptions from GPT-4
-            Task<string> viewpointTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageLink);
-            Task<string> birdsEyeTask = realtimeClient.GetImageDescriptionAsync(camSystem.birdsEyeImageLink);
+            Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageLink, camSystem.birdsEyeImageLink);
 
-            while (!viewpointTask.IsCompleted || !birdsEyeTask.IsCompleted)
+            while (!visionTask.IsCompleted)
             {
                 yield return null; // Let Unity render the next frame
             }
 
-            string viewpointDesc = viewpointTask.Status == TaskStatus.RanToCompletion ? viewpointTask.Result : "Error reading viewpoint.";
-            string birdsEyeDesc = birdsEyeTask.Status == TaskStatus.RanToCompletion ? birdsEyeTask.Result : "Error reading bird's eye.";
+            string visionDesc = visionTask.Status == TaskStatus.RanToCompletion ? visionTask.Result : "Error reading images .";
 
-            string fullContext = $"[Visual Context] Viewpoint: {viewpointDesc} | Bird's Eye: {birdsEyeDesc}";
+            string fullContext = $"[Visual Context] {visionDesc}";
 
             Debug.Log("Injecting Combined Context: " + fullContext);
             realtimeClient.SendTextContext(fullContext);
-            //realtimeClient.SendImageContext(camSystem.birdsEyeImageLink);
-            //realtimeClient.SendImageContext(camSystem.viewpointImageLink);
         }
         else
         {

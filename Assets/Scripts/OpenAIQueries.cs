@@ -556,12 +556,13 @@ public class RealtimeGuideClient : MonoBehaviour
     }
 
     // Gets a text description of the images taken to pass to Realtime API
-    public async Task<string> GetImageDescriptionAsync(string imageUrl)
+    public async Task<string> GetImageDescriptionAsync(string viewpointUrl, string birdsEyeUrl)
     {
         List<Content> content = new List<Content>
             {
-                new Content(ContentType.Text, "Describe what is in this VR viewpoint in one sentence. Focus on objects and layout."),
-                new Content(ContentType.ImageUrl, imageUrl)
+                new Content(ContentType.Text, "You are looking at two views of a VR scene. Image 1 is the user's view, Image 2 is a bird's eye map. Describe the scene's layout and what the user is facing in one concise paragraph."),
+                new Content(ContentType.ImageUrl, viewpointUrl),
+                new Content(ContentType.ImageUrl, birdsEyeUrl)
             };
 
         var chatPrompts = new List<Message>
