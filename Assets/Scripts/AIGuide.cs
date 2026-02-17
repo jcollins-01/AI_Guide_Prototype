@@ -146,6 +146,7 @@ public class AIGuide : MonoBehaviour
     // Coroutine for sending info to the realtime API to prevent freezing in VR
     private IEnumerator CaptureAndSendContext()
     {
+        playEffect("listening");
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
         realtimeClient._isProcessingCommand = false;
@@ -287,7 +288,7 @@ public class AIGuide : MonoBehaviour
                 }
             case "listening":
                 {
-                    //Debug.Log("Played listening sound");
+                    Debug.Log("Played listening sound");
                     audioSource.clip = Resources.Load<AudioClip>("Audio/listening");
                     audioSource.mute = false;
                     audioSource.loop = false;
@@ -391,10 +392,8 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
-                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
-                        m_SharedMovementScript.movingWithGuide = false;
+                        m_SharedMovementScript.ForceStopAndReset();
                         m_OpenAIQueriesScript.targetForGuidance = null;
-                        Debug.Log("the value of player grabbing guide is " + m_SharedMovementScript.playerGrabbingGuide);
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
@@ -411,7 +410,7 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
-                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
+                        m_SharedMovementScript.ForceStopAndReset();
                         m_OpenAIQueriesScript.targetForGuidance = null;
                     }
                 }
