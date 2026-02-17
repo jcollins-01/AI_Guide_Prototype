@@ -196,10 +196,6 @@ public class RealtimeGuideClient : MonoBehaviour
         _isRecording = false;
         Microphone.End(_micDevice);
 
-        // If we have a screenshot, send it NOW as a user message item
-        //if (!string.IsNullOrEmpty(screenshotUrl))
-            //await SendImageContext(screenshotUrl);
-
         // Only commit if we actually sent audio (prevents empty call errors)
         if (_totalSamplesSent > 0)
         {

@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using OpenAI;
+using OpenAI.Audio;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -31,6 +33,7 @@ public class GenerateReaderReferences : MonoBehaviour
     private string audioFilePath;
 
     // Variables to load PlayHT credentials + alt-text
+    public static OpenAIClient client { get; set; }
     [HideInInspector]
     public string playHTApiKey;
     [HideInInspector]
@@ -48,6 +51,9 @@ public class GenerateReaderReferences : MonoBehaviour
     {
         // Load relevant credentials from config file
         LoadConfig();
+
+        // Open client
+        client = new OpenAIClient(openAIApiKey);
 
         // Determine which version of audio generation is to be used
         personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
@@ -351,52 +357,47 @@ public class GenerateReaderReferences : MonoBehaviour
     // Version that uses OpenAI default voices
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        string playHTUrl = "https://api.openai.com/v1/audio/speech";
+        Debug.Log("Reaching save audio");
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
-        var openAIData = new
+        var ttsRequest = new SpeechRequest(description, model: "tts-1", voice: SpeechVoice.Alloy, responseFormat: SpeechResponseFormat.MP3);
+
+        var task = client.AudioEndpoint.CreateSpeechAsync(ttsRequest);
+
+        while (!task.IsCompleted)
         {
-            model = "tts-1",
-            input = description,
-            voice = "alloy", // Default voice, human
-            response_format = "mp3" // Ensure we get an MP3 back
-        };
+            yield return null;
+        }
 
-        string jsonData = JsonUtility.ToJson(openAIData);
-
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        if (task.IsFaulted || task.IsCanceled)
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + openAIApiKey);
+            Debug.LogError($"TTS Task failed: {task.Exception}");
+            yield break;
+        }
 
-            Debug.Log("Sending request to OpenAI TTS: " + jsonData);
+        // Task.Result is where the actual path string lives
+        var result = task.Result;
+        string actualPath = result.ToString();
+        // Clean up the string to get a valid Windows path
+        string clipPath = actualPath.Replace("file://", "").Split(',')[0].Trim('(', ' ');
 
-            yield return playHTRequest.SendWebRequest();
+        if (File.Exists(clipPath))
+        {
+            byte[] audioData = File.ReadAllBytes(clipPath);
+            File.WriteAllBytes(audioFilePath, audioData);
+            Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
 
-            if (playHTRequest.result == UnityWebRequest.Result.Success)
-            {
-                byte[] audioData = playHTRequest.downloadHandler.data;
-                Debug.Log($"Received audio data of size: {audioData.Length} bytes");
-                File.WriteAllBytes(audioFilePath, audioData);
-                Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
-
-                // Save the hash for future reference
-                audioHashes[objectName] = descriptionHash;
-                SaveAudioHashes();
+            audioHashes[objectName] = descriptionHash;
+            SaveAudioHashes();
 
 #if UNITY_EDITOR
-                UnityEditor.AssetDatabase.Refresh();
+            UnityEditor.AssetDatabase.Refresh();
 #endif
-            }
-            else
-            {
-                Debug.LogError("Error calling OpenAI TTS: " + playHTRequest.error);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
-                yield break;
-            }
+        }
+        else
+        {
+            Debug.LogError("OpenAI returned success, but the temp file path does not exist: " + clipPath);
+            yield break;
         }
     }
 
