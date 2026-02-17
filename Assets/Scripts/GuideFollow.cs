@@ -51,7 +51,7 @@ public class GuideFollow : MonoBehaviour
             getSharedMovement();
         if (!aiGuideFound)
             getAIGuide();
-        if (!animatorFound)
+        if (!animatorFound && aiGuideFound)
             getAnimator();
 
         // Wait to request ownership until we have all players in scene + multiplayer room is definitely instantiated
@@ -80,7 +80,6 @@ public class GuideFollow : MonoBehaviour
 
     private void UpdateManualAnimation()
     {
-        Debug.Log("Reached the update for manual animation");
         if (animator == null) return;
 
         // Calculate how far we moved this frame
@@ -91,7 +90,7 @@ public class GuideFollow : MonoBehaviour
         float speedPercent = Mathf.Clamp01(currentSpeed / 1.0f);
 
         animator.SetFloat("Speed", speedPercent, 0.1f, Time.deltaTime);
-        Debug.Log($"Speed: {currentSpeed} | Percent: {speedPercent}");
+        //Debug.Log($"Speed: {currentSpeed} | Percent: {speedPercent}");
 
         lastPosition = transform.position;
     }
@@ -243,7 +242,7 @@ public class GuideFollow : MonoBehaviour
     private void getAnimator()
     {
         if (animator == null)
-            animator = FindObjectOfType<AIGuide>().GetComponentInChildren<Animator>();
+            animator = m_AIGuideScript.GetComponentInChildren<Animator>();
         else
             animatorFound = true;
     }
