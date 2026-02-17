@@ -81,7 +81,7 @@ public class SharedMovement : MonoBehaviour
                 if (!rightGripDown && !leftGripDown)
                 {
                     waitingForGripReset = false;
-                    Debug.Log("Grip reset. Ready for new input.");
+                    //Debug.Log("Grip reset. Ready for new input.");
                 }
 
                 // If still holding, DO NOTHING. Return immediately.
@@ -91,7 +91,7 @@ public class SharedMovement : MonoBehaviour
             // Otherwise, check for player grip and teleport them with the guide
             if (playerGrabbingGuide && !movingWithGuide)
             {
-                Debug.Log("Trying to move player with shared movement");
+                //Debug.Log("Trying to move player with shared movement");
                 StartCoroutine(Teleport());
                 movingWithGuide = true;
                 playerGrabbingGuide = false; // Reset here so we don't accidentally trigger it again
@@ -107,7 +107,7 @@ public class SharedMovement : MonoBehaviour
                 StopCoroutine(Teleport());
                 rightXRController.SendHapticImpulse(0u, 0f, 0f); // Stop haptics immediately
                 leftXRController.SendHapticImpulse(0u, 0f, 0f);
-                Debug.Log("Called to stop the shared movement");
+                //Debug.Log("Called to stop the shared movement");
             }
 
             // Checks for entering the trigger of an object - will only check if waitingForGrip is false/player is not already grabbing
@@ -127,7 +127,7 @@ public class SharedMovement : MonoBehaviour
         waitingForGripReset = true; // Lock inputs until release
         StopCoroutine(Teleport());
 
-        Debug.Log("Movement forced stop. Waiting for user to release grip.");
+        //Debug.Log("Movement forced stop. Waiting for user to release grip.");
     }
 
     void AssignRoles()

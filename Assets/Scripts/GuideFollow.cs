@@ -28,6 +28,11 @@ public class GuideFollow : MonoBehaviour
     // Monitoring bools
     private bool sharedMovementFound = false;
     private bool aiGuideFound = false;
+    private bool animatorFound = false;
+
+    // Animation variables
+    private Vector3 lastPosition;
+    private Animator animator;
 
     private void Start()
     {
@@ -35,6 +40,8 @@ public class GuideFollow : MonoBehaviour
         agent = gameObject.AddComponent<NavMeshAgent>();
 
         gameObject.AddComponent<GuideModels>();
+
+        lastPosition = transform.position;
     }
     // Update is called once per frame
     void Update()
@@ -44,6 +51,8 @@ public class GuideFollow : MonoBehaviour
             getSharedMovement();
         if (!aiGuideFound)
             getAIGuide();
+        if (!animatorFound)
+            getAnimator();
 
         // Wait to request ownership until we have all players in scene + multiplayer room is definitely instantiated
         if (sharedMovementFound)
@@ -61,9 +70,30 @@ public class GuideFollow : MonoBehaviour
             {
                 returnIfDistant();
                 if (agent.isActiveAndEnabled)
+                {
                     setTargetPositions();
+                    UpdateManualAnimation();
+                }  
             }
         }
+    }
+
+    private void UpdateManualAnimation()
+    {
+        Debug.Log("Reached the update for manual animation");
+        if (animator == null) return;
+
+        // Calculate how far we moved this frame
+        float distanceMoved = Vector3.Distance(transform.position, lastPosition);
+        // Convert distance to speed (Distance / Time = Speed)
+        float currentSpeed = distanceMoved / Time.deltaTime;
+        // Normalize it 
+        float speedPercent = Mathf.Clamp01(currentSpeed / 1.0f);
+
+        animator.SetFloat("Speed", speedPercent, 0.1f, Time.deltaTime);
+        Debug.Log($"Speed: {currentSpeed} | Percent: {speedPercent}");
+
+        lastPosition = transform.position;
     }
 
     private void returnIfDistant()
@@ -208,6 +238,14 @@ public class GuideFollow : MonoBehaviour
             m_AIGuideScript = FindObjectOfType<AIGuide>();
         else
             aiGuideFound = true;
+    }
+
+    private void getAnimator()
+    {
+        if (animator == null)
+            animator = FindObjectOfType<AIGuide>().GetComponentInChildren<Animator>();
+        else
+            animatorFound = true;
     }
 
     private void requestOwnershipForGuide()

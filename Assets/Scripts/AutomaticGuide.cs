@@ -31,6 +31,8 @@ public class AutomaticGuide : MonoBehaviour
 
     private void UpdateAnimation()
     {
+        if (animator == null || agent == null) return;
+
         // Calculate the speed based on NavMesh velocity
         float currentSpeed = agent.velocity.magnitude;
 
