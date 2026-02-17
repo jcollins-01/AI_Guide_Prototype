@@ -1,4 +1,3 @@
-/*
 using UnityEditor;
 using UnityEngine;
 
@@ -16,4 +15,3 @@ public class FloorDividerEditor : Editor
         }
     }
 }
-*/
