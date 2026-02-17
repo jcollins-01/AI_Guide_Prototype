@@ -169,7 +169,7 @@ public class AIGuide : MonoBehaviour
             _ = realtimeClient.StopRecordingAndCommit();
         }
 
-        if (m_VRHandlingScript.isMutingButtonPressed)
+        if (m_VRHandlingScript.isMutingButtonPressed || Input.GetKeyDown(KeyCode.M))
         {
             // Only fire if this is the FIRST frame the button is down
             if (!wasMutingLastFrame)
