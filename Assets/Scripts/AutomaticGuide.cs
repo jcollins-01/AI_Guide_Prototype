@@ -9,6 +9,7 @@ public class AutomaticGuide : MonoBehaviour
     private NavMeshAgent agent; // Reference to the NavMeshAgent component
     public bool targetActive = false; // A bool to keep track of if there is a target / when it's been reached
     private OpenAIQueries m_OpenAIQueriesScript;
+    private Animator animator;
 
     // Start is called before the first frame update
     void Start()
@@ -20,6 +21,24 @@ public class AutomaticGuide : MonoBehaviour
         {
             Debug.LogError("NavMeshAgent component not found on this game object.");
         }
+        animator = GetComponentInChildren<Animator>();
+    }
+
+    private void Update()
+    {
+        UpdateAnimation();
+    }
+
+    private void UpdateAnimation()
+    {
+        // Calculate the speed based on NavMesh velocity
+        float currentSpeed = agent.velocity.magnitude;
+
+        // We divide by the agent's max speed so the value stays between 0 and 1 for the Blend Tree
+        float speedPercent = currentSpeed / agent.speed;
+
+        // Tell the Animator the new speed - DampTime (0.1f) makes the transition look smooth instead of robotic
+        animator.SetFloat("Speed", speedPercent, 0.1f, Time.deltaTime);
     }
 
     // Version used for Wizard when assigned target object directly in Editor

@@ -577,6 +577,7 @@ GameObject:
   - component: {fileID: 3573516042657550773}
   - component: {fileID: 4487651223279036688}
   - component: {fileID: 5893892098074264156}
+  - component: {fileID: 5854562447014517873}
   m_Layer: 3
   m_Name: Human Model
   m_TagString: Untagged
@@ -1058,6 +1059,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1829f4c063dc6304e893a4b6129d52a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &5854562447014517873
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 908557901466834661}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: ea2c7201a5ad83f4995a1d25efe9cab5, type: 3}
+  m_Controller: {fileID: 9100000, guid: c8225dec51094614eae28d8ac0aff765, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &969082034929620758
 GameObject:
   m_ObjectHideFlags: 0
