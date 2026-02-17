@@ -39,43 +39,6 @@ public class InteractionLog
     public float totalGenerationTime;
 }
 
-/*
-public class VisionPayload
-{
-    public string model = "gpt-4o";
-    public List<Message> messages;
-    public int max_tokens = 300;
-}
-
-public class Message
-{
-    public string role;
-    public List<Content> content;
-}
-
-public class Content
-{
-    public string type;
-    public string text; // For text type
-    public ImageUrl image_url; // For image type
-}
-
-public class ImageUrl
-{
-    public string url;
-}
-
-public class VisionResponse
-{
-    public List<Choice> choices;
-}
-
-public class Choice
-{
-    public Message message;
-}
-*/
-
 public class RealtimeGuideClient : MonoBehaviour
 {
     // Access the OpenAIQueries class so we can change variables as needed
@@ -99,6 +62,7 @@ public class RealtimeGuideClient : MonoBehaviour
     public bool _isConnected = false;
     private bool _guideAudioSourceFound = false;
     private bool _isAiSpeaking = false;
+    public bool _isProcessingCommand = false;
 
     // Microphone Variables
     private AudioClip _micClip;
@@ -507,7 +471,6 @@ public class RealtimeGuideClient : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log("caught from completed case");
                                 _ = SpeakCustomText(customResponse);
                             }
                         }
@@ -664,6 +627,13 @@ public class RealtimeGuideClient : MonoBehaviour
         _audioPlaybackQueue.Clear();
 
         Debug.Log("Local audio buffer cleared to make way for custom TTS.");
+    }
+
+    // Call this when the user starts their voice input (button down)
+    public void ResetCommandLock()
+    {
+        _isProcessingCommand = false;
+        Debug.Log("Lock Reset: Ready for new user commands.");
     }
 
     private void getAudioSync()
@@ -1081,10 +1051,10 @@ public class OpenAIQueries : MonoBehaviour
     public string CheckForGuidanceOrModification(string result)
     {
         Debug.Log("Checking string " + result);
+        if (FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand) return result;
 
         // Get all possible object names
         string[] names = objectNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
         string detectedObjectName = "";
         string detectedKeyword = "";
 
@@ -1112,6 +1082,8 @@ public class OpenAIQueries : MonoBehaviour
         {
             if (detectedKeyword == "guide" || detectedKeyword == "teleport")
             {
+                FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
+
                 modeOfTransportation = detectedKeyword;
                 targetForGuidance = GameObject.Find(detectedObjectName);
 
@@ -1143,78 +1115,6 @@ public class OpenAIQueries : MonoBehaviour
         // but not an actual command, so just return the original text.
         return result;
     }
-    /*public string CheckForGuidanceOrModification(string result)
-    {
-        // If the result was a GameObject for guidance, create a custom speech message
-        string[] words = result.Split(',');
-        if (words.Length == 2)
-        {
-            // Define characters to strip: whitespace, periods, commas, and quotes
-            char[] charsToTrim = { ' ', '.', ',', '"', '\'', '!', '?' };
-            string secondWord = words[1].Trim(charsToTrim);
-            Debug.Log(words[1]);
-            if (secondWord.Equals("guide", StringComparison.OrdinalIgnoreCase) || secondWord.Equals("teleport", StringComparison.OrdinalIgnoreCase))
-            {
-                // Assign the first word to targetName and the second word to modeOfTransportation
-                string targetName = words[0].Trim();
-                modeOfTransportation = words[1].Trim();
-
-                targetForGuidance = GameObject.Find(targetName);
-                if (targetForGuidance != null)
-                {
-                    int randReply = UnityEngine.Random.Range(1, 5);
-
-                    switch (randReply)
-                    {
-                        case 1:
-                            result = "Alright. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 2:
-                            result = "Understood. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 3:
-                            result = "Very well. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
-                            break;
-                        case 4:
-                            result = "Okay. Press the grip button to confirm if you wish to be guided, and I will take you to " + targetForGuidance.name;
-                            break;
-                    }
-                }
-            }
-            else if (secondWord.Equals("modify", StringComparison.OrdinalIgnoreCase)) // they are trying to modify
-            {
-                // Assign the first word to targetName and the second word to modification
-                string targetName = words[0].Trim();
-                modeOfModification = words[1].Trim();
-
-                targetForModification = GameObject.Find(targetName);
-                if (targetForModification != null)
-                {
-                    int randReply = UnityEngine.Random.Range(1, 5);
-
-                    switch (randReply)
-                    {
-                        case 1:
-                            result = "Alright. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                        case 2:
-                            result = "Understood. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                        case 3:
-                            result = "Very well. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                        case 4:
-                            result = "Okay. I will add an audio beacon to " + targetForModification.name;
-                            break;
-                    }
-                }
-            }
-        }
-        Debug.Log("We have a target for guidance " + targetForGuidance + " or a target for modification " + targetForModification);
-        Debug.Log(result);
-
-        return result;
-    }*/
 
     public void LoadRoomDescriptions()
     {

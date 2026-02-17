@@ -148,6 +148,7 @@ public class AIGuide : MonoBehaviour
     {
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
+        realtimeClient._isProcessingCommand = false;
         //StartCoroutine(CaptureImageContext());
         yield return null;
     }
@@ -362,6 +363,7 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
+            Debug.Log("the value of player grabbing guide is " + m_SharedMovementScript.playerGrabbingGuide);
             //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
 
             // Calls to highlight the object
@@ -373,7 +375,7 @@ public class AIGuide : MonoBehaviour
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
             // Turn off guide follow so that the guide begins to lead the player
-            if (m_SharedMovementScript.playerGrabbingGuide)
+            if (m_SharedMovementScript.movingWithGuide) // was playerGrabbingGuide
             {
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
@@ -390,11 +392,9 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                         m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
+                        m_SharedMovementScript.movingWithGuide = false;
                         m_OpenAIQueriesScript.targetForGuidance = null;
-                        Debug.Log("the value of guide follow script is " + m_GuideFollowScript.enabled);
-                        Debug.Log("the value of shared movement collider enabled is " + m_SharedMovementScript.guideCollider.enabled);
                         Debug.Log("the value of player grabbing guide is " + m_SharedMovementScript.playerGrabbingGuide);
-                        Debug.Log("the value of target for guidance is " + m_OpenAIQueriesScript.targetForGuidance);
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {

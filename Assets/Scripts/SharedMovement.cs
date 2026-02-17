@@ -24,6 +24,7 @@ public class SharedMovement : MonoBehaviour
 
     // Variables to share player actions with other scripts
     public bool playerGrabbingGuide = false;
+    public bool movingWithGuide = false;
     public CapsuleCollider guideCollider;
 
     // Start is called before the first frame update
@@ -66,25 +67,35 @@ public class SharedMovement : MonoBehaviour
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
-            if (playerGrabbingGuide)
+            if (playerGrabbingGuide && !movingWithGuide)
             {
                 Debug.Log("Trying to move player with shared movement");
-                rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
-                leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
+                StartCoroutine(Teleport());
+                movingWithGuide = true;
+                playerGrabbingGuide = false; // Reset here so we don't accidentally trigger it again
+            }
+
+            if (movingWithGuide)
+            {
                 StartCoroutine(Teleport());
             }
-            else
+
+            if (!movingWithGuide)
             {
                 StopCoroutine(Teleport());
                 Debug.Log("Called to stop the shared movement");
-            } 
+            }
 
             // Debug.Log("Trigger is " + enteredTrigger);
             // Sends haptic feedback to the controller being used for "grabbing" the guide
             if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
             {
+                Debug.Log("Sensing a grip in trigger zone");
                 if (gripValue > 0.1f)
+                {
                     playerGrabbingGuide = true;
+                    Debug.Log("Sensing a grip in trigger zone + setting playergrabbing guide to " + playerGrabbingGuide);
+                }
             }
 
 
@@ -223,6 +234,10 @@ public class SharedMovement : MonoBehaviour
     public IEnumerator Teleport()
     {
         yield return new WaitForSeconds(0f);
+
+        // Plays a haptic impulse while teleporting
+        rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
+        leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
 
         // Creates a series of directional movements that work relative to world space
         Vector3 backRelative = playerRig.transform.TransformDirection(Vector3.back);
