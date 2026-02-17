@@ -59,6 +59,7 @@ public class RealtimeGuideClient : MonoBehaviour
     public Action<string> OnTextReceived;
     public Action<string> OnAudioDeltaReceived; // Base64 PCM16 audio from OpenAI
 
+    // Tracking bools for general processes
     public bool _isConnected = false;
     private bool _guideAudioSourceFound = false;
     private bool _isAiSpeaking = false;
@@ -1002,21 +1003,6 @@ public class OpenAIQueries : MonoBehaviour
                         break;
                 }
                 break;
-            /*case "guidance":
-                int randReply = UnityEngine.Random.Range(1, 3);
-
-                switch (randReply)
-                {
-                    case 1:
-                        audioSource.clip = confirmGuideAlright;
-                        break;
-                    case 2:
-                        audioSource.clip = confirmGuideVeryWell;
-                        break;
-                }
-                break;
-            case "modification": // Might not need this one
-                break;*/
         }
 
         audioSource.Play();
