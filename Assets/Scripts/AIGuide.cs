@@ -24,6 +24,13 @@ public class AIGuide : MonoBehaviour
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
 
+    // Audio relevant variables
+    private AudioSource sfxAudioSource;
+    private AudioClip chimeClip;
+    private AudioClip processingClip;
+    private AudioClip listeningClip;
+    private AudioClip doneListeningClip;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -35,6 +42,7 @@ public class AIGuide : MonoBehaviour
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
+        LoadAudioResources();
 
         // Set up realtime client
         realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
@@ -53,6 +61,20 @@ public class AIGuide : MonoBehaviour
         Debug.Log("AIGuide is active!");
 
         InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+    }
+
+    private void LoadAudioResources()
+    {
+        // Load clips once at the start
+        chimeClip = Resources.Load<AudioClip>("Audio/subway_chime");
+        processingClip = Resources.Load<AudioClip>("Audio/processing");
+        listeningClip = Resources.Load<AudioClip>("Audio/listening");
+        doneListeningClip = Resources.Load<AudioClip>("Audio/done_listening");
+
+        // Add a special audio source for the sound effects so it doesn't interfere with the mic channel
+        sfxAudioSource = gameObject.AddComponent<AudioSource>();
+        sfxAudioSource.playOnAwake = false;
+        sfxAudioSource.spatialBlend = 0; // 2D sound for UI effects (clearer)
     }
 
     // For ensuring proper realtime data
@@ -121,23 +143,27 @@ public class AIGuide : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            playEffect("listening");
             StartCoroutine(CaptureAndSendContext());
         }
 
         if (Input.GetKeyUp(KeyCode.Space))
         {
+            playEffect("done_listening");
             _ = realtimeClient.StopRecordingAndCommit();
         }
 
         // Separate set with flag vars for VR
         if (isDown && !isRecording)
         {
+            playEffect("listening");
             isRecording = true; // Lock it immediately
             StartCoroutine(CaptureAndSendContext());
         }
 
         if (isUp && isRecording)
         {
+            playEffect("done_listening");
             isRecording = false; // Unlock
             _ = realtimeClient.StopRecordingAndCommit();
         }
@@ -146,7 +172,6 @@ public class AIGuide : MonoBehaviour
     // Coroutine for sending info to the realtime API to prevent freezing in VR
     private IEnumerator CaptureAndSendContext()
     {
-        playEffect("listening");
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
         realtimeClient._isProcessingCommand = false;
@@ -264,44 +289,37 @@ public class AIGuide : MonoBehaviour
 
     private void playEffect(string clipName)
     {
-        AudioSource audioSource = GetComponent<AudioSource>();
-
         switch(clipName)
         {
             case "subway_chime":
                 {
                     //Debug.Log("Played arrival effect");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(chimeClip);
                     break;
                 }
             case "processing":
                 {
                     //Debug.Log("Playing processing sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/processing");
-                    audioSource.mute = false;
-                    audioSource.loop = true;
-                    audioSource.Play();
+                    sfxAudioSource.clip = processingClip;
+                    sfxAudioSource.loop = true;
+                    sfxAudioSource.Play();
                     break;
                 }
             case "listening":
                 {
-                    Debug.Log("Played listening sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/listening");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
+                    sfxAudioSource.mute = false;
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(listeningClip);
                     break;
                 }
             case "done_listening":
                 {
                     //Debug.Log("Played done listening sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/done_listening");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
+                    if (sfxAudioSource.clip == processingClip) sfxAudioSource.Stop(); // If processing sound was used (in cases of high latency)
+
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(doneListeningClip);
                     break;
                 }
         }
