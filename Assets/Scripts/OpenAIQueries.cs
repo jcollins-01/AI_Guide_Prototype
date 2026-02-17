@@ -96,7 +96,7 @@ public class RealtimeGuideClient : MonoBehaviour
     public Action<string> OnTextReceived;
     public Action<string> OnAudioDeltaReceived; // Base64 PCM16 audio from OpenAI
 
-    private bool _isConnected = false;
+    public bool _isConnected = false;
     private bool _guideAudioSourceFound = false;
     private bool _isAiSpeaking = false;
 
@@ -147,6 +147,8 @@ public class RealtimeGuideClient : MonoBehaviour
         personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
 
         _micDevice = Microphone.devices[0];
+
+
     }
 
     public async Task Connect(string systemInstructions)
@@ -178,7 +180,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private async Task SendSessionUpdate(string instructions)
     {
-        Debug.Log("Adding a new message to the realtime conversation");
+        //Debug.Log("Adding a new message to the realtime conversation");
 
         var sessionUpdate = new
         {
@@ -244,7 +246,8 @@ public class RealtimeGuideClient : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Recording too short (no audio sent). Skipping audio commit to avoid API error.");
+            // Debug.LogWarning("Recording too short (no audio sent). Skipping audio commit to avoid API error.");
+            _openAIQueriesScript.PlayPredeterminedAudio("emptyQuery");
         }
 
         _totalSamplesSent = 0; // Reset for next time
@@ -267,7 +270,6 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
             _guideAudioSourceFound = true;
-            Debug.Log("Got our guide's audio source!");
         }
         else
         {
@@ -464,7 +466,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string textDelta = (string)jsonObj["delta"];
                         _textBuffer.Append(textDelta);
-                        _openAIQueriesScript.CheckForTargetForDescription(textDelta);
+                        // Call ElevenLabs to speak the text instead
 
                         OnTextReceived?.Invoke(textDelta);
                         break;
@@ -473,7 +475,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string textDelta = (string)jsonObj["delta"];
                         _textBuffer.Append(textDelta);
-                        _openAIQueriesScript.CheckForTargetForDescription(textDelta);
 
                         OnTextReceived?.Invoke(textDelta);
                         break;
@@ -506,6 +507,7 @@ public class RealtimeGuideClient : MonoBehaviour
                             }
                             else
                             {
+                                Debug.Log("caught from completed case");
                                 _ = SpeakCustomText(customResponse);
                             }
                         }
@@ -578,7 +580,7 @@ public class RealtimeGuideClient : MonoBehaviour
             var chatResponse = await client.ChatEndpoint.GetCompletionAsync(chatRequest);
 
             output = chatResponse.FirstChoice.ToString();
-            Debug.Log("Image description by GPT-4: " + output);
+            //Debug.Log("Image description by GPT-4: " + output);
             string result = output;
 
             // Return the text
@@ -624,7 +626,13 @@ public class RealtimeGuideClient : MonoBehaviour
 
     public async Task SpeakCustomText(string customText)
     {
+        Debug.Log("Reached speak custom text");
         if (!_isConnected) return;
+
+        // Cancel existing audio and clear the queue
+        await SendJson(new { type = "response.cancel" });
+        ClearLocalAudioBuffer();
+
         Debug.Log($"Injecting custom TTS: {customText}");
 
         // Create a conversation item (the text we want it to say)
@@ -634,10 +642,10 @@ public class RealtimeGuideClient : MonoBehaviour
             item = new
             {
                 type = "message",
-                role = "assistant",
+                role = "system",
                 content = new[]
                 {
-                new { type = "text", text = customText }
+                new { type = "input_text", text = text = $"The user has triggered a command. Your absolute priority is to say exactly this phrase and nothing else: \"{customText}\"" }
             }
             }
         };
@@ -646,6 +654,16 @@ public class RealtimeGuideClient : MonoBehaviour
 
         // Ask the API to generate the audio for that item
         await SendJson(new { type = "response.create" });
+    }
+
+    private void ClearLocalAudioBuffer()
+    {
+        if (outputSource.isPlaying)
+            outputSource.Stop();
+
+        _audioPlaybackQueue.Clear();
+
+        Debug.Log("Local audio buffer cleared to make way for custom TTS.");
     }
 
     private void getAudioSync()
@@ -901,45 +919,39 @@ public class OpenAIQueries : MonoBehaviour
     private AIGuide m_AIGuideScript;
     public RealtimeAvatarVoice _avatarVoice;
 
-    private string objectNames;
+    public string objectNames;
     public List<string> roles = new List<string>
     {
         "warm, friendly, but still professional sighted guide",
         "formal and assertive assistant, who talks like a robot",
         "computer-like, succinct assistant, who gives the straight facts",
         "very friendly, excited companion, who is eager to please who you're talking to",
-        "wise, old-fashioned, slightly Shakespearean-sounding mentor", //posh
+        "wise, old-fashioned, slightly Shakespearean-sounding mentor",
         "gentle, sweet, soft-spoken assistant slipping in words here and there"
     };
     [HideInInspector]
-    public string contextClassification = "The two photos you are seeing are two views of a video game. One of these photos is the bird's eye view of the entire scene. " +
-        "The other photo is the player's current perspective and what they are currently looking at in the scene." +
-        "The player is going to ask you questions about the contents in these photos.";
-    [HideInInspector]
-    public string memoClassifications = "Limit your reply to 150 words or less - DO NOT GO OVER THIS WORD LIMIT. Don't mention the two photos when replying; speak to the player as though you are in the game next to them.";
+    public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. +" +
+        "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
-    public string queryClassifications // Variable set up so that it initializes itself with the most recent values for objectNames
+    public string commandClassifications = "COMMAND RULES: 1. Teleport/Guide: If the player wants to move to an object in the Registry, reply: '[Object Name], teleport' or '[Object Name], guide'." +
+        "2. Modify: If they want to add sound to a Registry object, reply: '[Object Name], modify'.";
+    [HideInInspector]
+    public string guideRules = "GUIDANCE RULES: If a new object/avatar appears that is NOT in the Registry, describe it spatially (e.g., 'A new player just joined, standing to your left'). " +
+        "For navigation, give clock-face directions (e.g., 'The door is at your 2 o'clock')." +
+        "Give estimates of distance in feet (e.g., 'The trash can is 5 feet in front of you')." +
+        "Never mention 'photos' or 'images.'" +
+        "Limit: 150 words.";
+    [HideInInspector]
+    public string queryClassifications
     {
         get
-        {//succintly summarize?
-            return "Make sure to respond to all the player's questions, including interpersonal ones like how you are, what your name is, what you want to do, etc.  " +
-                   "If the player seems like they want to describe the entire scene, then succinctly summarize the scene as though you are helping the player understand the game they are in. " +
-                   "If the player seems like they want to describe a particular object in the scene, describe the object in the image they are referring to. " +
-                   "If it seems like they want to go to a particular object in the scene, tell me only the name of the object in the image they would be referring to, " +
-                   "plus the word 'teleport' after a comma if it seems like they want to teleport to the object " +
-                   "and 'guide' after a comma if they don't specify teleportation." +
-                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to go to an object." +
-                   "If it seems like they want to add a sound effect to a particular object, tell me only the name of the object in the image they would be referring to, " +
-                   "plus the word 'modify' after a comma." +
-                   "ONLY GIVE ME AN OBJECT NAME FROM THIS LIST: " + objectNames + "." +
-                   "Only do this if you're sure they want to add a sound." +
-                   "If the player asks for help in finding a particular object, give them directions for how they might want to orient themselves to face the object, as though the player is blind and cannot see any visual markers. " +
-                   "If the question the user asks doesn't fit into any of the above categories, respond to them to the best of your ability. Again, LIMIT YOUR REPLY TO 150 WORDS OR LESS - THIS IS IMPORTANT." +
-                   "Finally, please be aware that the list of objects above is NOT exhaustive of everything in the scene. There may be dynamic objects, such as other player avatars who join the scene or objects that are spawned in for minigames, which aren't represented in the list." +
-                   "If a user references or asks about an object that doesn't match anything on the list, look at the contents of the pictures sent with their query and do your best to assist them based on those. RELY ON THE LIST FIRST, AND IMAGE CONTENT ONLY IF NO OBJECTS FROM THE LIST APPLY.";
+        {
+            return "PRIORITY: If the 'VISUAL CONTEXT' shows new avatars or objects not in the Registry, alert the player immediately. " +
+                   "Use the Registry " + objectNames + " for technical commands (teleport/modify/guide). " +
+                   "For everything else, rely on the Visual Context provided in the chat history. " +
+                   "If a user asks 'What's around me?', synthesize the Registry and the Visual Context into a spatial summary.";
         }
     }
 
@@ -957,12 +969,14 @@ public class OpenAIQueries : MonoBehaviour
     public AudioClip guideVoice;
 
     // Pre-saved messages
-    [HideInInspector] public AudioClip humanApology;
-    [HideInInspector] public AudioClip robotApology;
-    [HideInInspector] public AudioClip dogApology;
-    [HideInInspector] public AudioClip caneApology;
-    [HideInInspector] public AudioClip birdApology;
-    [HideInInspector] public AudioClip invisibleApology;
+    private AudioClip humanApology;
+    private AudioClip robotApology;
+    private AudioClip dogApology;
+    private AudioClip caneApology;
+    private AudioClip birdApology;
+    private AudioClip invisibleApology;
+    private AudioClip confirmGuideAlright;
+    private AudioClip confirmGuideVeryWell;
 
     private void Start()
     {
@@ -970,7 +984,7 @@ public class OpenAIQueries : MonoBehaviour
         m_AIGuideScript = GetComponent<AIGuide>();
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadRoomDescriptions();
-        //LoadPredeterminedAudio();
+        LoadPredeterminedAudio();
     }
 
     private void Update()
@@ -990,6 +1004,56 @@ public class OpenAIQueries : MonoBehaviour
         dogApology = Resources.Load<AudioClip>("Audio/dogApologyJessica");
         birdApology = Resources.Load<AudioClip>("Audio/birdApologyGeorge");
         invisibleApology = Resources.Load<AudioClip>("Audio/invisibleApologyMatilda");
+        confirmGuideAlright = Resources.Load<AudioClip>("Audio/confirmGuideOne");
+        confirmGuideVeryWell = Resources.Load<AudioClip>("Audio/confirmGuideTwo");
+    }
+
+    public void PlayPredeterminedAudio(string audioCue)
+    {
+        // Maybe hijack the guide voice here and have it say the custom lines for guidance/modification?
+        switch(audioCue)
+        {
+            case "emptyQuery":
+                switch (role)
+                {
+                    case "warm, friendly, but still professional sighted guide":
+                        audioSource.clip = humanApology;
+                        break;
+                    case "formal and assertive assistant, who talks like a robot":
+                        audioSource.clip = robotApology;
+                        break;
+                    case "computer-like, succinct assistant, who gives the straight facts":
+                        audioSource.clip = caneApology;
+                        break;
+                    case "very friendly, excited companion, who is eager to please who you're talking to":
+                        audioSource.clip = dogApology;
+                        break;
+                    case "wise, old-fashioned, slightly Shakespearean-sounding mentor":
+                        audioSource.clip = birdApology;
+                        break;
+                    case "gentle, sweet, soft-spoken assistant slipping in words here and there":
+                        audioSource.clip = invisibleApology;
+                        break;
+                }
+                break;
+            /*case "guidance":
+                int randReply = UnityEngine.Random.Range(1, 3);
+
+                switch (randReply)
+                {
+                    case 1:
+                        audioSource.clip = confirmGuideAlright;
+                        break;
+                    case 2:
+                        audioSource.clip = confirmGuideVeryWell;
+                        break;
+                }
+                break;
+            case "modification": // Might not need this one
+                break;*/
+        }
+
+        audioSource.Play();
     }
 
     private void getAvatarVoice()
@@ -1016,12 +1080,75 @@ public class OpenAIQueries : MonoBehaviour
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
     public string CheckForGuidanceOrModification(string result)
     {
+        Debug.Log("Checking string " + result);
+
+        // Get all possible object names
+        string[] names = objectNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+        string detectedObjectName = "";
+        string detectedKeyword = "";
+
+        // Scan the result for any of our known object names
+        foreach (string name in names)
+        {
+            string trimmedName = name.Trim();
+            if (result.IndexOf(trimmedName, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                detectedObjectName = trimmedName;
+                break; // Found our object!
+            }
+        }
+
+        // If we didn't find a known object name, just return the result as normal speech
+        if (string.IsNullOrEmpty(detectedObjectName)) return result;
+
+        // Now scan the result for our command keywords
+        if (result.IndexOf("guide", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "guide";
+        else if (result.IndexOf("teleport", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "teleport";
+        else if (result.IndexOf("modify", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "modify";
+
+        // If we have BOTH an object and a keyword, trigger the logic
+        if (!string.IsNullOrEmpty(detectedKeyword))
+        {
+            if (detectedKeyword == "guide" || detectedKeyword == "teleport")
+            {
+                modeOfTransportation = detectedKeyword;
+                targetForGuidance = GameObject.Find(detectedObjectName);
+
+                if (targetForGuidance != null)
+                {
+                    // Return a randomized confirmation message
+                    string[] options = {
+                    $"Alright. Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
+                    $"Understood. If you'd like to be guided to the {detectedObjectName}, just press the grip button.",
+                    $"Very well. Squeeze the grip button and I'll lead the way to the {detectedObjectName}.",
+                    $"Okay! I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
+                };
+                    return options[UnityEngine.Random.Range(0, options.Length)];
+                }
+            }
+            else if (detectedKeyword == "modify")
+            {
+                modeOfModification = "modify";
+                targetForModification = GameObject.Find(detectedObjectName);
+
+                if (targetForModification != null)
+                {
+                    return $"Understood. I am adding an audio beacon to the {detectedObjectName} now.";
+                }
+            }
+        }
+
+        // If we get here, it means it was just a normal conversation about an object
+        // but not an actual command, so just return the original text.
+        return result;
+    }
+    /*public string CheckForGuidanceOrModification(string result)
+    {
         // If the result was a GameObject for guidance, create a custom speech message
         string[] words = result.Split(',');
         if (words.Length == 2)
         {
-            Debug.Log("Two word response for guidance or modification");
-
             // Define characters to strip: whitespace, periods, commas, and quotes
             char[] charsToTrim = { ' ', '.', ',', '"', '\'', '!', '?' };
             string secondWord = words[1].Trim(charsToTrim);
@@ -1084,27 +1211,10 @@ public class OpenAIQueries : MonoBehaviour
             }
         }
         Debug.Log("We have a target for guidance " + targetForGuidance + " or a target for modification " + targetForModification);
+        Debug.Log(result);
+
         return result;
-    }
-
-    public void CheckForTargetForDescription(string textToSend)
-    {
-        // Split objectNames by commas into an array
-        string[] names = objectNames.Split(',');
-
-        // Loop through each name in the array
-        foreach (string name in names)
-        {
-            string trimmedName = name.Trim();
-
-            if (textToSend.Contains(trimmedName))
-            {
-                targetForDescription = GameObject.Find(trimmedName);
-                Debug.Log("Found and set target: " + trimmedName);
-            }
-        }
-        Debug.Log("No matching object found in the text.");
-    }
+    }*/
 
     public void LoadRoomDescriptions()
     {

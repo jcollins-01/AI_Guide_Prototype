@@ -51,6 +51,8 @@ public class AIGuide : MonoBehaviour
             DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
 
         Debug.Log("AIGuide is active!");
+
+        InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
     }
 
     // For ensuring proper realtime data
@@ -60,9 +62,9 @@ public class AIGuide : MonoBehaviour
         m_OpenAIQueriesScript.LoadRoomDescriptions();
         m_OpenAIQueriesScript.getGuideRole();
 
-        return "You are a " + m_OpenAIQueriesScript.role + ", named Giddy. " + m_OpenAIQueriesScript.contextClassification + " " + m_OpenAIQueriesScript.memoClassifications +
-                                     " The names and descriptions of key objects are: " + m_OpenAIQueriesScript.objectClassifications +
-                                     " " + m_OpenAIQueriesScript.queryClassifications;
+        return "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
+               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications + 
+               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.commandClassifications + m_OpenAIQueriesScript.guideRules;
     }
 
     private void PresetAvatarRoles()
@@ -146,7 +148,20 @@ public class AIGuide : MonoBehaviour
     {
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
+        //StartCoroutine(CaptureImageContext());
+        yield return null;
+    }
 
+    void UpdateVisualContext()
+    {
+        if (realtimeClient._isConnected)
+        {
+            StartCoroutine(CaptureImageContext());
+        }
+    }
+
+    private IEnumerator CaptureImageContext()
+    {
         // Trigger the screenshot
         CameraSystem camSystem = FindObjectOfType<CameraSystem>();
         camSystem.CaptureScreenshot();
@@ -183,7 +198,7 @@ public class AIGuide : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Screenshot upload timed out!");
+            Debug.LogWarning("Image upload timed out");
         }
     }
 
@@ -347,7 +362,7 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
+            //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
 
             // Calls to highlight the object
             if (!isHighlighted)
@@ -376,6 +391,10 @@ public class AIGuide : MonoBehaviour
                         playEffect("subway_chime");
                         m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
                         m_OpenAIQueriesScript.targetForGuidance = null;
+                        Debug.Log("the value of guide follow script is " + m_GuideFollowScript.enabled);
+                        Debug.Log("the value of shared movement collider enabled is " + m_SharedMovementScript.guideCollider.enabled);
+                        Debug.Log("the value of player grabbing guide is " + m_SharedMovementScript.playerGrabbingGuide);
+                        Debug.Log("the value of target for guidance is " + m_OpenAIQueriesScript.targetForGuidance);
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {

@@ -42,7 +42,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
     private void AudioChunkDidChange(GuideAudioSyncModel model, string value)
     {
-        Debug.Log("Detected that the realtime audio chunk changed");
+        //Debug.Log("Detected that the realtime audio chunk changed");
         
         // If the string is empty, ignore
         if (string.IsNullOrEmpty(value)) return;

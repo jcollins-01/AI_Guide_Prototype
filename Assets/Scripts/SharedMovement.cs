@@ -68,13 +68,16 @@ public class SharedMovement : MonoBehaviour
         {
             if (playerGrabbingGuide)
             {
+                Debug.Log("Trying to move player with shared movement");
                 rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
                 leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
                 StartCoroutine(Teleport());
-                StartCoroutine(Teleport());
             }
             else
+            {
                 StopCoroutine(Teleport());
+                Debug.Log("Called to stop the shared movement");
+            } 
 
             // Debug.Log("Trigger is " + enteredTrigger);
             // Sends haptic feedback to the controller being used for "grabbing" the guide
