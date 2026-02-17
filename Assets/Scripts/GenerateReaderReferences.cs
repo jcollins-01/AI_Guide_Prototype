@@ -106,6 +106,9 @@ public class GenerateReaderReferences : MonoBehaviour
         // Loop through each object and add its name to the list
         foreach (Object obj in resources)
             spawnableNames.Add(obj.name);
+
+        // Add this manually since the target is the only dynamic prefab that isn't environment specific
+        spawnableNames.Add("Target Destination");
     }
 
     private void CheckForNewInteractables()
@@ -117,7 +120,7 @@ public class GenerateReaderReferences : MonoBehaviour
         foreach (GameObject obj in allObjects)
         {
             string cleanedName = obj.name.Replace("(Clone)", "").Trim();
-            if (obj.layer == 7 && spawnableNames.Contains(cleanedName)) // If there's an interactable that matches a name from our spawnable objects
+            if ((obj.layer == 7 || obj.layer == 13) && spawnableNames.Contains(cleanedName)) // If there's an interactable/key item (for target) that matches a name from our spawnable objects
             {
                 // Add Reader Reference if one does not exist on the object
                 GameObject readerReference = FindChildWithTag(obj, "Reader Reference");
@@ -204,7 +207,7 @@ public class GenerateReaderReferences : MonoBehaviour
         // Define the directory path where audio files are stored
         string audioDirectoryPath = resourcesPath;
 
-        Debug.Log("Audio directory is " + audioDirectoryPath);
+        //Debug.Log("Audio directory is " + audioDirectoryPath);
 
         // Check if the directory exists and contains audio files
         if (Directory.Exists(audioDirectoryPath))
