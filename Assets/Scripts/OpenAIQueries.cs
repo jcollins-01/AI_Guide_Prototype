@@ -942,8 +942,6 @@ public class OpenAIQueries : MonoBehaviour
     private AudioClip caneApology;
     private AudioClip birdApology;
     private AudioClip invisibleApology;
-    private AudioClip confirmGuideAlright;
-    private AudioClip confirmGuideVeryWell;
 
     private void Start()
     {
@@ -971,8 +969,6 @@ public class OpenAIQueries : MonoBehaviour
         dogApology = Resources.Load<AudioClip>("Audio/dogApologyJessica");
         birdApology = Resources.Load<AudioClip>("Audio/birdApologyGeorge");
         invisibleApology = Resources.Load<AudioClip>("Audio/invisibleApologyMatilda");
-        confirmGuideAlright = Resources.Load<AudioClip>("Audio/confirmGuideOne");
-        confirmGuideVeryWell = Resources.Load<AudioClip>("Audio/confirmGuideTwo");
     }
 
     public void PlayPredeterminedAudio(string audioCue)
@@ -1037,59 +1033,63 @@ public class OpenAIQueries : MonoBehaviour
 
         // Get all possible object names
         string[] names = objectNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        string[] keywords = { "guide", "teleport", "modify" };
         string detectedObjectName = "";
         string detectedKeyword = "";
 
-        // Scan the result for any of our known object names
+        // Iterate through every object and every keyword to find a combined pair
         foreach (string name in names)
         {
             string trimmedName = name.Trim();
-            if (result.IndexOf(trimmedName, StringComparison.OrdinalIgnoreCase) >= 0)
+
+            foreach (string kw in keywords)
             {
-                detectedObjectName = trimmedName;
-                break; // Found our object!
+                // We search for patterns like "Tall Building, guide" or "Tall Building guide"
+                // This ensures they are conceptually linked in the sentence.
+                string patternWithComma = $"{trimmedName}, {kw}";
+                string patternNoComma = $"{trimmedName} {kw}";
+
+                if (result.IndexOf(patternWithComma, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    result.IndexOf(patternNoComma, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    detectedObjectName = trimmedName;
+                    detectedKeyword = kw;
+                    break;
+                }
             }
+            if (!string.IsNullOrEmpty(detectedKeyword)) break;
         }
 
-        // If we didn't find a known object name, just return the result as normal speech
-        if (string.IsNullOrEmpty(detectedObjectName)) return result;
+        // If we didn't find a known object name or keyword, just return the result as normal speech
+        if (string.IsNullOrEmpty(detectedObjectName) || string.IsNullOrEmpty(detectedKeyword)) return result;
 
-        // Now scan the result for our command keywords
-        if (result.IndexOf("guide", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "guide";
-        else if (result.IndexOf("teleport", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "teleport";
-        else if (result.IndexOf("modify", StringComparison.OrdinalIgnoreCase) >= 0) detectedKeyword = "modify";
-
-        // If we have BOTH an object and a keyword, trigger the logic
-        if (!string.IsNullOrEmpty(detectedKeyword))
+        if (detectedKeyword == "guide" || detectedKeyword == "teleport")
         {
-            if (detectedKeyword == "guide" || detectedKeyword == "teleport")
+            FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
+
+            modeOfTransportation = detectedKeyword;
+            targetForGuidance = GameObject.Find(detectedObjectName);
+
+            if (targetForGuidance != null)
             {
-                FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
-
-                modeOfTransportation = detectedKeyword;
-                targetForGuidance = GameObject.Find(detectedObjectName);
-
-                if (targetForGuidance != null)
-                {
-                    // Return a randomized confirmation message
-                    string[] options = {
+                // Return a randomized confirmation message
+                string[] options = {
                     $"Alright. Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
                     $"Understood. If you'd like to be guided to the {detectedObjectName}, just press the grip button.",
                     $"Very well. Squeeze the grip button and I'll lead the way to the {detectedObjectName}.",
                     $"Okay! I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
                 };
-                    return options[UnityEngine.Random.Range(0, options.Length)];
-                }
+                return options[UnityEngine.Random.Range(0, options.Length)];
             }
-            else if (detectedKeyword == "modify")
-            {
-                modeOfModification = "modify";
-                targetForModification = GameObject.Find(detectedObjectName);
+        }
+        else if (detectedKeyword == "modify")
+        {
+            modeOfModification = "modify";
+            targetForModification = GameObject.Find(detectedObjectName);
 
-                if (targetForModification != null)
-                {
-                    return $"Understood. I am adding an audio beacon to the {detectedObjectName} now.";
-                }
+            if (targetForModification != null)
+            {
+                return $"Understood. I am adding an audio beacon to the {detectedObjectName} now.";
             }
         }
 

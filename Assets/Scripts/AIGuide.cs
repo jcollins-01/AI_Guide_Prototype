@@ -382,7 +382,6 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            Debug.Log("the value of player grabbing guide is " + m_SharedMovementScript.playerGrabbingGuide);
             //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
 
             // Calls to highlight the object
