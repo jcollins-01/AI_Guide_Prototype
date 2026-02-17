@@ -616,6 +616,25 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(new { type = "response.create" });
     }
 
+    public async Task StopAiSpeech()
+    {
+        // Tell the server to stop generating immediately
+        if (_isConnected && _webSocket.State == WebSocketState.Open)
+            await SendJson(new { type = "response.cancel" });
+
+        // Clear all local audio (the queue and the physical source)
+        ClearLocalAudioBuffer();
+
+        // Reset internal state flags
+        _isAiSpeaking = false;
+        _textBuffer.Clear();
+
+        // Reset command locks if necessary
+        _isProcessingCommand = false;
+
+        Debug.Log("AI Speech interrupted and buffers cleared.");
+    }
+
     private void ClearLocalAudioBuffer()
     {
         if (outputSource.isPlaying)

@@ -19,6 +19,7 @@ public class AIGuide : MonoBehaviour
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
     private bool isRecording = false;
+    private bool wasMutingLastFrame = false;
 
     // Variables for wizard components
     public string result;
@@ -166,6 +167,20 @@ public class AIGuide : MonoBehaviour
             playEffect("done_listening");
             isRecording = false; // Unlock
             _ = realtimeClient.StopRecordingAndCommit();
+        }
+
+        if (m_VRHandlingScript.isMutingButtonPressed)
+        {
+            // Only fire if this is the FIRST frame the button is down
+            if (!wasMutingLastFrame)
+            {
+                _ = realtimeClient.StopAiSpeech();
+                wasMutingLastFrame = true; // Lock it
+            }
+        }
+        else
+        {
+            wasMutingLastFrame = false; // Reset when the user lets go
         }
     }
 
