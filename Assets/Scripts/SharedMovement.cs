@@ -24,6 +24,8 @@ public class SharedMovement : MonoBehaviour
 
     // Variables to share player actions with other scripts
     public bool playerGrabbingGuide = false;
+    public bool movingWithGuide = false;
+    private bool waitingForGripReset = false;
     public CapsuleCollider guideCollider;
 
     // Start is called before the first frame update
@@ -66,31 +68,66 @@ public class SharedMovement : MonoBehaviour
         // If we have controllers assigned, we can send haptic impulses and try shared movement
         if (m_VRHandlingScript != null)
         {
-            if (playerGrabbingGuide)
+            // Check inputs to handle the reset logic
+            bool rightGripDown = false;
+            bool leftGripDown = false;
+            if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float rGrip)) rightGripDown = rGrip > 0.1f;
+            if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float lGrip)) leftGripDown = lGrip > 0.1f;
+
+            // Check if the player is already gripping the guide
+            if (waitingForGripReset)
             {
-                rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
-                leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
+                // If both grips are released, we can finally turn off the flag
+                if (!rightGripDown && !leftGripDown)
+                {
+                    waitingForGripReset = false;
+                    //Debug.Log("Grip reset. Ready for new input.");
+                }
+
+                // If still holding, DO NOTHING. Return immediately.
+                return;
+            }
+
+            // Otherwise, check for player grip and teleport them with the guide
+            if (playerGrabbingGuide && !movingWithGuide)
+            {
+                //Debug.Log("Trying to move player with shared movement");
                 StartCoroutine(Teleport());
+                movingWithGuide = true;
+                playerGrabbingGuide = false; // Reset here so we don't accidentally trigger it again
+            }
+
+            if (movingWithGuide)
+            {
                 StartCoroutine(Teleport());
             }
-            else
+
+            if (!movingWithGuide)
+            {
                 StopCoroutine(Teleport());
-
-            // Debug.Log("Trigger is " + enteredTrigger);
-            // Sends haptic feedback to the controller being used for "grabbing" the guide
-            if (rightXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue) && enteredTrigger)
-            {
-                if (gripValue > 0.1f)
-                    playerGrabbingGuide = true;
+                rightXRController.SendHapticImpulse(0u, 0f, 0f); // Stop haptics immediately
+                leftXRController.SendHapticImpulse(0u, 0f, 0f);
+                //Debug.Log("Called to stop the shared movement");
             }
 
-
-            if (leftXRController.TryGetFeatureValue(CommonUsages.grip, out float gripValue2) && enteredTrigger)
+            // Checks for entering the trigger of an object - will only check if waitingForGrip is false/player is not already grabbing
+            if (enteredTrigger)
             {
-                if (gripValue2 > 0.1f)
+                if (rightGripDown || leftGripDown)
                     playerGrabbingGuide = true;
             }
         }
+    }
+
+    // Resets the needed variables when a target is reached
+    public void ForceStopAndReset()
+    {
+        movingWithGuide = false;
+        playerGrabbingGuide = false;
+        waitingForGripReset = true; // Lock inputs until release
+        StopCoroutine(Teleport());
+
+        //Debug.Log("Movement forced stop. Waiting for user to release grip.");
     }
 
     void AssignRoles()
@@ -195,15 +232,21 @@ public class SharedMovement : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
-        enteredTrigger = true;
         // Debug.Log("Collision detected");
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on
         // If not, turn collisions off - the guide falls in this second category where we want to ignore collisions while we're grabbing it
         if (other.GetComponentInChildren<XRGrabInteractable>())
+        {
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other);
+            enteredTrigger = false;
+        }
         else
+        {
             Physics.IgnoreCollision(thePlayer.GetComponent<Collider>(), other, false);
+            enteredTrigger = true;
+        }
+            
 
         /*XRGrabInteractable grab = other.GetComponent<XRGrabInteractable>();
         if (grab.interactorsSelecting.Count == 1)
@@ -220,6 +263,10 @@ public class SharedMovement : MonoBehaviour
     public IEnumerator Teleport()
     {
         yield return new WaitForSeconds(0f);
+
+        // Plays a haptic impulse while teleporting
+        rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
+        leftXRController.SendHapticImpulse(1u, 0.1f, 1f);
 
         // Creates a series of directional movements that work relative to world space
         Vector3 backRelative = playerRig.transform.TransformDirection(Vector3.back);

@@ -66,7 +66,8 @@ public class TeleportationHandler : MonoBehaviour
         if (!leftIsPressed && !rightIsPressed)
         {
             // If both teleportation triggers are not being held down, reset the lastHitObject
-            m_VRScreenreaderScript.lastHitObject = null;
+            if (m_VRScreenreaderScript != null)
+                m_VRScreenreaderScript.lastHitObject = null;
         }
 
         // If the action of teleportation has completed
@@ -75,11 +76,10 @@ public class TeleportationHandler : MonoBehaviour
             Debug.Log("Teleport motion completed");
             characterController.center = new Vector3(0f, characterControllerCenterY, 0f);
             characterController.height = characterControllerHeight;
-            if (m_VRScreenreaderScript.sharedMovementFound)
+            if (m_VRScreenreaderScript != null)
             {
-                m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
-                Debug.Log("TP Handler Triggers Post Teleport Audio");
-
+                if (m_VRScreenreaderScript.sharedMovementFound)
+                    m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
             }
         }
     }

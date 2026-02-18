@@ -225,7 +225,7 @@ public class VRScreenreader : MonoBehaviour
         foreach(GameObject reference in tempReaderReferences)
         {
             readerReferences.Add(reference);
-            Debug.Log("Found reference " + reference.transform.parent.name);
+            // Debug.Log("Found reference " + reference.transform.parent.name);
         }
 
         Debug.Log("Reader refs size is " + readerReferences.Count);
