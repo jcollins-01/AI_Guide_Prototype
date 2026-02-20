@@ -438,7 +438,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         Debug.Log($"First full sentence is {_firstFullSentence}");
 
                         // Assuming a standard speaking rate of ~15 characters per second and a standard OpenAI sample rate of 24,000 Hz
-                        float estimatedSeconds = _firstFullSentence.Length / 15f - 0.8f; // substract 800 ms for the delay
+                        float estimatedSeconds = _firstFullSentence.Length / 15f - 0.4f; // substract 400 ms for the delay
                         _samplesAtFirstSentence = (int)(estimatedSeconds * 24000);
                         //Debug.Log($"Total samples needed for first sentence from assuming standard speaking is {_samplesAtFirstSentence}");
                     }
