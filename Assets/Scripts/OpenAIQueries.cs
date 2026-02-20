@@ -64,6 +64,12 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _guideAudioSourceFound = false;
     private bool _isAiSpeaking = false;
     public bool _isProcessingCommand = false;
+    private bool _foundFirstSentence = false;
+
+    // For handling special case speech
+    private string _firstFullSentence;
+    private long _totalSamplesReceived = 0;
+    private long _samplesAtFirstSentence = 0;
 
     // Microphone Variables
     private AudioClip _micClip;
@@ -203,7 +209,7 @@ public class RealtimeGuideClient : MonoBehaviour
             // Tell OpenAI we are done talking and want a response
             await SendJson(new { type = "input_audio_buffer.commit" });
             await SendJson(new { type = "response.create" });
-            Debug.Log($"Committed {_totalSamplesSent} samples and requested response.");
+            //Debug.Log($"Committed {_totalSamplesSent} samples and requested response.");
         }
         else
         {
@@ -391,6 +397,8 @@ public class RealtimeGuideClient : MonoBehaviour
                     
                     _textBuffer.Clear();
                     _isAiSpeaking = true;
+                    _foundFirstSentence = false;
+                    _totalSamplesReceived = 0;
                     break;
                 
                 case "response.audio.delta":
@@ -404,7 +412,10 @@ public class RealtimeGuideClient : MonoBehaviour
                         string base64Audio = (string)jsonObj["delta"];
                         byte[] pcmData = Convert.FromBase64String(base64Audio);
                         float[] floatData = ConvertPCM16ToFloats(pcmData);
-                        _audioPlaybackQueue.Enqueue(floatData);
+
+                        // Capture the samples of audio in this sentence -- then we can compare THAT to the audio source samples
+                        _totalSamplesReceived += floatData.Length;
+                        _audioPlaybackQueue.Enqueue(floatData); // Send the samples to be played by the audio source
 
                         // Check if we should broadcast this to the network
                         if (ShouldShareResponse() && guideAudioSync != null)
@@ -417,7 +428,21 @@ public class RealtimeGuideClient : MonoBehaviour
                 case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
                     string transcriptDelta = (string)jsonObj["delta"];
                     _textBuffer.Append(transcriptDelta);
-                    //Debug.Log($"Transcript Chunk: {transcriptDelta}");
+
+                    _firstFullSentence = "";
+                    bool isSentenceEnder = transcriptDelta.EndsWith(".") || transcriptDelta.EndsWith("!") || transcriptDelta.EndsWith("?"); ;
+                    if (isSentenceEnder && !_foundFirstSentence && _textBuffer.ToString().Length > 15)
+                    {
+                        _foundFirstSentence = true;
+                        _firstFullSentence = _textBuffer.ToString();
+                        Debug.Log($"First full sentence is {_firstFullSentence}");
+
+                        // Assuming a standard speaking rate of ~15 characters per second and a standard OpenAI sample rate of 24,000 Hz
+                        float estimatedSeconds = _firstFullSentence.Length / 15f - 0.8f; // substract 800 ms for the delay
+                        _samplesAtFirstSentence = (int)(estimatedSeconds * 24000);
+                        //Debug.Log($"Total samples needed for first sentence from assuming standard speaking is {_samplesAtFirstSentence}");
+                    }
+
                     break;
 
                 case "response.text.delta":
@@ -436,6 +461,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string textDelta = (string)jsonObj["delta"];
                         _textBuffer.Append(textDelta);
+                        Debug.Log($"Text Chunk: {textDelta}");
 
                         OnTextReceived?.Invoke(textDelta);
                         break;
@@ -457,19 +483,8 @@ public class RealtimeGuideClient : MonoBehaviour
                         // If it was actually changed into one of the random responses chosen by the CheckForGuidance... function
                         if (!string.IsNullOrEmpty(customResponse) && customResponse != remainingText)
                         {
-                            // STOP the current audio (the "Cube, guide" whisper) 
-                            outputSource.Stop();
-                            _audioPlaybackQueue = new ConcurrentQueue<float[]>();
-
-                            // Make the AI speak our custom confirmation for the user
-                            if (personalVoicesMode)
-                            {
-                                // Call ElevenLabs to speak the text instead
-                            }
-                            else
-                            {
-                                _ = SpeakCustomText(customResponse);
-                            }
+                            // Start checking the audio source continuously to see if it's hit our estimated break point
+                            StartCoroutine(MonitorAndCutoffAudio(customResponse));
                         }
                     }
                     else
@@ -487,6 +502,45 @@ public class RealtimeGuideClient : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Realtime Error, Exception Thrown: {e}");
+        }
+    }
+
+    private IEnumerator MonitorAndCutoffAudio(string customResponse)
+    {
+        //Debug.Log($"Waiting for outputSource at {outputSource.timeSamples} to reach {_samplesAtFirstSentence} samples...");
+
+        // Variables to calculate our own sample rate/cumulative timing of the audio source
+        // (since it plays in chunks, it resets its own sample timing to 0 with each chunk, so we need to add samples ourselves to time the cutoff properly)
+        float sampleRate = 24000f;
+        float targetTimeSeconds = _samplesAtFirstSentence / sampleRate;
+        float timePlayed = 0f;
+
+        // Wait until our active playback timer reaches the target time
+        while (timePlayed < targetTimeSeconds)
+        {
+            // Only advance the timer if the audio source is currently making sound - prevents network stutters/buffering from ruining the timing
+            if (outputSource.isPlaying)
+                timePlayed += Time.deltaTime;
+            else if (!_isAiSpeaking && _audioPlaybackQueue.IsEmpty)
+                break; // If the AI is done, the queue is empty, and it's not playing, break out so we don't get stuck in an infinite loop.
+            yield return null; 
+        }
+
+        // Once the threshold is crossed, execute the cutoff logic
+        //Debug.Log($"Threshold reached! Audio played for {timePlayed:F2} seconds. Stopping audio.");
+        outputSource.Stop();
+
+        // Clear the remaining buffered audio out of the queue
+        while (_audioPlaybackQueue.TryDequeue(out _)) { }
+
+        if (personalVoicesMode)
+        {
+            // Call ElevenLabs to speak the text instead
+        }
+        else
+        {
+            Debug.Log("Injecting custom audio.");
+            _ = SpeakCustomText(customResponse);
         }
     }
 
@@ -922,7 +976,7 @@ public class OpenAIQueries : MonoBehaviour
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
     public string commandClassifications = "COMMAND RULES: 1. Teleport/Guide: If the player wants to move to an object in the Registry, reply: '[Object Name], teleport' or '[Object Name], guide'." +
-        "2. Modify: If they want to add sound to a Registry object, reply: '[Object Name], modify'.";
+        "2. Modify: If they want to add sound to a Registry object, reply: '[Object Name], modify'. Place this structured reply at the end of whatever other text you generate. ";
     [HideInInspector]
     public string guideRules = "GUIDANCE RULES: If a new object/avatar appears that is NOT in the Registry, describe it spatially (e.g., 'A new player just joined, standing to your left'). " +
         "For navigation, give clock-face directions (e.g., 'The door is at your 2 o'clock')." +
@@ -1047,7 +1101,7 @@ public class OpenAIQueries : MonoBehaviour
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
     public string CheckForGuidanceOrModification(string result)
     {
-        Debug.Log("Checking string " + result);
+        //Debug.Log("Checking string " + result);
         if (FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand) return result;
 
         // Get all possible object names
@@ -1093,10 +1147,10 @@ public class OpenAIQueries : MonoBehaviour
             {
                 // Return a randomized confirmation message
                 string[] options = {
-                    $"Alright. Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
-                    $"Understood. If you'd like to be guided to the {detectedObjectName}, just press the grip button.",
-                    $"Very well. Squeeze the grip button and I'll lead the way to the {detectedObjectName}.",
-                    $"Okay! I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
+                    $"Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
+                    $"If you'd like to be guided to the {detectedObjectName}, just press the grip button.",
+                    $"Squeeze the grip button and I'll lead the way to the {detectedObjectName}.",
+                    $"I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
                 };
                 return options[UnityEngine.Random.Range(0, options.Length)];
             }
@@ -1108,7 +1162,7 @@ public class OpenAIQueries : MonoBehaviour
 
             if (targetForModification != null)
             {
-                return $"Understood. I am adding an audio beacon to the {detectedObjectName} now.";
+                return $"I have added an audio beacon to the {detectedObjectName}.";
             }
         }
 

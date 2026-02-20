@@ -61,7 +61,7 @@ public class AIGuide : MonoBehaviour
 
         Debug.Log("AIGuide is active!");
 
-        InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
     }
 
     private void LoadAudioResources()

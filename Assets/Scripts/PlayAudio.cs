@@ -107,7 +107,7 @@ public class PlayAudio : MonoBehaviour
             getSharedMovement();
             if (!sharedMovementFound && !sharedMovementLogged)
             {
-                Debug.Log("[PlayAudio] SharedMovement not ready; waiting for thePlayer/theGuide.");
+                //Debug.Log("[PlayAudio] SharedMovement not ready; waiting for thePlayer/theGuide.");
                 sharedMovementLogged = true;
             }
         }
@@ -116,7 +116,7 @@ public class PlayAudio : MonoBehaviour
             getGuideFollow();
             if (!guideFollowFound && !guideFollowLogged)
             {
-                Debug.Log("[PlayAudio] GuideFollow not ready; waiting for guide rig.");
+                //Debug.Log("[PlayAudio] GuideFollow not ready; waiting for guide rig.");
                 guideFollowLogged = true;
             }
         }
@@ -134,7 +134,7 @@ public class PlayAudio : MonoBehaviour
             if (GameObject.FindWithTag("Confederate"))
             {
                 playerAudio = GameObject.FindWithTag("Confederate").GetComponentInChildren<AudioSource>();
-                Debug.Log("[PlayAudio] Using Confederate-tagged audio source (first found).");
+                //Debug.Log("[PlayAudio] Using Confederate-tagged audio source (first found).");
             }
 
             if (playerAudio != null)
@@ -142,7 +142,7 @@ public class PlayAudio : MonoBehaviour
                 string srcLabel = $"{playerAudio.name} (tag {playerAudio.transform.tag})";
                 if (lastAudioSourceLog != srcLabel)
                 {
-                    Debug.Log($"[PlayAudio] Using audio source: {srcLabel}");
+                    //Debug.Log($"[PlayAudio] Using audio source: {srcLabel}");
                     lastAudioSourceLog = srcLabel;
                 }
             }
@@ -158,7 +158,7 @@ public class PlayAudio : MonoBehaviour
                 characterController = GetComponentInParent<CharacterController>();
                 if (characterController == null && !missingControllerLogged)
                 {
-                    Debug.Log("[PlayAudio] No CharacterController found on parent. Walking sounds will not trigger.");
+                    //Debug.Log("[PlayAudio] No CharacterController found on parent. Walking sounds will not trigger.");
                     missingControllerLogged = true;
                 }
             }
@@ -180,13 +180,14 @@ public class PlayAudio : MonoBehaviour
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
-                Debug.Log("[PlayAudio] No AudioSource assigned; skipping audio playback.");
+                //Debug.Log("[PlayAudio] No AudioSource assigned; skipping audio playback.");
                 missingAudioSourceLogged = true;
             }
         }
         else
         {
-            Debug.Log("[PlayAudio] Update skipped: neither shared movement found nor Confederate tag present.");        }
+            //Debug.Log("[PlayAudio] Update skipped: neither shared movement found nor Confederate tag present.");
+        }
     }
 
     public void CheckTeleport()
@@ -195,14 +196,14 @@ public class PlayAudio : MonoBehaviour
         {
             if (!teleportProviderMissingLogged)
             {
-                Debug.Log("[PlayAudio] TeleportationProvider missing; teleport sound will not play.");
+                //Debug.Log("[PlayAudio] TeleportationProvider missing; teleport sound will not play.");
                 teleportProviderMissingLogged = true;
             }
             return;
         }
         if (teleportEffect == null && !teleportClipMissingLogged)
         {
-            Debug.Log("[PlayAudio] Teleport clip not loaded; please check Resources/Audio/teleport.");
+            //Debug.Log("[PlayAudio] Teleport clip not loaded; please check Resources/Audio/teleport.");
             teleportClipMissingLogged = true;
         }
 
@@ -225,14 +226,14 @@ public class PlayAudio : MonoBehaviour
         {
             if (!snapTurnMissingLogged)
             {
-                Debug.Log("[PlayAudio] SnapTurn provider missing; turn sound will not play.");
+                //Debug.Log("[PlayAudio] SnapTurn provider missing; turn sound will not play.");
                 snapTurnMissingLogged = true;
             }
             return;
         }
         if (turnEffect == null && !snapTurnClipMissingLogged)
         {
-            Debug.Log("[PlayAudio] Turn clip not loaded; please check Resources/Audio/turn.");
+            //Debug.Log("[PlayAudio] Turn clip not loaded; please check Resources/Audio/turn.");
             snapTurnClipMissingLogged = true;
         }
 
@@ -249,7 +250,7 @@ public class PlayAudio : MonoBehaviour
     {
         bool isMoving = currPosition != lastPosition;
         string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
-        Debug.Log($"[PlayAudio] Player path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, sourceTag={playerAudio.transform.tag}");
+        //Debug.Log($"[PlayAudio] Player path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, sourceTag={playerAudio.transform.tag}");
         
         // HARD STOP: immediately cut walking audio when movement stops
         if (!isMoving)
@@ -305,7 +306,7 @@ public class PlayAudio : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("[PlayAudio] Player not moving; walk clip unchanged.");
+                    //Debug.Log("[PlayAudio] Player not moving; walk clip unchanged.");
                 }
             }
             else // We wait for the audio clip to finish before assigning a walk clip
@@ -348,7 +349,7 @@ public class PlayAudio : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log("[PlayAudio] Player not moving; no footstep played.");
+                        //Debug.Log("[PlayAudio] Player not moving; no footstep played.");
                     }
                 } // End if (!playerAudio.isPlaying)
             }
@@ -366,10 +367,10 @@ public class PlayAudio : MonoBehaviour
                 role = FindObjectOfType<AIGuide>().role;
             if (role != lastLoggedRole)
             {
-                Debug.Log($"[PlayAudio] Guide role detected: {role}");
+                //Debug.Log($"[PlayAudio] Guide role detected: {role}");
                 lastLoggedRole = role;
             }
-            Debug.Log($"[PlayAudio] Guide path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, role={role}");
+            //Debug.Log($"[PlayAudio] Guide path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, role={role}");
             // HARD STOP: immediately cut walking audio when movement stops
             if (!isMoving)
             {
@@ -548,7 +549,7 @@ public class PlayAudio : MonoBehaviour
                 }
                 else // If position hasn't changed
                 {
-                    Debug.Log("[PlayAudio] Guide not moving; no footstep played.");
+                    //Debug.Log("[PlayAudio] Guide not moving; no footstep played.");
                     // Used to play idle effect, but now we don't want that interfering with hearing the guide talk
                     /*playerAudio.clip = idleEffect;
                     if (!playerAudio.isPlaying)
@@ -721,7 +722,7 @@ public class PlayAudio : MonoBehaviour
                     }
                     else // If position hasn't changed
                     {
-                        Debug.Log("[PlayAudio] Guide not moving; no footstep played.");
+                        //Debug.Log("[PlayAudio] Guide not moving; no footstep played.");
                         // Used to play idle effect, but now we don't want that interfering with hearing the guide talk
                         /*playerAudio.clip = idleEffect;
                         if (!playerAudio.isPlaying)
@@ -780,7 +781,7 @@ public class PlayAudio : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[PlayAudio] Collision with {hit.transform.name} on layer {hit.gameObject.layer}; no collision SFX because layer != 8.");
+            //Debug.Log($"[PlayAudio] Collision with {hit.transform.name} on layer {hit.gameObject.layer}; no collision SFX because layer != 8.");
         }
     }
 
@@ -825,7 +826,7 @@ public class PlayAudio : MonoBehaviour
                     playerAudio = thePlayer.GetComponentInParent<AudioSource>();
 
                 sharedMovementFound = true;
-                Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, theGuide={theGuide.name}, screenreader=false");
+                //Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, theGuide={theGuide.name}, screenreader=false");
             }
             else if (thePlayer != null && FindObjectOfType<VRScreenreader>()) // Look for only player if we're in screenreader mode
             {
@@ -834,7 +835,7 @@ public class PlayAudio : MonoBehaviour
                     playerAudio = thePlayer.GetComponentInParent<AudioSource>();
 
                 sharedMovementFound = true;
-                Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, screenreader=true");
+                //Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, screenreader=true");
             }
         }
     }
@@ -850,7 +851,7 @@ public class PlayAudio : MonoBehaviour
             else
             {
                 guideFollowFound = true;
-                Debug.Log("[PlayAudio] GuideFollow located; guide audio path enabled.");
+                //Debug.Log("[PlayAudio] GuideFollow located; guide audio path enabled.");
             }
         }
     }
@@ -871,6 +872,6 @@ public class PlayAudio : MonoBehaviour
         string clipName = clip ? clip.name : "null";
         string srcName = playerAudio ? playerAudio.name : "no-source";
         string srcTag = playerAudio && playerAudio.transform ? playerAudio.transform.tag : "no-tag";
-        Debug.Log($"[PlayAudio] {reason}: clip={clipName}, source={srcName}, tag={srcTag}");
+        //Debug.Log($"[PlayAudio] {reason}: clip={clipName}, source={srcName}, tag={srcTag}");
     }
 }
