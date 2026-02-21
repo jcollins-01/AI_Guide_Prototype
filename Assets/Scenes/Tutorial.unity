@@ -2134,6 +2134,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61df0717f21ad5b4689cf48ed2215e2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rows: 2
+  columns: 2
+  floorPrefab: {fileID: 0}
+  defaultMaterial: {fileID: 0}
 --- !u!1 &1924003407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2743,6 +2747,10 @@ PrefabInstance:
       objectReference: {fileID: 1241684057453767626, guid: 2c6cca66f8edd724ba6a9900765605fa, type: 3}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: voiceDetection
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}

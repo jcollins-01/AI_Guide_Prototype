@@ -35,6 +35,17 @@ public class AIGuide : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        AddGuideComponents();
+
+        SetupRealtimeClient();
+
+        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+
+        Debug.Log("AIGuide is active!");
+    }
+
+    private void AddGuideComponents()
+    {
         // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
 
@@ -45,23 +56,9 @@ public class AIGuide : MonoBehaviour
         m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         LoadAudioResources();
 
-        // Set up realtime client
-        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
-
-        string basePrompt = GetFormattedPrompt();
-
-        // Load config and connect to client
-        realtimeClient.LoadConfig();
-        realtimeClient._voiceDetectionOn = false;
-        realtimeClient.Connect(basePrompt);
-
         // This line is needed if we use the invisible guide role
         if (role == 6)
             DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
-
-        Debug.Log("AIGuide is active!");
-
-        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
     }
 
     private void LoadAudioResources()
@@ -76,6 +73,21 @@ public class AIGuide : MonoBehaviour
         sfxAudioSource = gameObject.AddComponent<AudioSource>();
         sfxAudioSource.playOnAwake = false;
         sfxAudioSource.spatialBlend = 0; // 2D sound for UI effects (clearer)
+    }
+
+    private void SetupRealtimeClient()
+    {
+        // Set up realtime client
+        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
+
+        string basePrompt = GetFormattedPrompt();
+
+        // Load config and connect to client
+        realtimeClient.LoadConfig();
+        realtimeClient._voiceDetectionOn = (FindObjectOfType<SwitchTools>().voiceDetection) ? true : false;
+        realtimeClient.Connect(basePrompt);
+
+        realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
     }
 
     // For ensuring proper realtime data
@@ -139,36 +151,59 @@ public class AIGuide : MonoBehaviour
 
     private void RealtimeGuide()
     {
-        bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
-        bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
-
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (realtimeClient._voiceDetectionOn)
         {
-            playEffect("listening");
-            StartCoroutine(CaptureAndSendContext());
+            // Tap-to-talk mode (using voice detection to stop)
+
+            bool vrButtonDown = m_VRHandlingScript.isButtonPressed;
+            bool spaceDown = Input.GetKeyDown(KeyCode.Space);
+
+            // Start recording on press, but ONLY if we aren't already recording
+            if ((spaceDown || vrButtonDown) && !isRecording)
+            {
+                playEffect("listening");
+                isRecording = true;
+                StartCoroutine(CaptureAndSendContext());
+            }
+            // We DO NOT have a stop condition here. 
+            // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
+        }
+        else
+        {
+            // Push-to-talk mode (holding down the button)
+
+            bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
+            bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                playEffect("listening");
+                StartCoroutine(CaptureAndSendContext());
+            }
+
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                playEffect("done_listening");
+                _ = realtimeClient.StopRecordingAndCommit();
+            }
+
+            // Separate set with flag vars for VR
+            if (isDown && !isRecording)
+            {
+                playEffect("listening");
+                isRecording = true; // Lock it immediately
+                StartCoroutine(CaptureAndSendContext());
+            }
+
+            if (isUp && isRecording)
+            {
+                playEffect("done_listening");
+                isRecording = false; // Unlock
+                _ = realtimeClient.StopRecordingAndCommit();
+            }
         }
 
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            playEffect("done_listening");
-            _ = realtimeClient.StopRecordingAndCommit();
-        }
-
-        // Separate set with flag vars for VR
-        if (isDown && !isRecording)
-        {
-            playEffect("listening");
-            isRecording = true; // Lock it immediately
-            StartCoroutine(CaptureAndSendContext());
-        }
-
-        if (isUp && isRecording)
-        {
-            playEffect("done_listening");
-            isRecording = false; // Unlock
-            _ = realtimeClient.StopRecordingAndCommit();
-        }
-
+        // Logic to mute the guide
         if (m_VRHandlingScript.isMutingButtonPressed || Input.GetKeyDown(KeyCode.M))
         {
             // Only fire if this is the FIRST frame the button is down
@@ -182,6 +217,12 @@ public class AIGuide : MonoBehaviour
         {
             wasMutingLastFrame = false; // Reset when the user lets go
         }
+    }
+
+    private void HandleAutoStop()
+    {
+        playEffect("done_listening");
+        isRecording = false; // Unlock it so they can press the button again later
     }
 
     // Coroutine for sending info to the realtime API to prevent freezing in VR

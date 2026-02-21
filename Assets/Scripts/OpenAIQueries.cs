@@ -78,7 +78,12 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _isRecording;
 
     // Variables for voice detection
-    public bool _voiceDetectionOn; // Set from AIGuide
+    public bool _voiceDetectionOn = false; // Set from AIGuide
+    public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
+    private float _silenceTimer = 0f;
+    private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
+    private float _volumeThreshold = 0.02f; // Minimum volume to be considered talking
+    private bool _hasSpoken = false; // Prevents auto-stopping before a user starts talking
     private bool personalVoicesMode = false;
 
     // The Thread-Safe Queue
@@ -174,6 +179,10 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         if (!_isConnected) return;
         Debug.Log("Recording started");
+
+        // Reset variables for voice detection
+        _hasSpoken = false;
+        _silenceTimer = 0f;
 
         // Interrupt any current AI speech if the user interrupts
         outputSource.Stop();
@@ -302,10 +311,53 @@ public class RealtimeGuideClient : MonoBehaviour
 
             // MicCheck(samples);
 
+            // If we are in voice detection mode
+            if (_voiceDetectionOn)
+            {
+                ProcessVoiceActivity(samples);
+            }
+
             byte[] pcmData = ConvertFloatsToPCM16(samples);
             string base64Audio = Convert.ToBase64String(pcmData);
 
             await SendJson(new { type = "input_audio_buffer.append", audio = base64Audio });
+        }
+    }
+
+    private void ProcessVoiceActivity(float[] samples)
+    {
+        float maxVol = 0f;
+        foreach (var s in samples)
+        {
+            if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
+        }
+
+        // If volume spikes above our threshold, the user is talking
+        if (maxVol > _volumeThreshold)
+        {
+            _hasSpoken = true;
+            _silenceTimer = 0f; // Reset the silence timer
+        }
+        // If they were talking, but are now quiet
+        else if (_hasSpoken)
+        {
+            // Calculate how much time this chunk of samples represents
+            _silenceTimer += (float)samples.Length / SAMPLE_RATE;
+
+            // If they have been silent longer than our threshold
+            if (_silenceTimer > _silenceThreshold)
+            {
+                _hasSpoken = false;
+                _silenceTimer = 0f;
+
+                Debug.Log("Silence detected. Auto-stopping recording.");
+
+                // Alert AIGuide that the user has stopped speaking
+                OnAutoStopRecording?.Invoke();
+
+                // Execute the stop and commit
+                _ = StopRecordingAndCommit();
+            }
         }
     }
 
