@@ -20,6 +20,7 @@ public class AIGuide : MonoBehaviour
     private bool isHighlighted = false;
     private bool isRecording = false;
     private bool wasMutingLastFrame = false;
+    private bool wasVRButtonDownLastFrame = false;
 
     // Variables for wizard components
     public string result;
@@ -84,10 +85,13 @@ public class AIGuide : MonoBehaviour
 
         // Load config and connect to client
         realtimeClient.LoadConfig();
-        realtimeClient._voiceDetectionOn = (FindObjectOfType<SwitchTools>().voiceDetection) ? true : false;
+        realtimeClient._pushToTalkOn = (FindObjectOfType<SwitchTools>().pushToTalk) ? true : false;
+        realtimeClient._continuousVoiceOn = (FindObjectOfType<SwitchTools>().continuousVoice) ? true : false;
         realtimeClient.Connect(basePrompt);
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
+        //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
+        //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
     }
 
     // For ensuring proper realtime data
@@ -151,12 +155,17 @@ public class AIGuide : MonoBehaviour
 
     private void RealtimeGuide()
     {
-        if (realtimeClient._voiceDetectionOn)
+        bool vrButtonDown = m_VRHandlingScript.isButtonPressed;
+        bool spaceDown = Input.GetKeyDown(KeyCode.Space);
+        // For continuous voice mode
+        bool spaceUp = Input.GetKeyUp(KeyCode.Space);
+        // Create a strict "Down This Frame" trigger for VR to prevent toggle spamming
+        bool isDownThisFrame = (vrButtonDown && !wasVRButtonDownLastFrame) || spaceDown;
+        wasVRButtonDownLastFrame = vrButtonDown; // Store for next frame
+
+        if (realtimeClient._pushToTalkOn)
         {
             // Tap-to-talk mode (using voice detection to stop)
-
-            bool vrButtonDown = m_VRHandlingScript.isButtonPressed;
-            bool spaceDown = Input.GetKeyDown(KeyCode.Space);
 
             // Start recording on press, but ONLY if we aren't already recording
             if ((spaceDown || vrButtonDown) && !isRecording)
@@ -167,6 +176,28 @@ public class AIGuide : MonoBehaviour
             }
             // We DO NOT have a stop condition here. 
             // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
+        }
+        else if (realtimeClient._continuousVoiceOn)
+        {
+            if (isDownThisFrame)
+            {
+                if (!realtimeClient._isContinuousSessionActive)
+                {
+                    // Toggle ON
+                    //playEffect("listening");
+                    realtimeClient._isContinuousSessionActive = true;
+                    realtimeClient.StartRecording(); // Opens mic permanently
+                    Debug.Log("Continuous Voice Mode: ON");
+                }
+                else
+                {
+                    // Toggle OFF
+                    //playEffect("done_listening");
+                    realtimeClient._isContinuousSessionActive = false;
+                    _ = realtimeClient.StopRecordingAndCommit(); // Closes mic
+                    Debug.Log("Continuous Voice Mode: OFF");
+                }
+            }
         }
         else
         {

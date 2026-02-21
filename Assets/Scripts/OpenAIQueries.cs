@@ -78,12 +78,19 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _isRecording;
 
     // Variables for voice detection
-    public bool _voiceDetectionOn = false; // Set from AIGuide
+    public bool _continuousVoiceOn = false; // Set from AIGuide
+    [HideInInspector] public bool _isContinuousSessionActive = false;
+    public Action OnServerDetectedSpeechStart;
+    public Action OnServerDetectedSpeechStop;
+
+    public bool _pushToTalkOn = false;
     public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
     private float _silenceTimer = 0f;
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
     private float _volumeThreshold = 0.02f; // Minimum volume to be considered talking
     private bool _hasSpoken = false; // Prevents auto-stopping before a user starts talking
+
+    // Variables for other customizations
     private bool personalVoicesMode = false;
 
     // The Thread-Safe Queue
@@ -156,7 +163,8 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private async Task SendSessionUpdate(string instructions)
     {
-        //Debug.Log("Adding a new message to the realtime conversation");
+        // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
+        object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
 
         var sessionUpdate = new
         {
@@ -168,7 +176,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 voice = "alloy", // Options: alloy, echo, shimmer
                 input_audio_format = "pcm16",
                 output_audio_format = "pcm16",
-                turn_detection = (object)null //new { type = "server_vad" } // Auto-detects when user stops talking!
+                turn_detection = turnDetectionConfig
             }
         };
 
@@ -311,11 +319,9 @@ public class RealtimeGuideClient : MonoBehaviour
 
             // MicCheck(samples);
 
-            // If we are in voice detection mode
-            if (_voiceDetectionOn)
-            {
+            // If we are in push to talk mode, NOT for continuous voice or hold to speak
+            if (_pushToTalkOn && !_continuousVoiceOn)
                 ProcessVoiceActivity(samples);
-            }
 
             byte[] pcmData = ConvertFloatsToPCM16(samples);
             string base64Audio = Convert.ToBase64String(pcmData);
@@ -445,6 +451,22 @@ public class RealtimeGuideClient : MonoBehaviour
 
             switch (type)
             {
+                case "input_audio_buffer.speech_started":
+                    OnServerDetectedSpeechStart?.Invoke();
+
+                    // If the AI is talking, instantly shut it up locally
+                    if (_isAiSpeaking)
+                    {
+                        Debug.Log("Server VAD detected user interruption. Clearing local audio.");
+                        ClearLocalAudioBuffer();
+                        _isAiSpeaking = false;
+                    }
+                    break;
+
+                case "input_audio_buffer.speech_stopped":
+                    OnServerDetectedSpeechStop?.Invoke(); // The Server VAD heard the user stop speaking and is generating a response
+                    break;
+
                 case "response.created":
                     
                     _textBuffer.Clear();

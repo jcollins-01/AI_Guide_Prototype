@@ -8,7 +8,8 @@ public class SwitchTools : MonoBehaviour
     // Set these in Unity Editor to switch tools/features
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
-    public bool voiceDetection = false;
+    public bool pushToTalk = false;
+    public bool continuousVoice = false;
     [HideInInspector] public bool personalVoicesOn = false;
     
     // Start is called before the first frame update
