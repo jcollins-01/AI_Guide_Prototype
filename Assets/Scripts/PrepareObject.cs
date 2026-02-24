@@ -10,7 +10,8 @@ public class PrepareObject : MonoBehaviour
     public bool playerMidPreparation = false;
    
     private GameObject table;
-    private GameObject prepTool;
+    [HideInInspector]
+    public GameObject prepTool;
     private Vector3 prepToolSpawnPosition;
     private Quaternion prepToolSpawnRotation;
 
@@ -70,6 +71,7 @@ public class PrepareObject : MonoBehaviour
         }
 
         prepTool.gameObject.layer = 7;
+        prepTool.GetComponent<XRGrabInteractable>().enabled = true;
         prepToolSpawnPosition = prepTool.transform.position;
         prepToolSpawnRotation = prepTool.transform.rotation;
 
