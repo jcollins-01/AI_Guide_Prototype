@@ -184,7 +184,7 @@ public class AIGuide : MonoBehaviour
                 if (!realtimeClient._isContinuousSessionActive)
                 {
                     // Toggle ON
-                    //playEffect("listening");
+                    playEffect("listening");
                     realtimeClient._isContinuousSessionActive = true;
                     realtimeClient.StartRecording(); // Opens mic permanently
                     Debug.Log("Continuous Voice Mode: ON");
@@ -192,9 +192,9 @@ public class AIGuide : MonoBehaviour
                 else
                 {
                     // Toggle OFF
-                    //playEffect("done_listening");
+                    playEffect("done_listening");
                     realtimeClient._isContinuousSessionActive = false;
-                    _ = realtimeClient.StopRecordingAndCommit(); // Closes mic
+                    _ = realtimeClient.StopRecordingSilently(); // Closes mic
                     Debug.Log("Continuous Voice Mode: OFF");
                 }
             }

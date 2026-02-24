@@ -238,6 +238,29 @@ public class RealtimeGuideClient : MonoBehaviour
         _lastMicPos = 0;
     }
 
+    public async Task StopRecordingSilently()
+    {
+        Debug.Log("Closing continuous session quietly.");
+
+        _isRecording = false;
+        _isContinuousSessionActive = false;
+
+        if (Microphone.IsRecording(_micDevice))
+            Microphone.End(_micDevice);
+
+        if (_isConnected)
+        {
+            // Tell the server to forget any audio it just heard
+            await SendJson(new { type = "input_audio_buffer.clear" });
+
+            // If the AI is currently mid-sentence while you turn it off, shut it up immediately.
+            await StopAiSpeech();
+        }
+
+        _totalSamplesSent = 0;
+        _lastMicPos = 0;
+    }
+
     void Update()
     {
         // Find the guide audio sync component to share over network
@@ -323,9 +346,19 @@ public class RealtimeGuideClient : MonoBehaviour
             if (_pushToTalkOn && !_continuousVoiceOn)
                 ProcessVoiceActivity(samples);
 
+            // Noise gate to ensure we aren't treating backround noise/AI voice as user voice
+            float maxVol = 0f;
+            foreach (var s in samples) if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
+
+            // Check if the AI is generating a response or currently playing the tail end of a prior response
+            bool isOutputtingSound = _isAiSpeaking || (outputSource != null && outputSource.isPlaying);
+
+            // If the AI is speaking, and the mic isn't picking up a loud interruption, zero out the audio to prevent the AI from hearing its own echo
+            if (isOutputtingSound && maxVol < 0.15f)
+                Array.Clear(samples, 0, samples.Length); // Fills the array with 0s (pure silence)
+
             byte[] pcmData = ConvertFloatsToPCM16(samples);
             string base64Audio = Convert.ToBase64String(pcmData);
-
             await SendJson(new { type = "input_audio_buffer.append", audio = base64Audio });
         }
     }

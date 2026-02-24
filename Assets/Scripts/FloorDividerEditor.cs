@@ -1,4 +1,4 @@
-using UnityEditor;
+/*using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(FloorDivider))]
@@ -14,4 +14,4 @@ public class FloorDividerEditor : Editor
             floorDivider.GenerateFloorSections();
         }
     }
-}
+}*/
