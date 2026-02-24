@@ -40,7 +40,7 @@ public class AIGuide : MonoBehaviour
 
         SetupRealtimeClient();
 
-        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+        InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
 
         Debug.Log("AIGuide is active!");
     }
@@ -293,10 +293,10 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.uploaded)
         {
-            Debug.Log("Images uploaded. Sending to Vision API...");
+            Debug.Log("Images converted. Sending to Vision API...");
 
             // Call our helper function to get image descriptions from GPT-4
-            Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageLink, camSystem.birdsEyeImageLink);
+            Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
 
             while (!visionTask.IsCompleted)
             {

@@ -1,4 +1,4 @@
-/*using UnityEngine;
+using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
 public class FloorDivider : MonoBehaviour
@@ -94,4 +94,3 @@ public class FloorDivider : MonoBehaviour
         }
     }
 }
-*/
