@@ -278,20 +278,17 @@ public class AIGuide : MonoBehaviour
     {
         // Trigger the screenshot
         CameraSystem camSystem = FindObjectOfType<CameraSystem>();
+        camSystem.converted = false;
         camSystem.CaptureScreenshot();
 
-        // WAIT for the upload to finish without freezing the frame
-        // This loop lets the VR headset keep rendering while we wait
-        float timeout = 5.0f;
-        float timer = 0;
-        while (!camSystem.uploaded && timer < timeout)
+        // Wait for the capture to finish and convert
+        while (!camSystem.converted)
         {
-            timer += Time.deltaTime;
-            yield return null; // Wait for the next frame
+            yield return null; 
         }
 
         // Send the context once we have the links
-        if (camSystem.uploaded)
+        if (camSystem.converted)
         {
             Debug.Log("Images converted. Sending to Vision API...");
 

@@ -21,7 +21,7 @@ public class CameraSystem : MonoBehaviour
 
     // Variables for monitoring
     private bool calledCamerasToStart = false;
-    public bool uploaded = false;
+    public bool converted = false;
 
     // Start is called before the first frame update
     void Start()
@@ -69,7 +69,7 @@ public class CameraSystem : MonoBehaviour
 
     public void CaptureScreenshot()
     {
-        uploaded = false;
+        converted = false;
         StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera, "view"));
         StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera, "bird"));
     }
@@ -87,31 +87,31 @@ public class CameraSystem : MonoBehaviour
         texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
         texture.Apply();
 
-        byte[] bytes = texture.EncodeToPNG();
-        string path = Path.Combine(Application.persistentDataPath, "VR_Capture.png");
-        File.WriteAllBytes(path, bytes);
+        byte[] bytes = texture.EncodeToJPG(75);
+        // Don't need to save the images to the application for debugging anymore
+        //string path = Path.Combine(Application.persistentDataPath, "VR_Capture.png");
+        //File.WriteAllBytes(path, bytes);
+        //Debug.Log("Screenshot saved to: " + path);
 
         camera.targetTexture = null;
         RenderTexture.active = null;
         Destroy(renderTexture);
         Destroy(texture);
 
-        // Debug.Log("Screenshot saved to: " + path);
-
         // Convert images to base 64 string
         if (camera == viewpointCamera)
         {
-            Debug.Log("Converting viewpoint screenshot to base 64");
+            //Debug.Log("Converting viewpoint screenshot to base 64");
             viewpointImageBase64 = GetBase64FromBytes(bytes);
         }
             
         if (camera == birdEyeCamera)
         {
-            Debug.Log("Converting birds eye screenshot to base 64");
+            //Debug.Log("Converting birds eye screenshot to base 64");
             birdsEyeImageBase64 = GetBase64FromBytes(bytes);
         }
 
-        uploaded = true;
+        converted = true;
     }
 
     [HideInInspector] public string viewpointImageBase64;
