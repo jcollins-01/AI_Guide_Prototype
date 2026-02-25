@@ -17,6 +17,8 @@ public class RandomObjectSpawner : MonoBehaviour
     public AudioSource audioSource;
     [HideInInspector]
     public AudioClip unloaded;
+    [HideInInspector]
+    public AudioClip taskFailed;
     private AudioClip preparing;
 
     // Scripts we need access to
@@ -32,6 +34,7 @@ public class RandomObjectSpawner : MonoBehaviour
         // Assign audio components for indicating an object has been unloaded / prepared
         audioSource = this.gameObject.AddComponent<AudioSource>();
         unloaded = Resources.Load<AudioClip>("Audio/completion");
+        taskFailed = Resources.Load<AudioClip>("Audio/task-fail");
         string sceneName = SceneManager.GetActiveScene().name;
         switch (sceneName)
         {
@@ -111,13 +114,23 @@ public class RandomObjectSpawner : MonoBehaviour
         m_ShortTaskControllerScript.preparationTool.GetComponent<XRGrabInteractable>().enabled = false;
     }
 
-    public void ResetUnloadingPortion()
+    public void ResetUnloadingPortion(bool completed)
     {
         if (spawnedObject != null)
         {
             // Debug.Log("reset unloading portion of task");
-            Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
-            SpawnRandomObject();
+            if (completed)
+            {
+                Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
+                SpawnRandomObject();
+            } 
+            else
+            {
+                audioSource.clip = taskFailed;
+                audioSource.Play();
+                Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
+                SpawnRandomObject();
+            }            
         }
     }
 
@@ -170,7 +183,7 @@ public class RandomObjectSpawner : MonoBehaviour
                     m_ShortTaskControllerScript.preparationTaskScore++;
                     audioSource.clip = unloaded;
                     audioSource.Play();
-                    ResetUnloadingPortion();
+                    ResetUnloadingPortion(true);
                 }
                 else if (!spawnedObject.GetComponent<PrepareObject>().playerMidPreparation && !spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {

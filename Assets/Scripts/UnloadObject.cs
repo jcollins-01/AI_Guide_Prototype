@@ -110,7 +110,7 @@ public class UnloadObject : MonoBehaviour
         else if (trackingStarted && objectOutsideOfBag && !objectGrabbed && !raycastCheckAbovePrepTable && bagBounds != null) // object falls off table
         {
             // Debug.Log("object was not correctly placed; now destroying and spawning a new one");
-            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion();
+            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion(false);
         }
     }
 
@@ -123,7 +123,7 @@ public class UnloadObject : MonoBehaviour
         if (!onTable)
         {
             unloadConfirmRoutine = null;
-            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion();
+            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion(false);
             yield break;
         }
 
