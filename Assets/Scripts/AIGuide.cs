@@ -11,7 +11,6 @@ public class AIGuide : MonoBehaviour
     public SharedMovement m_SharedMovementScript;
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
-    public GuideAudioSync m_guideAudioSync;
     private RealtimeGuideClient realtimeClient;
 
     // Variables for monitoring
@@ -128,7 +127,6 @@ public class AIGuide : MonoBehaviour
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();
-        getAudioSync();
 
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
@@ -532,11 +530,5 @@ public class AIGuide : MonoBehaviour
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-    }
-
-    private void getAudioSync()
-    {
-        if (m_guideAudioSync == null)
-            m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 }

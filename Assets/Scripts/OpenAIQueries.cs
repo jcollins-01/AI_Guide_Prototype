@@ -420,6 +420,7 @@ public class RealtimeGuideClient : MonoBehaviour
     // Handle the incoming RPC data on Remote Clients
     public void ReceiveRemoteAudio(string base64Audio)
     {
+        Debug.Log("Received remote audio from a guide on another client - converting locally");
         // Convert Base64 back to float[] and play it
         byte[] pcmData = System.Convert.FromBase64String(base64Audio);
         float[] floatData = ConvertPCM16ToFloats(pcmData);
@@ -525,8 +526,8 @@ public class RealtimeGuideClient : MonoBehaviour
                         _audioPlaybackQueue.Enqueue(floatData); // Send the samples to be played by the audio source
 
                         // Check if we should broadcast this to the network
-                        if (ShouldShareResponse() && guideAudioSync != null)
-                            guideAudioSync.BroadcastAudioChunk(base64Audio);
+                        //if (ShouldShareResponse() && guideAudioSync != null)
+                            //guideAudioSync.BroadcastAudioChunk(floatData);
 
                         OnAudioDeltaReceived?.Invoke(base64Audio);
                         break;
@@ -1113,7 +1114,6 @@ public class OpenAIQueries : MonoBehaviour
     public string query;
     public string role;
     public AudioSource audioSource;
-    public AudioClip guideVoice;
 
     // Pre-saved messages
     private AudioClip humanApology;

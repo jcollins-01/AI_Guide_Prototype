@@ -189,7 +189,7 @@ public class ChangeAvatarRuntime : MonoBehaviour
 
     public void SetRole(int role)
     {
-        Debug.Log("Set a new role from network: " + role);
+        //Debug.Log("Set a new role from network: " + role);
         _role = role;
         UpdateAvatar(_role);
     }
