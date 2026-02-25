@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
 using System.Collections;
+using Unity.VisualScripting;
 
 public class RandomObjectSpawner : MonoBehaviour
 {
@@ -10,12 +11,14 @@ public class RandomObjectSpawner : MonoBehaviour
     public GameObject spawnedObject;
     [HideInInspector]
     public GameObject spawnSource;
-    public int timesObjectUnloaded = 0;
-    public int timesObjectPrepared = 0;
 
     // Components for audio
-    private AudioSource audioSource;
-    private AudioClip unloaded;
+    [HideInInspector]
+    public AudioSource audioSource;
+    [HideInInspector]
+    public AudioClip unloaded;
+    [HideInInspector]
+    public AudioClip taskFailed;
     private AudioClip preparing;
 
     // Scripts we need access to
@@ -31,6 +34,7 @@ public class RandomObjectSpawner : MonoBehaviour
         // Assign audio components for indicating an object has been unloaded / prepared
         audioSource = this.gameObject.AddComponent<AudioSource>();
         unloaded = Resources.Load<AudioClip>("Audio/completion");
+        taskFailed = Resources.Load<AudioClip>("Audio/task-fail");
         string sceneName = SceneManager.GetActiveScene().name;
         switch (sceneName)
         {
@@ -57,7 +61,7 @@ public class RandomObjectSpawner : MonoBehaviour
 
     private void Update()
     {
-        CheckObjectUnloaded();
+        // CheckObjectUnloaded(); // debugging function for unloading portion
         CheckObjectPrepared();
     }
 
@@ -94,8 +98,7 @@ public class RandomObjectSpawner : MonoBehaviour
         // Instantiate the random prefab on top of the spawnSource
         spawnedObject = Instantiate(randomPrefab, spawnPosition, spawnRotation);
 
-        if (m_ShortTaskControllerScript.taskName == "Unloading" && 
-            spawnedObject.GetComponent<XRGrabInteractable>() != null && 
+        if (spawnedObject.GetComponent<XRGrabInteractable>() != null &&
             spawnedObject.GetComponent<GrabRequest>() != null)
         {
             XRGrabInteractable m_XRGrabInteractableScript = spawnedObject.GetComponent<XRGrabInteractable>();
@@ -105,19 +108,37 @@ public class RandomObjectSpawner : MonoBehaviour
             StartCoroutine(StartGrabCheckAfterDelay(m_XRGrabInteractableScript, m_GrabRequestScript));
         }
 
-        // Check if the object is being spawned for unloading or preparation task
-        if (m_ShortTaskControllerScript.taskName == "Unloading")
+        m_ShortTaskControllerScript.unloadingBag.layer = 9;
+        spawnedObject.AddComponent<UnloadObject>();
+        spawnedObject.GetComponent<UnloadObject>().AssignBag(spawnSource);
+        m_ShortTaskControllerScript.preparationTool.GetComponent<XRGrabInteractable>().enabled = false;
+    }
+
+    public void ResetUnloadingPortion(bool completed)
+    {
+        if (spawnedObject != null)
         {
-            spawnedObject.AddComponent<UnloadObject>();
-            spawnedObject.GetComponent<UnloadObject>().AssignBag(spawnSource);
+            // Debug.Log("reset unloading portion of task");
+            if (completed)
+            {
+                Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
+                SpawnRandomObject();
+            } 
+            else
+            {
+                audioSource.clip = taskFailed;
+                audioSource.Play();
+                Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
+                SpawnRandomObject();
+            }            
         }
-        else // Task is Preparation
-        {
-            spawnedObject.AddComponent<PrepareObject>();
-            spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
-            // Destroy the grabbable component so the object can't be grabbed accidentally
-            Destroy(spawnedObject.GetComponentInChildren<XRGrabInteractable>());
-        }
+    }
+
+    public void StartPreparationPart()
+    {
+        spawnedObject.AddComponent<PrepareObject>();
+        spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
+        m_ShortTaskControllerScript.preparationTool.GetComponent<XRGrabInteractable>().enabled = true;
     }
 
     void CheckObjectUnloaded()
@@ -129,12 +150,7 @@ public class RandomObjectSpawner : MonoBehaviour
             {
                 if (spawnedObject.GetComponent<UnloadObject>().playerUnloadedObject)
                 {
-                    Debug.Log("Player unloaded object - destroying object and spawning a new one");
-                    Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
-                    timesObjectUnloaded++;
-                    audioSource.clip = unloaded;
-                    audioSource.Play();
-                    SpawnRandomObject();
+                    Debug.Log("Player unloaded object - moved on to prep portion of task");
                 }
             }
         }
@@ -162,19 +178,20 @@ public class RandomObjectSpawner : MonoBehaviour
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
+                    Destroy(spawnedObject.GetComponent<PrepareObject>());
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
-                    timesObjectPrepared++;
+                    m_ShortTaskControllerScript.preparationTaskScore++;
                     audioSource.clip = unloaded;
                     audioSource.Play();
-                    SpawnRandomObject();
-                } else if (!spawnedObject.GetComponent<PrepareObject>().playerMidPreparation && !spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
+                    ResetUnloadingPortion(true);
+                }
+                else if (!spawnedObject.GetComponent<PrepareObject>().playerMidPreparation && !spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     if (audioSource.isPlaying && audioSource.clip != unloaded)
                     {
                         audioSource.Stop();
                     }
                 }
-
             }
         }
     }
@@ -182,7 +199,13 @@ public class RandomObjectSpawner : MonoBehaviour
     private IEnumerator StartGrabCheckAfterDelay(XRGrabInteractable m_XRGrabInteractableScript, GrabRequest m_GrabRequestScript)
     {
         yield return new WaitForSeconds(0.6f);
-        m_GrabRequestScript.enabled = true;
-        m_XRGrabInteractableScript.enabled = true;
+        if (m_GrabRequestScript != null)
+        {
+            m_GrabRequestScript.enabled = true;
+        }
+        if (m_XRGrabInteractableScript != null)
+        {
+            m_XRGrabInteractableScript.enabled = true;
+        }
     }
 }
