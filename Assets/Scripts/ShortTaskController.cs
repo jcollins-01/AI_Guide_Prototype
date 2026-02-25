@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Rendering.PostProcessing;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class ShortTaskController : MonoBehaviour
 {
     // Variables to hold important gameobjects for controlling tasks
     public GameObject unloadingBag;
     public GameObject interactionTable;
+    public GameObject preparationTool;
     private BoxCollider bagReferenceCollider;
 
     // Bools to control set-up and take down of short tasks from editor
@@ -106,6 +108,7 @@ public class ShortTaskController : MonoBehaviour
             else
             {
                 bagReferenceCollider.gameObject.layer = 13;
+                preparationTool.GetComponent<XRGrabInteractable>().enabled = true;
 
                 Debug.Log("Taking down unloading and preparation task");
                 TakeDownUnloadAndPrepareSpawner();

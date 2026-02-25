@@ -108,6 +108,7 @@ public class RandomObjectSpawner : MonoBehaviour
         m_ShortTaskControllerScript.unloadingBag.layer = 9;
         spawnedObject.AddComponent<UnloadObject>();
         spawnedObject.GetComponent<UnloadObject>().AssignBag(spawnSource);
+        m_ShortTaskControllerScript.preparationTool.GetComponent<XRGrabInteractable>().enabled = false;
     }
 
     public void ResetUnloadingPortion()
@@ -124,6 +125,7 @@ public class RandomObjectSpawner : MonoBehaviour
     {
         spawnedObject.AddComponent<PrepareObject>();
         spawnedObject.GetComponent<PrepareObject>().AssignTable(spawnSource);
+        m_ShortTaskControllerScript.preparationTool.GetComponent<XRGrabInteractable>().enabled = true;
     }
 
     void CheckObjectUnloaded()
@@ -163,7 +165,6 @@ public class RandomObjectSpawner : MonoBehaviour
                 if (spawnedObject.GetComponent<PrepareObject>().playerPreparedObject)
                 {
                     Debug.Log("Player prepared object - destroying object and spawning a new one");
-                    spawnedObject.GetComponent<PrepareObject>().prepTool.GetComponent<XRGrabInteractable>().enabled = false;
                     Destroy(spawnedObject.GetComponent<PrepareObject>());
                     Destroy(spawnedObject); // Destroy object to ensure only one exists at a given time
                     m_ShortTaskControllerScript.preparationTaskScore++;
