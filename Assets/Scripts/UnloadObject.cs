@@ -120,7 +120,13 @@ public class UnloadObject : MonoBehaviour
 
         bool onTable = !objectGrabbed && CheckIfObjectAboveInteractionTable() && 
                             nameOfCollidingObject == m_ShortTaskControllerScript.interactionTable.name;
-        if (!onTable)
+
+        if (objectGrabbed)
+        {
+            unloadConfirmRoutine = null;
+            yield break;
+        }
+        else if (!onTable)
         {
             unloadConfirmRoutine = null;
             m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion(false);
