@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.08401692, g: 0.14952232, b: 0.57420874, a: 1}
+  m_IndirectSpecularColor: {r: 0.0839975, g: 0.14957952, b: 0.5743771, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -26499,10 +26499,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unloadingBag: {fileID: 988269204}
   interactionTable: {fileID: 2120570386}
-  taskName: 
+  preparationTool: {fileID: 7548758047298000255}
   navigationTaskActive: 0
-  unloadingTaskActive: 0
-  preparationTaskActive: 0
+  unloadingAndPreparationTaskActive: 0
   navigationTaskScore: 0
   unloadingTaskScore: 0
   preparationTaskScore: 0
