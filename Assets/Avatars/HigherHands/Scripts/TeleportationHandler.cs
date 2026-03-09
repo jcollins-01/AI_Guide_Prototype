@@ -16,7 +16,7 @@ public class TeleportationHandler : MonoBehaviour
     private XRInteractorLineVisual rightRay;
     public GameObject rightReticle;
 
-    private TeleportationProvider teleport;
+    private CustomTeleportationProvider teleport;
     private CharacterController characterController;
     private float characterControllerCenterY;
     private float characterControllerHeight;
@@ -30,13 +30,14 @@ public class TeleportationHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log("[TeleportationHandler] NEW SCRIPT VERSION LOADED");
         leftRay = leftTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         leftReticle = leftRay.reticle;
 
         rightRay = rightTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         rightReticle = rightRay.reticle;
 
-        teleport = this.gameObject.GetComponent<TeleportationProvider>();
+        teleport = this.gameObject.GetComponent<CustomTeleportationProvider>();
         characterController = this.gameObject.GetComponent<CharacterController>();
         characterControllerCenterY = 0.88f;
         characterControllerHeight = 1.6f;
