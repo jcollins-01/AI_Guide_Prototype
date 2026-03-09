@@ -107,89 +107,38 @@ public class VRScreenreader : MonoBehaviour
                     PlayHapticImpulse(controller); // Play a short haptic impulse to signal to user that they're hitting an object
                 }
 
-                // Check if multiple objects are set to true in the objectsHitByCurrentController dict, if we have multiple, prioritize just one being pressed
-                if (objectsHitByCurrentController.Count > 1)
-                {
-                    // If the left button is pressed, only check for the hits that are inside of objectsHitByLeftController
-                    // If it is inside of the objects hit by left // if the hit matched gameobjects that are inside objectsHitByLeftController, play it
-                    // Also do a check for multiple sounds playing at once - cut off the descriptions from other
-                    if (m_VRHandlingScript.isButtonPressed)
-                    {
-                        foreach (GameObject obj in objectsHitByRightController.Keys) // where the value is true
-                        {
-                            if (hit == obj) // If the object being pointed at is one of these objects
-                            {
-                                Debug.Log("The right button was pressed and it has an object");
-                                // Play audio label if the button is pressed
-                                selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                                // Need to make a helper method to determine if ANY audio source on a reference is playing 
-                                if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
-                                {
-                                    selectedAudio.Play();
-                                    playingReferenceAudio.Add(selectedAudio);
-                                    HighlightSelectedReaderReference(hit, selectedAudio);
-                                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                                    if (!selectedAudio.isPlaying) // Once the clip is done playing, clear the list 
-                                        playingReferenceAudio.Clear();
-                                }
-                                else
-                                    Debug.Log("Object found with reader reference but no assigned audio clip");
-                            }
-                            else
-                                Debug.Log("We have a hit, but it doesn't match the right button so we won't play it");
-                        }
-                    }
+                // Determine WHICH controller pressed to play screen reader audio
+                bool rightControllerWantsToPlay = (controller == rightXRController) && m_VRHandlingScript.isButtonPressed;
+                bool leftControllerWantsToPlay = (controller == leftXRController) && m_VRHandlingScript.isMutingButtonPressed;
 
-                    if (m_VRHandlingScript.isMutingButtonPressed)
-                    {
-                        foreach (GameObject obj in objectsHitByLeftController.Keys) // where the value is true
-                        {
-                            if (hit == obj) // If the object being pointed at is one of these objects
-                            {
-                                Debug.Log("The left button was pressed and it has an object");
-                                // Play audio label if the button is pressed
-                                selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                                if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
-                                {
-                                    selectedAudio.Play();
-                                    playingReferenceAudio.Add(selectedAudio);
-                                    HighlightSelectedReaderReference(hit, selectedAudio);
-                                    Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                                    if (!selectedAudio.isPlaying) // Once the clip is done playing, clear the list 
-                                        playingReferenceAudio.Clear();
-                                }
-                                else
-                                    Debug.Log("Object found with reader reference but no assigned audio clip");
-                            }
-                            else
-                                Debug.Log("We have a hit, but it doesn't match the left button so we won't play it");
-                        }
-                    }
-                }
-                else // If only one object is being pointed at, use original logic
+                // If the specific button for the specific controller aiming at this object is pressed
+                if (rightControllerWantsToPlay || leftControllerWantsToPlay)
                 {
-                    // If right or left secondary buttons are pressed (left secondary is muting button for the guide)
-                    if (m_VRHandlingScript.isButtonPressed || m_VRHandlingScript.isMutingButtonPressed)
+                    selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
+
+                    if (selectedAudio != null && selectedAudio.clip != null)
                     {
-                        // Play audio label if the button is pressed
-                        selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                        if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
+                        // Prevent restarting the exact same audio every frame the button is held
+                        if (!selectedAudio.isPlaying)
                         {
+                            // Stop any other playing descriptions before starting this one
+                            StopAllReferenceAudio();
+
                             selectedAudio.Play();
                             playingReferenceAudio.Add(selectedAudio);
                             HighlightSelectedReaderReference(hit, selectedAudio);
                             Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
-                            if (!selectedAudio.isPlaying) // Once the clip is done playing, clear the list 
-                                playingReferenceAudio.Clear();
                         }
-                        else
-                            Debug.Log("Object found with reader reference but no assigned audio clip");
+                    }
+                    else
+                    {
+                        Debug.Log("Object found with reader reference but no assigned audio clip");
                     }
                 }
             }
 
-            // Mark all objects not hit by the ray as false so that they can trigger buzzes later
-            foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
+                // Mark all objects not hit by the ray as false so that they can trigger buzzes later
+                foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
             {
                 if (obj != hit)
                     objectsHitByCurrentController[obj] = false;
@@ -203,18 +152,17 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
-    private bool CheckIfAnyAudioPlaying()
+    // Safely stops any currently playing audio and clears the tracking list
+    private void StopAllReferenceAudio()
     {
-        bool okayToPlay;
-
-        // Maybe have a constant array of the audio sources + check if they are playign
-        if (playingReferenceAudio.Count == 0)
-            okayToPlay = true;
-        else
-            okayToPlay = false;
-
-        return okayToPlay;
-
+        foreach (AudioSource audio in playingReferenceAudio)
+        {
+            if (audio != null && audio.isPlaying)
+            {
+                audio.Stop();
+            }
+        }
+        playingReferenceAudio.Clear();
     }
 
     private void PlayHapticImpulse(InputDevice controller)
@@ -252,7 +200,12 @@ public class VRScreenreader : MonoBehaviour
                     {
                         if (!selectedAudio.isPlaying)
                         {
+                            StopAllReferenceAudio(); // Cut off any currently playing object descriptions
                             selectedAudio.Play(); // Play the sound automatically as it is hit
+
+                            // Track this audio so hands can cut it off later
+                            playingReferenceAudio.Add(selectedAudio);
+
                             HighlightSelectedReaderReference(hit, selectedAudio);
                             Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                         }
@@ -284,9 +237,12 @@ public class VRScreenreader : MonoBehaviour
                 //Debug.Log("Closest environmental object is " + reference.transform.parent.name);
                 // Play the label of the closest floor / environmental object
                 selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                if (selectedAudio.isPlaying)
-                    selectedAudio.Stop(); // Stops playing if we were just using the reticle to hear this area's name
+                // Cut off everything - this properly stops object descriptions AND pre-teleport area names if we were just in another area
+                StopAllReferenceAudio();
                 selectedAudio.Play();
+
+                // Track this post-teleport audio
+                playingReferenceAudio.Add(selectedAudio);
                 Debug.Log("Now playing post audio from " + selectedAudio.transform.parent.transform.parent.name);
             }
         }
