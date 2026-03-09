@@ -234,4 +234,17 @@ public class AutomaticGuide : MonoBehaviour
             Debug.LogWarning("Target not assigned.");
         }
     }
+
+    // Cancels current teleportation
+    // Stops the agent and clears the target so the guide can follow the player again
+    public void CancelGuidance()
+    {
+        targetActive = false;
+        m_targetObject = null;
+        if (agent != null)
+        {
+            agent.ResetPath();
+            agent.isStopped = true;
+        }
+    }
 }

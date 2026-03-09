@@ -16,7 +16,7 @@ public class TeleportationHandler : MonoBehaviour
     private XRInteractorLineVisual rightRay;
     public GameObject rightReticle;
 
-    private TeleportationProvider teleport;
+    private CustomTeleportationProvider teleport;
     private CharacterController characterController;
     private float characterControllerCenterY;
     private float characterControllerHeight;
@@ -27,16 +27,21 @@ public class TeleportationHandler : MonoBehaviour
     // Bools to control for screenreader/guide switch
     private bool screenreaderActive = false;
 
+    // Global flag that allows other systems (e.g., navigation tasks)
+    // to temporarily disable teleport input and rays.
+    public static bool teleportationBlocked = false;
+
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log("[TeleportationHandler] NEW SCRIPT VERSION LOADED");
         leftRay = leftTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         leftReticle = leftRay.reticle;
 
         rightRay = rightTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         rightReticle = rightRay.reticle;
 
-        teleport = this.gameObject.GetComponent<TeleportationProvider>();
+        teleport = this.gameObject.GetComponent<CustomTeleportationProvider>();
         characterController = this.gameObject.GetComponent<CharacterController>();
         characterControllerCenterY = 0.88f;
         characterControllerHeight = 1.6f;
@@ -49,6 +54,26 @@ public class TeleportationHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // If teleportation is globally blocked, make sure rays/reticles are off and skip input.
+        if (teleportationBlocked)
+        {
+            if (leftRay != null)
+            {
+                leftRay.enabled = false;
+                if (leftReticle != null)
+                    leftReticle.SetActive(false);
+            }
+
+            if (rightRay != null)
+            {
+                rightRay.enabled = false;
+                if (rightReticle != null)
+                    rightReticle.SetActive(false);
+            }
+
+            return;
+        }
+
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);

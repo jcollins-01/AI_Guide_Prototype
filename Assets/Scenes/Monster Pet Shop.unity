@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.19586487, g: 0.23720959, b: 0.31085515, a: 1}
+  m_IndirectSpecularColor: {r: 0.19591501, g: 0.23728395, b: 0.31093928, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -22141,6 +22141,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: pushToTalk
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
       value: 1
       objectReference: {fileID: 0}
@@ -22200,7 +22204,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -41361,6 +41366,7 @@ GameObject:
   - component: {fileID: 1764185246}
   - component: {fileID: 1764185245}
   - component: {fileID: 1764185244}
+  - component: {fileID: 1764185247}
   m_Layer: 0
   m_Name: Task Manager
   m_TagString: Untagged
@@ -41424,6 +41430,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1350810866}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1764185247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764185243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dcf05f3ae2968d4780c6d18639b7029, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shortTaskController: {fileID: 1764185245}
+  rightControllerTransform: {fileID: 1885915570}
+  successClip: {fileID: 8300000, guid: a8c393024629ba84499d5f85053faa40, type: 3}
+  failureClip: {fileID: 8300000, guid: 5b1f33ebd0138004ea81f6284a9f2085, type: 3}
+  maxRaycastDistance: 10
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  csvFileName: orientation_results_petshop_xx.csv
+  showDebugPrimitive: 0
 --- !u!1 &1784332950
 GameObject:
   m_ObjectHideFlags: 0
@@ -43747,6 +43775,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.1, y: 1, z: 1.4}
   m_Center: {x: -0.0000038289795, y: 0.021491513, z: 0.7120538}
+--- !u!4 &1885915570 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6738109898680949480, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 897907175}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1893174761
 PrefabInstance:
   m_ObjectHideFlags: 0

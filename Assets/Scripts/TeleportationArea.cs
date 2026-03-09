@@ -14,11 +14,11 @@ public class TeleportationArea : BaseTeleportationInteractable
         if (teleportationProvider == null)
         {
             teleportationProvider = FindObjectOfType<CustomTeleportationProvider>();
-            Debug.Log($"[Area] Auto-linked provider: {teleportationProvider}");
+            //Debug.Log($"[Area] Auto-linked provider: {teleportationProvider}");
         }
         else
         {
-            Debug.Log($"[Area] Provider already set: {teleportationProvider}");
+            //Debug.Log($"[Area] Provider already set: {teleportationProvider}");
         }
     }
 
@@ -39,6 +39,6 @@ public class TeleportationArea : BaseTeleportationInteractable
     protected override void OnDisable()
     {
         base.OnDisable();
-        Debug.Log("[Area] Disabled");
+        //Debug.Log("[Area] Disabled");
     }
 }

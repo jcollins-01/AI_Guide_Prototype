@@ -56,6 +56,9 @@ public class RandomTarget : MonoBehaviour
         previousTargetIndex = randomTargetIndex;
         GameObject target = randomTargets[randomTargetIndex];
 
+        // Set the active target name
+        target.name = "Target Destination";
+
         // Add the component to the target that is the script which determines if a player enters it
         target.AddComponent<SelectedTarget>();
         m_SelectedTargetScript = target.GetComponent<SelectedTarget>();
@@ -68,6 +71,10 @@ public class RandomTarget : MonoBehaviour
             if (m_SelectedTargetScript.playerReachedTarget)
             {
                 //Debug.Log("Player reached target - destroying SelectedTarget and choosing a new one");
+
+                // Revert the name back to inactive
+                m_SelectedTargetScript.gameObject.name = "Target Destination Inactive";
+
                 Destroy(m_SelectedTargetScript);
                 timesTargetReached++;
                 RandomTargetSelection();
@@ -91,7 +98,11 @@ public class RandomTarget : MonoBehaviour
         foreach (GameObject obj in spawnPoints)
         {
             Vector3 spawnPosition = obj.transform.position;
-            Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+            GameObject spawned = Instantiate(prefabToSpawn, spawnPosition, Quaternion.identity);
+
+            // Set the initial inactive name
+            spawned.name = "Target Destination Inactive";
+
             Debug.Log("Spawned prefab at: " + spawnPosition);
         }
     }

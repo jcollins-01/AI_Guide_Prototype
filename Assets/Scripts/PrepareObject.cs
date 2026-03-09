@@ -18,12 +18,18 @@ public class PrepareObject : MonoBehaviour
     public float requiredHoldTime = 3.0f; // Time in seconds the button must be held
     private float holdTime = 0.0f;
     private bool isToolNearby = false;
+    private float lastTimeToolWasNearby = 0.0f;
+    private float gracePeriodForPrepToolNearby = 0.25f;
+    private float maxPrepDistance = 1.0f;
 
     // Variables for XR input
     private VRHandling m_VRHandlingScript;
     private InputDevice rightXRController;
     private InputDevice leftXRController;
     private bool controllersGrabbed = false;
+
+    // Variables for scripts we need access to
+    private XRGrabInteractable m_XRGrabInteractableScript;
 
     // Start is called before the first frame update
     void Start()
@@ -95,6 +101,12 @@ public class PrepareObject : MonoBehaviour
         {
             triggerCollider.size = new Vector3(1f, 1f, 1f);
         }
+
+        m_XRGrabInteractableScript = prepTool.GetComponent<XRGrabInteractable>();
+        if (m_XRGrabInteractableScript != null)
+        {
+            m_XRGrabInteractableScript.selectExited.AddListener(ResetPrepToolIfReleased);
+        }
     }
 
     // Update is called once per frame
@@ -114,6 +126,11 @@ public class PrepareObject : MonoBehaviour
         // Create a variable to track primary button press
         bool isButtonPressed;
         rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out isButtonPressed);
+        bool recentlyInTriggerZone = (Time.time - lastTimeToolWasNearby) <= gracePeriodForPrepToolNearby;
+        bool withinDistanceToPrep = IsPrepToolWithinDistanceToPrep();
+
+        isToolNearby = recentlyInTriggerZone && withinDistanceToPrep;
+        Debug.Log($"is prep tool nearby: {isToolNearby}");
 
         if (isToolNearby && isButtonPressed)
         {
@@ -123,18 +140,13 @@ public class PrepareObject : MonoBehaviour
             // Debug.Log(holdTime);
             if (holdTime >= requiredHoldTime && !playerPreparedObject)
             {
-                XRGrabInteractable grab = prepTool.GetComponentInChildren<XRGrabInteractable>();
                 // If the prepTool is being held by user when they finish preparing
-                if (grab.isSelected)
+                if (m_XRGrabInteractableScript.isSelected)
                 {
                     // Forcefully detatch the held prepTool from whoever is holding it
-                    IXRSelectInteractor interactor = grab.firstInteractorSelecting;
-                    grab.interactionManager.SelectExit(interactor, grab);
+                    IXRSelectInteractor interactor = m_XRGrabInteractableScript.firstInteractorSelecting;
+                    m_XRGrabInteractableScript.interactionManager.SelectExit(interactor, m_XRGrabInteractableScript);
                 }
-
-                // Use prepTool spawn position and rotation to return prepTool to original spot
-                prepTool.transform.position = prepToolSpawnPosition;
-                prepTool.transform.rotation = prepToolSpawnRotation;
 
                 // Reset hold time since tool moves away too quickly for else to catch
                 holdTime = 0.0f;
@@ -153,22 +165,29 @@ public class PrepareObject : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject == prepTool)
+        if (other.gameObject == prepTool && m_XRGrabInteractableScript.isSelected)
         {
-            isToolNearby = true;
+            lastTimeToolWasNearby = Time.time;
             Debug.Log("Prep tool is close to the object.");
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    private bool IsPrepToolWithinDistanceToPrep()
     {
-        if (other.gameObject == prepTool)
-        {
-            isToolNearby = false;
-            Debug.Log("Prep tool moved away from the object.");
-        }
+        if (prepTool == null) return false;
+
+        float distance = Vector3.Distance(this.transform.position, prepTool.transform.position);
+        Debug.Log($"distance to prep tool: {distance}");
+        return distance <= maxPrepDistance;
+    }
+
+    private void ResetPrepToolIfReleased(SelectExitEventArgs args)
+    {
+        // Use prepTool spawn position and rotation to return prepTool to original spot
+        prepTool.transform.position = prepToolSpawnPosition;
+        prepTool.transform.rotation = prepToolSpawnRotation;
     }
 
     public void AssignTable(GameObject passedTable)
