@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0634741, g: 0.052032404, b: 0.056677427, a: 1}
+  m_IndirectSpecularColor: {r: 0.06349329, g: 0.052037783, b: 0.05669036, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -6447,6 +6447,7 @@ GameObject:
   - component: {fileID: 342792108}
   - component: {fileID: 342792107}
   - component: {fileID: 342792106}
+  - component: {fileID: 342792109}
   m_Layer: 0
   m_Name: Task Manager
   m_TagString: Untagged
@@ -6510,6 +6511,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 510521242}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &342792109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 342792105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dcf05f3ae2968d4780c6d18639b7029, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shortTaskController: {fileID: 342792107}
+  rightControllerTransform: {fileID: 1357755755}
+  successClip: {fileID: 8300000, guid: a8c393024629ba84499d5f85053faa40, type: 3}
+  failureClip: {fileID: 8300000, guid: 5b1f33ebd0138004ea81f6284a9f2085, type: 3}
+  maxRaycastDistance: 10
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  csvFileName: orientation_results_repairshop_xx.csv
+  showDebugPrimitive: 0
 --- !u!65 &343849862
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18479,6 +18502,11 @@ MonoBehaviour:
   minorCheckRadius: 0.12
   maxSlope: 10
   delayTimeCustom: 0.1
+--- !u!4 &1357755755 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6738109898680949480, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 1357755750}
+  m_PrefabAsset: {fileID: 0}
 --- !u!65 &1371834020
 BoxCollider:
   m_ObjectHideFlags: 0
