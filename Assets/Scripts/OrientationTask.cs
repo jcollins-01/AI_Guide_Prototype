@@ -143,17 +143,62 @@ public class OrientationTask : MonoBehaviour
             }
         }
 
-        // Cast a ray to find where the player is actually pointing in space
-        RaycastHit hit;
-        bool hasHit = Physics.Raycast(controllerPosition, controllerForward, out hit, maxRaycastDistance, raycastLayers, QueryTriggerInteraction.Collide);
+        // Cast a ray to find where the player is actually pointing in space - use RaycastAll to "see through" objects on Layer 13
+        RaycastHit[] hits = Physics.RaycastAll(controllerPosition, controllerForward, maxRaycastDistance, raycastLayers, QueryTriggerInteraction.Collide);
+
+        // Sort hits by distance (RaycastAll is not naturally ordered)
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        RaycastHit finalHit = new RaycastHit();
+        bool hasHit = false;
+        bool hitTarget = false;
+
+        foreach (var hit in hits)
+        {
+            // Ignore very close hits (less than 10cm) to avoid hitting the controller/hand itself
+            if (hit.distance < 0.1f) continue;
+
+            GameObject hitObj = hit.collider.gameObject;
+
+            // Check if the object OR its parent is on Layer 13
+            bool isLayer13 = (hitObj.layer == 13 || (hitObj.transform.parent != null && hitObj.transform.parent.gameObject.layer == 13));
+
+            // If we hit something on Layer 13...
+            if (isLayer13)
+            {
+                //Debug.Log($"<color=cyan>[Layer 13 Hit]</color> Object: {hitObj.name}");
+
+                bool foundTarget = hitObj.CompareTag("Travel Target") || (hitObj.transform.parent != null && hitObj.transform.parent.CompareTag("Travel Target"));
+
+                // ONLY accept it if it's the specific target tag AND has the selected target script on it (so other possible targets don't count)
+                if (foundTarget && hitObj.GetComponent<SelectedTarget>())
+                {
+                    //Debug.Log("<color=green>[Target Found!]</color> Hitting the specific Travel Target.");
+                    finalHit = hit;
+                    hasHit = true;
+                    hitTarget = true;
+                    break; // Stop here, we found our target!
+                }
+                // Otherwise, it's a Layer 13 blocker. Ignore it and "pass through" to the next hit.
+                //Debug.Log($"<color=yellow>[Ignoring]</color> {hitObj.name} is Layer 13 but not tagged 'Travel Target'.");
+                continue;
+            }
+
+            // If we hit something that ISN'T layer 13 (like a wall or floor), it blocks the ray normally
+            finalHit = hit;
+            hasHit = true;
+            hitTarget = false; // It's a valid hit, but not the target
+            Debug.Log("Hit something like a wall or floor that should be blocking the target ");
+            Debug.Log($"<color=red>[Blocked]</color> Ray hit '{hitObj.name}' on Layer {hitObj.layer}. Stopping ray.");
+            break;
+        }
 
         if (showDebugPrimitive)
         {
-            float rayLength = hasHit ? (hit.point - controllerPosition).magnitude : Mathf.Min(trueDistanceToTarget, maxRaycastDistance);
+            float rayLength = hasHit ? (finalHit.point - controllerPosition).magnitude : Mathf.Min(trueDistanceToTarget, maxRaycastDistance);
             if (rayLength < Mathf.Epsilon)
                 rayLength = 2f;
             Vector3 cubePosition = hasHit
-                ? hit.point
+                ? finalHit.point
                 : controllerPosition + controllerForward.normalized * rayLength;
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = cubePosition;
@@ -171,9 +216,6 @@ public class OrientationTask : MonoBehaviour
         Vector3 perpendicular = toTarget - Vector3.Dot(toTarget, d) * d;
         float distanceError = perpendicular.magnitude;
 
-        bool hitTarget = hasHit &&
-                         (hit.collider.gameObject == targetObject ||
-                          hit.collider.transform.IsChildOf(targetObject.transform));
         PlayFeedback(hitTarget, controllerPosition);
 
         int targetIndex = -1;
