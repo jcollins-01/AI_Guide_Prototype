@@ -241,6 +241,12 @@ public class AIGuide : MonoBehaviour
             if (!wasMutingLastFrame)
             {
                 _ = realtimeClient.StopAiSpeech();
+                // Failsafe: if guide is taking the user somewhere and gets stuck, mute cancels guidance and resets
+                m_AutomatedGuideScript.CancelGuidance();
+                m_GuideFollowScript.enabled = true;
+                m_SharedMovementScript.guideCollider.enabled = false;
+                m_SharedMovementScript.ForceStopAndReset();
+                m_OpenAIQueriesScript.targetForGuidance = null;
                 wasMutingLastFrame = true; // Lock it
             }
         }
