@@ -27,6 +27,10 @@ public class TeleportationHandler : MonoBehaviour
     // Bools to control for screenreader/guide switch
     private bool screenreaderActive = false;
 
+    // Global flag that allows other systems (e.g., navigation tasks)
+    // to temporarily disable teleport input and rays.
+    public static bool teleportationBlocked = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -50,6 +54,26 @@ public class TeleportationHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // If teleportation is globally blocked, make sure rays/reticles are off and skip input.
+        if (teleportationBlocked)
+        {
+            if (leftRay != null)
+            {
+                leftRay.enabled = false;
+                if (leftReticle != null)
+                    leftReticle.SetActive(false);
+            }
+
+            if (rightRay != null)
+            {
+                rightRay.enabled = false;
+                if (rightReticle != null)
+                    rightReticle.SetActive(false);
+            }
+
+            return;
+        }
+
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
