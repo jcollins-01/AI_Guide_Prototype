@@ -16,6 +16,16 @@ public class TeleportationHandler : MonoBehaviour
     private XRInteractorLineVisual rightRay;
     public GameObject rightReticle;
 
+    private XRRayInteractor leftRayInteractor;
+    private XRRayInteractor rightRayInteractor;
+
+    public LayerMask teleportRayMask;
+    private LayerMask leftNormalMask;
+    private LayerMask rightNormalMask;
+
+    private bool leftWasPressedLastFrame;
+    private bool rightWasPressedLastFrame;
+
     private CustomTeleportationProvider teleport;
     private CharacterController characterController;
     private float characterControllerCenterY;
@@ -40,6 +50,17 @@ public class TeleportationHandler : MonoBehaviour
 
         rightRay = rightTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         rightReticle = rightRay.reticle;
+
+        leftRayInteractor = leftTarget.GetComponent<XRRayInteractor>();
+        rightRayInteractor = rightTarget.GetComponent<XRRayInteractor>();
+
+        if (leftRayInteractor != null)
+            leftNormalMask = leftRayInteractor.raycastMask;
+
+        if (rightRayInteractor != null)
+            rightNormalMask = rightRayInteractor.raycastMask;
+
+        teleportRayMask = LayerMask.GetMask("Floors");
 
         teleport = this.gameObject.GetComponent<CustomTeleportationProvider>();
         characterController = this.gameObject.GetComponent<CharacterController>();
@@ -93,6 +114,22 @@ public class TeleportationHandler : MonoBehaviour
             // If both teleportation triggers are not being held down, reset the lastHitObject
             if (m_VRScreenreaderScript != null)
                 m_VRScreenreaderScript.lastHitObject = null;
+        }
+
+        if (leftRayInteractor != null)
+            leftRayInteractor.raycastMask = leftIsPressed ? teleportRayMask : leftNormalMask;
+
+        if (rightRayInteractor != null)
+            rightRayInteractor.raycastMask = rightIsPressed ? teleportRayMask : rightNormalMask;
+
+        if (leftRayInteractor != null && leftRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+        {
+            Debug.Log($"[Left Interactor] Hitting: {hit.collider.name}");
+        }
+
+        if (rightRayInteractor != null && rightRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit2))
+        {
+            Debug.Log($"[Right Interactor] Hitting: {hit2.collider.name}");
         }
 
         // If the action of teleportation has completed

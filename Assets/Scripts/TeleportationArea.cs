@@ -9,6 +9,8 @@ public class TeleportationArea : BaseTeleportationInteractable
 
     protected override void OnEnable()
     {
+        Debug.Log($"[Area] OnEnable provider = {teleportationProvider}");
+
         base.OnEnable();
 
         if (teleportationProvider == null)
@@ -24,6 +26,8 @@ public class TeleportationArea : BaseTeleportationInteractable
 
     protected override bool GenerateTeleportRequest(IXRInteractor interactor, RaycastHit hit, ref TeleportRequest request)
     {
+        Debug.Log($"[Area] GenerateTeleportRequest called. Hit = {hit.collider.name}, provider = {teleportationProvider}");
+
         if (hit.collider.CompareTag("Restricted"))
         {
             Debug.LogWarning("[Area] Cannot teleport here - restricted surface.");
