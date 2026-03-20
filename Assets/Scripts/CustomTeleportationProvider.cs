@@ -37,7 +37,6 @@ public class CustomTeleportationProvider : TeleportationProvider
     public override bool QueueTeleportRequest(TeleportRequest teleportRequest)
     {
         //Debug.Log($"[Provider] QueueTeleportRequest called. Destination = {teleportRequest.destinationPosition}");
-        Debug.Log($"[Provider] QueueTeleportRequest called on {name}");
         currentRequest = teleportRequest;
         validRequest = true;
         return true;
@@ -57,7 +56,7 @@ public class CustomTeleportationProvider : TeleportationProvider
 
     protected override void Update()
     {
-        Debug.Log($"[Provider] Update - validRequest={validRequest}, locomotionPhase={locomotionPhase}");
+        // Debug.Log($"[Provider] Update - validRequest={validRequest}, locomotionPhase={locomotionPhase}");
 
         if (!validRequest)
         {
@@ -67,32 +66,32 @@ public class CustomTeleportationProvider : TeleportationProvider
 
         if (!m_HasExclusiveLocomotion)
         {
-            Debug.Log("[Provider] Attempting BeginLocomotion()");
+            // Debug.Log("[Provider] Attempting BeginLocomotion()");
             if (!BeginLocomotion())
             {
-                Debug.Log("[Provider] BeginLocomotion() failed");
+                // Debug.Log("[Provider] BeginLocomotion() failed");
                 return;
             }
 
             m_HasExclusiveLocomotion = true;
             locomotionPhase = LocomotionPhase.Started;
             m_TimeStarted = Time.time;
-            Debug.Log("[Provider] Locomotion started successfully");
+            // Debug.Log("[Provider] Locomotion started successfully");
         }
 
         if (delayTimeCustom > 0f && Time.time - m_TimeStarted < delayTimeCustom)
         {
-            Debug.Log($"[Provider] Waiting delay ({Time.time - m_TimeStarted}/{delayTimeCustom})");
+            // Debug.Log($"[Provider] Waiting delay ({Time.time - m_TimeStarted}/{delayTimeCustom})");
             return;
         }
 
         locomotionPhase = LocomotionPhase.Moving;
-        Debug.Log("[Provider] Moving phase reached");
+        // Debug.Log("[Provider] Moving phase reached");
 
-        Debug.Log($"teleportation destination valid?: {IsTeleportDestinationValid(currentRequest.destinationPosition)}");
+        // Debug.Log($"teleportation destination valid?: {IsTeleportDestinationValid(currentRequest.destinationPosition)}");
         if (!IsTeleportDestinationValid(currentRequest.destinationPosition))
         {
-            Debug.LogWarning("[Provider] Teleport blocked by validation");
+            // Debug.LogWarning("[Provider] Teleport blocked by validation");
             EndLocomotion();
             m_HasExclusiveLocomotion = false;
             validRequest = false;
@@ -103,21 +102,21 @@ public class CustomTeleportationProvider : TeleportationProvider
         var xrOrigin = system?.xrOrigin;
         if (xrOrigin != null)
         {
-            Debug.Log("[Provider] Moving XR Origin");
+            // Debug.Log("[Provider] Moving XR Origin");
             var heightAdjustment = xrOrigin.Origin.transform.up * xrOrigin.CameraInOriginSpaceHeight;
             var cameraDestination = currentRequest.destinationPosition + heightAdjustment;
             xrOrigin.MoveCameraToWorldLocation(cameraDestination);
         }
         else
         {
-            Debug.LogWarning("[Provider] XR Origin is null!");
+            // Debug.LogWarning("[Provider] XR Origin is null!");
         }
 
         EndLocomotion();
         m_HasExclusiveLocomotion = false;
         validRequest = false;
         locomotionPhase = LocomotionPhase.Done;
-        Debug.Log("[Provider] Teleportation completed");
+        // Debug.Log("[Provider] Teleportation completed");
     }
 
     bool IsTeleportDestinationValid(Vector3 pos)
@@ -142,7 +141,7 @@ public class CustomTeleportationProvider : TeleportationProvider
 
         // 3) Major collision check (big blockers)
         Collider[] majorNearby = Physics.OverlapSphere(feetPos, checkRadius, majorObstacleLayers, QueryTriggerInteraction.Ignore);
-        Debug.Log($"[Provider] Major check at {feetPos}, found {majorNearby.Length} colliders within {checkRadius}m");
+        // Debug.Log($"[Provider] Major check at {feetPos}, found {majorNearby.Length} colliders within {checkRadius}m");
 
         foreach (Collider col in majorNearby)
         {
@@ -167,7 +166,7 @@ public class CustomTeleportationProvider : TeleportationProvider
         if (minorObstacleLayers.value != 0 && minorCheckRadius > 0f)
         {
             Collider[] minorNearby = Physics.OverlapSphere(feetPos, minorCheckRadius, minorObstacleLayers, QueryTriggerInteraction.Ignore);
-            Debug.Log($"[Provider] Minor check at {feetPos}, found {minorNearby.Length} colliders within {minorCheckRadius}m");
+            // Debug.Log($"[Provider] Minor check at {feetPos}, found {minorNearby.Length} colliders within {minorCheckRadius}m");
 
             foreach (Collider col in minorNearby)
             {
