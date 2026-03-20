@@ -13,7 +13,6 @@ using UnityEngine.SceneManagement;
 public class GenerateReaderReferences : MonoBehaviour
 {
     // Variables and resources for creating Reader References
-    private int floorsLayer = 10;
     private int keyItemsLayer = 13;
     private int interactableLayer = 7;
     private GameObject readerReferencePrefab;
@@ -73,7 +72,6 @@ public class GenerateReaderReferences : MonoBehaviour
         GetSpawnableNames();
 
         // Find all objects in both target layers
-        AddReaderReferencesToLayer(floorsLayer);
         AddReaderReferencesToLayer(keyItemsLayer);
         AddReaderReferencesToLayer(interactableLayer);
 
