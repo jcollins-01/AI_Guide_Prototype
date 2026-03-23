@@ -154,24 +154,33 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void GuideToPosition(GameObject targetObject)
     {
+        Transform selfTransform = agent.transform;
         m_targetObject = targetObject;
         Transform target = targetObject.transform;
+
+        Collider targetCollider = target.GetComponentInChildren<Collider>();
+
         if (target != null)
         {
-            // Debug.Log("We have a target passed = " + target.name);
+            Debug.Log("[Automatic Guide] We have a target passed = " + target.name);
             targetActive = true;
-            // Set the destination of the NavMeshAgent to the position of the target's transform
             agent.isStopped = false;
-            agent.SetDestination(target.position); 
+
+            Vector3 targetLocation = GetTargetLocation(targetCollider, target, selfTransform);
+            // Set destination to our determined location
+            Debug.Log("[Automatic Guide Location VER] Setting agent destination to a location.");
+            agent.SetDestination(targetLocation);
 
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
             {
+                Debug.Log("[Automatic Guide] Agent reached the target");
                 agent.ResetPath(); // Clear the destination to stop further movement
                 targetActive = false;
                 // Switch the targetForGuidance to null so guide will begin following player again
                 m_OpenAIQueriesScript.targetForGuidance = null;
             }
         }
+
         else
         {
             Debug.LogWarning("Target not assigned.");
@@ -185,46 +194,40 @@ public class AutomaticGuide : MonoBehaviour
         Transform target = targetObject.transform;
         if (target != null)
         {
-            // If the target object is one of the people avatars, take user to the gameobject of one of the people
-            switch (m_targetObject.name)
-            {
-                case "Couple By Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-                case "Couple By Southern Gazebo":
-                    m_targetObject = GameObject.Find("5_m_Talking2");
-                    break;
-                case "Huddle of People by Gazebo":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Dancing People":
-                    m_targetObject = GameObject.Find("3_f@House Dancing");
-                    break;
-                case "Western Huddle of People":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Couple by the Platform":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    break;
-                case "Couple By Puffy Tree":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-                case "Northwest Huddle of People":
-                    m_targetObject = GameObject.Find("2_f_Talking2");
-                    break;
-                case "Couple By the Yellow-Roofed Gazebo":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    break;
-                case "Couple By the Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-            }
-
-            //agent.ResetPath(); // Reset path in case we had just set a guide destination
+            CaseSpecificMoves();
+            
             targetActive = true;
             agent.isStopped = true;
-            agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
-            // Debug.Log("Moved to = " + agent.transform.position);
+            agent.ResetPath(); // Reset path in case we had just set a guide destination
+
+            // Calculate where we WANT to go (e.g., slightly offset from the target)
+            Vector3 desiredPosition = target.position + new Vector3(1.0f, 0f, 0f);
+
+            // Check if our desired position is actually on the walkable NavMesh
+            NavMeshHit hit;
+            float searchRadius = 3.0f;
+
+            if (NavMesh.SamplePosition(desiredPosition, out hit, searchRadius, NavMesh.AllAreas))
+            {
+                if (agent.Warp(hit.position))
+                {
+                    Debug.Log("Successfully warped to valid NavMesh position near " + m_targetObject.name);
+                }
+                else
+                {
+                    Debug.LogError("Agent.Warp failed to teleport to " + hit.position);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Could not find a valid NavMesh point near the desired teleport destination.");
+                // Try warping to the exact target position and let Unity try to resolve it
+                agent.Warp(target.position);
+            }
+
+            //agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
+            //Debug.Log("Moved to = " + agent.transform.position);
+
             targetActive = false;
             // Switch the targetForGuidance to null so guide will begin following player again
             m_OpenAIQueriesScript.targetForGuidance = null;
@@ -233,6 +236,58 @@ public class AutomaticGuide : MonoBehaviour
         {
             Debug.LogWarning("Target not assigned.");
         }
+    }
+
+    private Vector3 GetTargetLocation(Collider targetCollider, Transform targetTransform, Transform selfTransform)
+    {
+        Vector3 targetLocation;
+        // Lets us grab the collider instead of just the transform of an object, since the transform pivot point is often in the center of an object, far from the nav mesh
+        // If we check the collider edge, we can check for how close we are to the edge of that collider instead of getting caught in the deadZone of the pivot point between surfaces
+        if (targetCollider != null)
+        {
+            targetLocation = targetCollider.ClosestPoint(selfTransform.position);
+        }
+        else
+        {
+            targetLocation = targetTransform.position;
+        }
+
+        targetLocation.y = selfTransform.position.y;
+
+        // Send out a raycast and a sample position to check if there was a straight line (raycast) or a valid point on a nearby navmesh (sample)
+        NavMeshQueryFilter queryFilter = new NavMeshQueryFilter() { agentTypeID = agent.agentTypeID, areaMask = agent.areaMask };
+        NavMesh.Raycast(selfTransform.position, targetPosition: targetLocation, out NavMeshHit raycastHit, queryFilter);
+        NavMesh.SamplePosition(targetLocation, out NavMeshHit samplePositionHit, maxDistance: agent.radius + agent.stoppingDistance, NavMesh.AllAreas);
+
+        // If either of these hit
+        if (raycastHit.hit || samplePositionHit.hit)
+        {
+            // Figure out which of the two hits is closer and go for that one
+            NavMeshHit hit = GetClosestHit(raycastHit, samplePositionHit, targetLocation);
+            targetLocation = hit.position - (hit.position - selfTransform.position).normalized * agent.radius; // radius helps us figure out the right place to stop
+        }
+
+        return targetLocation;
+    }
+
+    private NavMeshHit GetClosestHit(NavMeshHit hit1, NavMeshHit hit2, Vector3 target)
+    {
+        // If both hit, figure out the closest one and use it
+        if (hit1.hit && hit2.hit)
+        {
+            return Vector3.Distance(hit1.position, target) <= Vector3.Distance(hit2.position, target)
+                ? hit1
+                : hit2;
+        }
+
+        // If only hit1 hit, we use hit1
+        if (hit1.hit && !hit2.hit)
+        {
+            return hit1;
+        }
+
+        // If only hit2 hit, we use hit2
+        return hit2;
     }
 
     // Cancels current teleportation
@@ -245,6 +300,44 @@ public class AutomaticGuide : MonoBehaviour
         {
             agent.ResetPath();
             agent.isStopped = true;
+        }
+    }
+
+    private void CaseSpecificMoves()
+    {
+        // If the target object is one of the people avatars, take user to the gameobject of one of the people
+        switch (m_targetObject.name)
+        {
+            case "Couple By Fountain":
+                m_targetObject = GameObject.Find("6_m_Talking1");
+                break;
+            case "Couple By Southern Gazebo":
+                m_targetObject = GameObject.Find("5_m_Talking2");
+                break;
+            case "Huddle of People by Gazebo":
+                m_targetObject = GameObject.Find("3_f_Talking");
+                break;
+            case "Dancing People":
+                m_targetObject = GameObject.Find("3_f@House Dancing");
+                break;
+            case "Western Huddle of People":
+                m_targetObject = GameObject.Find("3_f_Talking");
+                break;
+            case "Couple by the Platform":
+                m_targetObject = GameObject.Find("4_m_Talking1");
+                break;
+            case "Couple By Puffy Tree":
+                m_targetObject = GameObject.Find("6_m_Talking1");
+                break;
+            case "Northwest Huddle of People":
+                m_targetObject = GameObject.Find("2_f_Talking2");
+                break;
+            case "Couple By the Yellow-Roofed Gazebo":
+                m_targetObject = GameObject.Find("4_m_Talking1");
+                break;
+            case "Couple By the Fountain":
+                m_targetObject = GameObject.Find("6_m_Talking1");
+                break;
         }
     }
 }

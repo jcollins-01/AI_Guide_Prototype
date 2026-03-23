@@ -41,7 +41,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         // Safety check: Only the owner of the Guide should broadcast its audio - others just receive
         if (model == null || !_isHost) return;
 
-        Debug.Log("Reached Broadcast Audio Chunk");
+        //Debug.Log("Reached Broadcast Audio Chunk");
 
         while (_threadSafeQueue.TryDequeue(out float[] pcmData))
         {
@@ -76,12 +76,12 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
             // Sync the IDs so remote clients know where to listen
             model.streamID = _inputStream.StreamID();
             model.clientID = realtime.room.clientID;
-            Debug.Log($"[GuideAudio] Created Stream ID: {model.streamID}");
+            //Debug.Log($"[GuideAudio] Created Stream ID: {model.streamID}");
         }
 
         // Feed the raw PCM data into Normcore's compressed voice network
         _inputStream.SendRawAudioData(chunk);
-        Debug.Log("Sending raw audio data via Normcore");
+        //Debug.Log("Sending raw audio data via Normcore");
     }
 
     // --- RECEIVING (Called on Remote Clients) ---
@@ -111,7 +111,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 
         // Fetch the corresponding audio stream from the network
         _outputStream = realtime.room.GetAudioOutputStream(model.clientID, value);
-        Debug.Log($"[GuideAudio] Connected to Remote Stream: {value}");
+        //Debug.Log($"[GuideAudio] Connected to Remote Stream: {value}");
     }
 
     // --- PLAYBACK (Native Unity Audio Pipeline) ---
@@ -130,7 +130,7 @@ public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
         if (_outputStream != null)
         {
             _outputStream.GetAudioData(data);
-            Debug.Log("Playing audio data received remotely via Normcore");
+            //Debug.Log("Playing audio data received remotely via Normcore");
         }
         else
         {
