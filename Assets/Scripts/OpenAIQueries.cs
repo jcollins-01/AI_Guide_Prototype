@@ -389,7 +389,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 _hasSpoken = false;
                 _silenceTimer = 0f;
 
-                Debug.Log("Silence detected. Auto-stopping recording.");
+                //Debug.Log("Silence detected. Auto-stopping recording.");
 
                 // Alert AIGuide that the user has stopped speaking
                 OnAutoStopRecording?.Invoke();
@@ -543,7 +543,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         _foundFirstSentence = true;
                         _firstFullSentence = _textBuffer.ToString();
-                        Debug.Log($"First full sentence is {_firstFullSentence}");
+                        //Debug.Log($"First full sentence is {_firstFullSentence}");
 
                         // Assuming a standard speaking rate of ~15 characters per second and a standard OpenAI sample rate of 24,000 Hz
                         float estimatedSeconds = _firstFullSentence.Length / 15f - 0.4f; // substract 400 ms for the delay
@@ -748,14 +748,14 @@ public class RealtimeGuideClient : MonoBehaviour
 
     public async Task SpeakCustomText(string customText)
     {
-        Debug.Log("Reached speak custom text");
+        //Debug.Log("Reached speak custom text");
         if (!_isConnected) return;
 
         // Cancel existing audio and clear the queue
         await SendJson(new { type = "response.cancel" });
         ClearLocalAudioBuffer();
 
-        Debug.Log($"Injecting custom TTS: {customText}");
+        //Debug.Log($"Injecting custom TTS: {customText}");
 
         // Create a conversation item (the text we want it to say)
         var textItem = new
@@ -804,14 +804,14 @@ public class RealtimeGuideClient : MonoBehaviour
 
         _audioPlaybackQueue.Clear();
 
-        Debug.Log("Local audio buffer cleared to make way for custom TTS.");
+        //Debug.Log("Local audio buffer cleared to make way for custom TTS.");
     }
 
     // Call this when the user starts their voice input (button down)
     public void ResetCommandLock()
     {
         _isProcessingCommand = false;
-        Debug.Log("Lock Reset: Ready for new user commands.");
+        //Debug.Log("Lock Reset: Ready for new user commands.");
     }
 
     private void getAudioSync()

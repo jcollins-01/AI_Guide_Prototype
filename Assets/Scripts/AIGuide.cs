@@ -294,7 +294,7 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.converted)
         {
-            Debug.Log("Images converted. Sending to Vision API...");
+            //Debug.Log("Images converted. Sending to Vision API...");
 
             // Call our helper function to get image descriptions from GPT-4
             Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
@@ -512,11 +512,8 @@ public class AIGuide : MonoBehaviour
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
-                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                        playEffect("subway_chime");
-                        m_SharedMovementScript.ForceStopAndReset();
-                        m_OpenAIQueriesScript.targetForGuidance = null;
+                        //Debug.Log("Guide reached the object");
+                        StartCoroutine(DelayGuideStopDuringTeleport());
                     }
                 }
             }
@@ -530,6 +527,16 @@ public class AIGuide : MonoBehaviour
                 m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
             }
         }
+    }
+
+    IEnumerator DelayGuideStopDuringTeleport()
+    {
+        yield return new WaitForSeconds(1f);
+        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+        playEffect("subway_chime");
+        m_SharedMovementScript.ForceStopAndReset();
+        m_OpenAIQueriesScript.targetForGuidance = null;
     }
 
     private void getSharedMovement()

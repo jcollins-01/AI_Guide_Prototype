@@ -154,33 +154,30 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void GuideToPosition(GameObject targetObject)
     {
-        Transform selfTransform = agent.transform;
         m_targetObject = targetObject;
         Transform target = targetObject.transform;
-
+        Transform selfTransform = agent.transform;
         Collider targetCollider = target.GetComponentInChildren<Collider>();
 
         if (target != null)
         {
-            Debug.Log("[Automatic Guide] We have a target passed = " + target.name);
+            //Debug.Log("[Automatic Guide] We have a target passed = " + target.name);
             targetActive = true;
             agent.isStopped = false;
 
             Vector3 targetLocation = GetTargetLocation(targetCollider, target, selfTransform);
             // Set destination to our determined location
-            Debug.Log("[Automatic Guide Location VER] Setting agent destination to a location.");
             agent.SetDestination(targetLocation);
 
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
             {
-                Debug.Log("[Automatic Guide] Agent reached the target");
+                Debug.Log("[Automatic Guide] Agent reached the target" + target.name + " via guidance");
                 agent.ResetPath(); // Clear the destination to stop further movement
                 targetActive = false;
                 // Switch the targetForGuidance to null so guide will begin following player again
                 m_OpenAIQueriesScript.targetForGuidance = null;
             }
         }
-
         else
         {
             Debug.LogWarning("Target not assigned.");
@@ -192,42 +189,35 @@ public class AutomaticGuide : MonoBehaviour
     {
         m_targetObject = targetObject;
         Transform target = targetObject.transform;
+        Transform selfTransform = agent.transform;
+        Collider targetCollider = target.GetComponentInChildren<Collider>();
+
         if (target != null)
         {
             CaseSpecificMoves();
-            
+
+            //Debug.Log("[Automatic Guide] We have a target passed = " + target.name);
             targetActive = true;
-            agent.isStopped = true;
+            agent.isStopped = true; // in guidance, it's false
             agent.ResetPath(); // Reset path in case we had just set a guide destination
 
-            // Calculate where we WANT to go (e.g., slightly offset from the target)
-            Vector3 desiredPosition = target.position + new Vector3(1.0f, 0f, 0f);
+            Vector3 targetLocation = GetTargetLocation(targetCollider, target, selfTransform);
+            //Debug.Log("Trying to warp to target at location " + targetLocation);
 
-            // Check if our desired position is actually on the walkable NavMesh
-            NavMeshHit hit;
-            float searchRadius = 3.0f;
-
-            if (NavMesh.SamplePosition(desiredPosition, out hit, searchRadius, NavMesh.AllAreas))
+            // Warp to our determined location
+            if (agent.Warp(targetLocation))
             {
-                if (agent.Warp(hit.position))
-                {
-                    Debug.Log("Successfully warped to valid NavMesh position near " + m_targetObject.name);
-                }
-                else
-                {
-                    Debug.LogError("Agent.Warp failed to teleport to " + hit.position);
-                }
+                //Debug.Log("Successfully warped to valid NavMesh position " + targetLocation + " near " + m_targetObject.name);
+                //Debug.Log("New agent location is " + agent.transform.position);
             }
             else
             {
-                Debug.LogWarning("Could not find a valid NavMesh point near the desired teleport destination.");
+                Debug.Log("Could not find a valid location to warp to");
                 // Try warping to the exact target position and let Unity try to resolve it
                 agent.Warp(target.position);
             }
 
-            //agent.transform.position = target.position + new Vector3(0.1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
-            //Debug.Log("Moved to = " + agent.transform.position);
-
+            Debug.Log("[Automatic Guide] Agent reached the target " + target.name + " via teleportation");
             targetActive = false;
             // Switch the targetForGuidance to null so guide will begin following player again
             m_OpenAIQueriesScript.targetForGuidance = null;

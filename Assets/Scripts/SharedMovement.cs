@@ -91,7 +91,7 @@ public class SharedMovement : MonoBehaviour
             // Otherwise, check for player grip and teleport them with the guide
             if (playerGrabbingGuide && !movingWithGuide)
             {
-                //Debug.Log("Trying to move player with shared movement");
+                Debug.Log("Trying to move player with shared movement");
                 StartCoroutine(Teleport());
                 movingWithGuide = true;
                 playerGrabbingGuide = false; // Reset here so we don't accidentally trigger it again
@@ -263,6 +263,8 @@ public class SharedMovement : MonoBehaviour
     public IEnumerator Teleport()
     {
         yield return new WaitForSeconds(0f);
+
+        //Debug.Log("[Shared Movement, teleport] At this point in time, guide position is " + theGuide.transform.position);
 
         // Plays a haptic impulse while teleporting
         rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
