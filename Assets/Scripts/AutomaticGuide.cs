@@ -205,17 +205,7 @@ public class AutomaticGuide : MonoBehaviour
             //Debug.Log("Trying to warp to target at location " + targetLocation);
 
             // Warp to our determined location
-            if (agent.Warp(targetLocation))
-            {
-                //Debug.Log("Successfully warped to valid NavMesh position " + targetLocation + " near " + m_targetObject.name);
-                //Debug.Log("New agent location is " + agent.transform.position);
-            }
-            else
-            {
-                Debug.Log("Could not find a valid location to warp to");
-                // Try warping to the exact target position and let Unity try to resolve it
-                agent.Warp(target.position);
-            }
+            TeleportNextTo(target.gameObject);
 
             Debug.Log("[Automatic Guide] Agent reached the target " + target.name + " via teleportation");
             targetActive = false;
@@ -278,6 +268,50 @@ public class AutomaticGuide : MonoBehaviour
 
         // If only hit2 hit, we use hit2
         return hit2;
+    }
+
+    public void TeleportNextTo(GameObject targetObject, float padding = 1.5f)
+    {
+        if (targetObject == null || agent == null) return;
+
+        Vector3 targetPos = targetObject.transform.position;
+        Vector3 finalPosition = targetPos;
+
+        // Try to get the size of the object to know how far to stay away
+        float offsetDistance = padding;
+        Collider targetCollider = targetObject.GetComponent<Collider>();
+
+        if (targetCollider != null)
+        {
+            // Use the largest extent (width/depth) so we stay outside the long side of big objects
+            offsetDistance += Mathf.Max(targetCollider.bounds.extents.x, targetCollider.bounds.extents.z);
+        }
+
+        // Determine the direction (warp to the side closest to the agent's current position)
+        Vector3 directionToAgent = (agent.transform.position - targetPos).normalized;
+
+        // If the agent and target are at the exact same spot, default to 'Forward'
+        if (directionToAgent == Vector3.zero) directionToAgent = Vector3.forward;
+
+        Vector3 offsetPoint = targetPos + (directionToAgent * offsetDistance);
+
+        // Find the nearest NavMesh point to our offset point
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(offsetPoint, out hit, 5.0f, NavMesh.AllAreas))
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+
+            if (agent.Warp(hit.position))
+            {
+                Debug.Log($"Successfully warped next to {targetObject.name} at {hit.position}");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Could not find a valid NavMesh point next to the object. Falling back to simple Warp.");
+            agent.Warp(offsetPoint); // Force it and hope for the best
+        }
     }
 
     // Cancels current teleportation
