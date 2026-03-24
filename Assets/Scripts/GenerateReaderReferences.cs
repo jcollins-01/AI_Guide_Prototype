@@ -16,6 +16,7 @@ public class GenerateReaderReferences : MonoBehaviour
     private int floorsLayer = 10;
     private int keyItemsLayer = 13;
     private int interactableLayer = 7;
+    private int boundsLayer = 15;
     private GameObject readerReferencePrefab;
     private List<string> spawnableNames = new List<string>();
     public bool audioAssigned = false;
@@ -74,6 +75,7 @@ public class GenerateReaderReferences : MonoBehaviour
 
         // Find all objects in both target layers
         AddReaderReferencesToLayer(floorsLayer);
+        AddReaderReferencesToLayer(boundsLayer);
         AddReaderReferencesToLayer(keyItemsLayer);
         AddReaderReferencesToLayer(interactableLayer);
 
@@ -171,7 +173,7 @@ public class GenerateReaderReferences : MonoBehaviour
                             if (audioSource.clip == null)
                             {
                                 audioSource.clip = audioClip;
-                                Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
+                                //Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
                                 
                                 // If we have already gone through our first round of audio assignment,
                                 // Any object being assigned is a dynamic interactable
@@ -216,7 +218,7 @@ public class GenerateReaderReferences : MonoBehaviour
 
             if (audioFiles.Length > 0)
             {
-                Debug.Log("Audio files exist in this directory.");
+                //Debug.Log("Audio files exist in this directory.");
 
                 foreach (string filePath in audioFiles)
                 {
@@ -323,7 +325,7 @@ public class GenerateReaderReferences : MonoBehaviour
                 // Check if the audio already exists
                 if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
                 {
-                    Debug.Log($"Audio for {objectName} already exists, skipping generation.");
+                    //Debug.Log($"Audio for {objectName} already exists, skipping generation.");
                     continue; // Skip the request to PlayHT
                 }
 
@@ -344,7 +346,7 @@ public class GenerateReaderReferences : MonoBehaviour
                 // Check if the audio already exists
                 if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
                 {
-                    Debug.Log($"Audio for {objectName} already exists, skipping generation.");
+                    //Debug.Log($"Audio for {objectName} already exists, skipping generation.");
                     continue; // Skip the request to PlayHT
                 }
 
@@ -360,7 +362,7 @@ public class GenerateReaderReferences : MonoBehaviour
     // Version that uses OpenAI default voices
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        Debug.Log("Reaching save audio");
+        Debug.Log($"Trying to generate audio for {objectName}");
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
         var ttsRequest = new SpeechRequest(description, model: "tts-1", voice: SpeechVoice.Alloy, responseFormat: SpeechResponseFormat.MP3);

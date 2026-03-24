@@ -417,18 +417,15 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    // This is never actually used to highlight objects of targeted description - leave it for now, since a user probably wants to see the normal appearance of what's being described
     private void checkDescriptionRequests()
     {
         //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
-        // Checking if a target GameObject was selected to be modified
+        // Checking if a target GameObject was selected to be descsribed
         if (m_OpenAIQueriesScript.targetForDescription != null)
         {
             // Call to highlight the game object being described while the guide is talking
             Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
-
-            // If the guide is invisible, see if the local audio player has stopped - else, check the networked one
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription);
 
             m_OpenAIQueriesScript.targetForDescription = null;
         }

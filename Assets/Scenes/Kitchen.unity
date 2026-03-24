@@ -3139,7 +3139,7 @@ GameObject:
   - component: {fileID: 117633313}
   - component: {fileID: 117633312}
   - component: {fileID: 117633311}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Entered main street and city center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8030,7 +8030,7 @@ GameObject:
   - component: {fileID: 345822023}
   - component: {fileID: 345822022}
   - component: {fileID: 345822021}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Lake-side entrance to residential area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9683,7 +9683,7 @@ GameObject:
   - component: {fileID: 435430846}
   - component: {fileID: 435430845}
   - component: {fileID: 435430844}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near warehouse parking lot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -10059,7 +10059,7 @@ GameObject:
   - component: {fileID: 451709000}
   - component: {fileID: 451708999}
   - component: {fileID: 451708998}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind financial sector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12259,7 +12259,7 @@ GameObject:
   - component: {fileID: 549108902}
   - component: {fileID: 549108901}
   - component: {fileID: 549108900}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind residential area by road
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13595,7 +13595,7 @@ GameObject:
   - component: {fileID: 622778193}
   - component: {fileID: 622778192}
   - component: {fileID: 622778191}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Entering city from forest area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13950,7 +13950,7 @@ GameObject:
   - component: {fileID: 629178929}
   - component: {fileID: 629178928}
   - component: {fileID: 629178927}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: City-side entrance to residential area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14798,7 +14798,7 @@ GameObject:
   - component: {fileID: 707907968}
   - component: {fileID: 707907967}
   - component: {fileID: 707907966}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Approaching Mount Oreo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15584,7 +15584,7 @@ GameObject:
   - component: {fileID: 748493192}
   - component: {fileID: 748493191}
   - component: {fileID: 748493190}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near police station, hospital, and mount oreo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16116,7 +16116,7 @@ GameObject:
   - component: {fileID: 806792870}
   - component: {fileID: 806792869}
   - component: {fileID: 806792868}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Spruce forest near city entrance
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17176,7 +17176,7 @@ GameObject:
   - component: {fileID: 846239855}
   - component: {fileID: 846239854}
   - component: {fileID: 846239853}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Entrance to kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17845,7 +17845,7 @@ GameObject:
   - component: {fileID: 866568693}
   - component: {fileID: 866568692}
   - component: {fileID: 866568691}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Approaching Lake Nose
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -18835,11 +18835,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2921031720388961408, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
   m_PrefabInstance: {fileID: 4280557288900568259}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &906944037 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3457320388130658585, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
-  m_PrefabInstance: {fileID: 4280557288900568259}
-  m_PrefabAsset: {fileID: 0}
 --- !u!65 &906944038
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -18924,27 +18919,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.020000009, y: 0.01, z: 0.020000009}
   m_Center: {x: -0.000000015366822, y: 0.0049998546, z: -0.00000020349398}
---- !u!65 &906944042
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 906944037}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.020000009, y: 0.01, z: 0.020000009}
-  m_Center: {x: -0.000000015366822, y: 0.0049998583, z: -0.00000015692785}
 --- !u!65 &917135647
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -19591,7 +19565,7 @@ GameObject:
   - component: {fileID: 945100105}
   - component: {fileID: 945100104}
   - component: {fileID: 945100103}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near kitchen prepping table
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21159,7 +21133,7 @@ GameObject:
   - component: {fileID: 1011379022}
   - component: {fileID: 1011379021}
   - component: {fileID: 1011379020}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Spruce forest next to warehouse lot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22213,7 +22187,7 @@ GameObject:
   - component: {fileID: 1048363516}
   - component: {fileID: 1048363515}
   - component: {fileID: 1048363514}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Back of kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22319,7 +22293,7 @@ GameObject:
   - component: {fileID: 1053635996}
   - component: {fileID: 1053635995}
   - component: {fileID: 1053635994}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind police station and hospital
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22716,7 +22690,7 @@ GameObject:
   - component: {fileID: 1110781139}
   - component: {fileID: 1110781138}
   - component: {fileID: 1110781137}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Currently in financial sector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22822,7 +22796,7 @@ GameObject:
   - component: {fileID: 1114080624}
   - component: {fileID: 1114080623}
   - component: {fileID: 1114080622}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Front of warehouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -23318,7 +23292,7 @@ GameObject:
   - component: {fileID: 1143013406}
   - component: {fileID: 1143013405}
   - component: {fileID: 1143013404}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Parking lot center of mall area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -25052,7 +25026,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.172
+      value: 31.45
       objectReference: {fileID: 0}
     - target: {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_Enabled
@@ -25064,15 +25038,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: pushToTalk
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRScreenreaderActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5603520807464278789, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: playerAudio
@@ -26816,7 +26790,7 @@ GameObject:
   - component: {fileID: 1320760541}
   - component: {fileID: 1320760540}
   - component: {fileID: 1320760539}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Entering mall area near kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -28277,7 +28251,7 @@ GameObject:
   - component: {fileID: 1387242914}
   - component: {fileID: 1387242913}
   - component: {fileID: 1387242912}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near mail, courthouse, and news offices
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -31650,7 +31624,7 @@ GameObject:
   - component: {fileID: 1559133662}
   - component: {fileID: 1559133661}
   - component: {fileID: 1559133660}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind residential by the hills
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33212,7 +33186,7 @@ GameObject:
   - component: {fileID: 1615915201}
   - component: {fileID: 1615915200}
   - component: {fileID: 1615915199}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind warehouse
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33546,7 +33520,7 @@ GameObject:
   - component: {fileID: 1618011204}
   - component: {fileID: 1618011203}
   - component: {fileID: 1618011202}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Mall area right in front of kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33652,7 +33626,7 @@ GameObject:
   - component: {fileID: 1628241915}
   - component: {fileID: 1628241914}
   - component: {fileID: 1628241913}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near entrance to kitchen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34028,7 +34002,7 @@ GameObject:
   - component: {fileID: 1637215780}
   - component: {fileID: 1637215779}
   - component: {fileID: 1637215778}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Approaching main city buildings
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -34616,7 +34590,7 @@ GameObject:
   - component: {fileID: 1674938023}
   - component: {fileID: 1674938022}
   - component: {fileID: 1674938021}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Near warehouse and road
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37407,7 +37381,7 @@ GameObject:
   - component: {fileID: 1845380073}
   - component: {fileID: 1845380072}
   - component: {fileID: 1845380071}
-  m_Layer: 10
+  m_Layer: 15
   m_Name: Behind courthouse, news, and mail offices
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -46964,7 +46938,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 616507452527148677, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.42929
+      value: 0.37872395
+      objectReference: {fileID: 0}
+    - target: {fileID: 616507452527148677, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.857
       objectReference: {fileID: 0}
     - target: {fileID: 616507452527148677, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_LocalPosition.y
@@ -46972,7 +46950,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 616507452527148677, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.1
+      value: 4.961
       objectReference: {fileID: 0}
     - target: {fileID: 619808724400864156, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -49046,6 +49024,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 6672877923123654054, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6693470624481043361, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Cubic Oak Tree
@@ -50031,7 +50013,8 @@ PrefabInstance:
     - {fileID: 3442970937417327749, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     - {fileID: 6003568566436784162, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     - {fileID: 6026518899083065761, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3457320388130658585, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3368591756456356884, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       insertIndex: -1
@@ -50163,9 +50146,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4058349964076797576, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 404832758}
-    - targetCorrespondingSourceObject: {fileID: 3457320388130658585, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 906944042}
     - targetCorrespondingSourceObject: {fileID: 2921031720388961408, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 906944041}

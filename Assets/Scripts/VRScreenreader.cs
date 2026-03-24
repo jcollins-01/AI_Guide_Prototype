@@ -174,7 +174,7 @@ public class VRScreenreader : MonoBehaviour
     // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(Vector3 reticlePosition) // was GameObject hit
     {
-        //Debug.Log("Teleport reticle is being checked with " + hit.name);
+        Debug.Log("Teleport reticle is being checked");
         AudioSource selectedAudio;
 
         // Assign handlerReticlePosition to the value passed from TeleportationHandler, to be used in CheckSmallestReferenceDistance
@@ -188,6 +188,7 @@ public class VRScreenreader : MonoBehaviour
             // If the value of distance attached to the given reference matches the smallestDistance
             if (referencesAndDistances[reference] == smallestDistance)
             {
+                Debug.Log($"[Telling where area is] Found the bound that matched our smallest distance {referencesAndDistances[reference]}, for {reference.name}");
                 // This is the closest environment object, so play its label to tell the reader the name of the environment their reticle is on
                 selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                 // Assign the environmental object as the hit to compare between teleports, since this object contains the appropriate name to compare
@@ -221,7 +222,7 @@ public class VRScreenreader : MonoBehaviour
     // This function is called from TeleportationHandler which most accurately detects when a teleport move has been completed
     public void PlayReferenceAudioPostTeleport()
     {
-        //Debug.Log("Checking for post teleport audio labels");
+        Debug.Log("Checking for post teleport audio labels");
         AudioSource selectedAudio;
 
         // Check the location of the player, find the nearest reader reference that is an environment object, play its label
@@ -234,7 +235,8 @@ public class VRScreenreader : MonoBehaviour
             // If the value of distance attached to the given reference matches the smallestDistance
             if (referencesAndDistances[reference] == smallestDistance)
             {
-                //Debug.Log("Closest environmental object is " + reference.transform.parent.name);
+                Debug.Log("Closest environmental object is " + reference.transform.parent.name);
+                Debug.Log($"Found the bound that matched our smallest distance {referencesAndDistances[reference]}, for {reference.transform.parent.name}");
                 // Play the label of the closest floor / environmental object
                 selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                 // Cut off everything - this properly stops object descriptions AND pre-teleport area names if we were just in another area
@@ -250,7 +252,7 @@ public class VRScreenreader : MonoBehaviour
 
     public void GetReaderReferences()
     {
-        Debug.Log("Getting reader references");
+        //Debug.Log("Getting reader references");
 
         // Clear larger readerReferences dictionary each time this is called, so our dictionary is fresh + won't call for destroyed items
         readerReferences.Clear();
@@ -264,7 +266,7 @@ public class VRScreenreader : MonoBehaviour
             // Debug.Log("Found reference " + reference.transform.parent.name);
         }
 
-        Debug.Log("Reader refs size is " + readerReferences.Count);
+        //Debug.Log("Reader refs size is " + readerReferences.Count);
         if (readerReferences.Count > 0)
         {
             referencesFound = true;
@@ -438,21 +440,24 @@ public class VRScreenreader : MonoBehaviour
 
     private float CheckSmallestReferenceDistance(string version)
     {
+        Debug.Log("Checking smallest ref distance");
         float distance;
         List<float> distancesToReferences = new List<float>();
         referencesAndDistances.Clear(); // Reset dict values with each check
 
         if (version.Equals("teleport"))
         {
+            Debug.Log("Reached teleport");
             // Calculate the distance between the player and each object in environmentCues
             foreach (GameObject reference in readerReferences)
             {
-                // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
-                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                // If the reference has an environment label (is part of the bounds on layer 15) and its clip is assigned
+                if (reference.transform.parent.gameObject.layer == 15 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
                     distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
                     distancesToReferences.Add(distance);
                     referencesAndDistances.Add(reference, distance);
+                    Debug.Log($"Added the reference {reference.transform.parent.name}");
                 }
             }
         }
@@ -463,8 +468,9 @@ public class VRScreenreader : MonoBehaviour
             foreach (GameObject reference in readerReferences)
             {
                 // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
-                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                if (reference.transform.parent.gameObject.layer == 15 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
+                    Debug.Log($"Found a bound {reference.transform.parent.name}");
                     distance = Vector3.Distance(reference.transform.position, handlerReticlePosition);
                     distancesToReferences.Add(distance);
                     referencesAndDistances.Add(reference, distance);
@@ -472,7 +478,7 @@ public class VRScreenreader : MonoBehaviour
             }
         }
 
-        //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
+        Debug.Log("Checking for nearby bounds - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
     }
 
