@@ -97,6 +97,7 @@ public class RandomObjectSpawner : MonoBehaviour
 
         // Instantiate the random prefab on top of the spawnSource
         spawnedObject = Instantiate(randomPrefab, spawnPosition, spawnRotation);
+        spawnedObject.name = randomPrefab.name; // Set its name to the prefab name so it doesn't have (clone) and won't throw off the guide/screen reader
 
         if (spawnedObject.GetComponent<XRGrabInteractable>() != null &&
             spawnedObject.GetComponent<GrabRequest>() != null)

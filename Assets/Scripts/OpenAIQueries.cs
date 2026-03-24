@@ -1208,7 +1208,7 @@ public class OpenAIQueries : MonoBehaviour
     // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
     public string CheckForGuidanceOrModification(string result)
     {
-        //Debug.Log("Checking string " + result);
+        Debug.Log("Checking string " + result);
         if (FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand) return result;
 
         // Get all possible object names
@@ -1241,17 +1241,29 @@ public class OpenAIQueries : MonoBehaviour
         }
 
         // If we didn't find a known object name or keyword, just return the result as normal speech
-        if (string.IsNullOrEmpty(detectedObjectName) || string.IsNullOrEmpty(detectedKeyword)) return result;
+        //if (string.IsNullOrEmpty(detectedObjectName) || string.IsNullOrEmpty(detectedKeyword)) return result;
+        if (string.IsNullOrEmpty(detectedObjectName))
+        {
+            Debug.Log($"Didn't find a known object {detectedObjectName}");
+            return result;
+        }
+
+        if (string.IsNullOrEmpty(detectedKeyword))
+        {
+            Debug.Log($"Didn't find a known keyword {detectedKeyword}");
+            return result;
+        }
 
         if (detectedKeyword == "guide" || detectedKeyword == "teleport")
         {
             FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
-
+            Debug.Log($"Looking for a target {detectedObjectName} for guidance since we detected the keyword guide or teleport");
             modeOfTransportation = detectedKeyword;
             targetForGuidance = GameObject.Find(detectedObjectName);
 
             if (targetForGuidance != null)
             {
+                Debug.Log($"Found the game object {targetForGuidance.name}");
                 // Return a randomized confirmation message
                 string[] options = {
                     $"Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
@@ -1260,6 +1272,10 @@ public class OpenAIQueries : MonoBehaviour
                     $"I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
                 };
                 return options[UnityEngine.Random.Range(0, options.Length)];
+            }
+            else
+            {
+                Debug.Log($"Couldn't find the game object {targetForGuidance.name}");
             }
         }
         else if (detectedKeyword == "modify")

@@ -308,7 +308,7 @@ public class AIGuide : MonoBehaviour
 
             string fullContext = $"[Visual Context] {visionDesc}";
 
-            Debug.Log("Injecting Combined Context: " + fullContext);
+            //Debug.Log("Injecting Combined Context: " + fullContext);
             realtimeClient.SendTextContext(fullContext);
         }
         else
