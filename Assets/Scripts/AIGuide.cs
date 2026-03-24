@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ public class AIGuide : MonoBehaviour
     private bool isHighlighted = false;
     private GameObject lastHighlightedTarget;
     private Material previousMaterial;
+    private Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
     private bool isRecording = false;
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
@@ -435,22 +437,28 @@ public class AIGuide : MonoBehaviour
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
-        previousMaterial = selectedReference.GetComponent<Renderer>().material;
-        selectedReference.GetComponent<Renderer>().material = Resources.Load<Material>("Screenreader/Glow");
+        Renderer renderer = selectedReference.GetComponent<Renderer>();
+        if (!originalMaterials.ContainsKey(selectedReference))
+            originalMaterials.Add(selectedReference, renderer.material);
+
+        renderer.material = Resources.Load<Material>("Screenreader/Glow");
     }
 
     void ClearPreviousHighlight(GameObject selectedReference)
     {
-        selectedReference.GetComponent<Renderer>().material = previousMaterial;
+        //selectedReference.GetComponent<Renderer>().material = previousMaterial;
+
+        if (originalMaterials.TryGetValue(selectedReference, out Material originalMat))
+        {
+            selectedReference.GetComponent<Renderer>().material = originalMat;
+            originalMaterials.Remove(selectedReference); // Clean up the dictionary
+        }
     }
 
     IEnumerator ClearAfterTenSeconds(GameObject selectedReference)
     {
         yield return new WaitForSeconds(10f);
-
-        selectedReference.GetComponent<Renderer>().material = previousMaterial;
-
-        previousMaterial = null;
+        ClearPreviousHighlight(selectedReference);
     }
 
     private void checkModificationRequests()
@@ -464,23 +472,17 @@ public class AIGuide : MonoBehaviour
 
             GameObject currentTarget = m_OpenAIQueriesScript.targetForModification;
 
-            /*if (lastHighlightedTarget != currentTarget)
+            if (lastHighlightedTarget != currentTarget)
             {
                 HighlightSelectedReaderReference(currentTarget);
                 lastHighlightedTarget = currentTarget;
-                isHighlighted = true;
-            }*/
+            }
 
             m_AutomaticModificationScript.AddAudioBeacon(currentTarget);
             // Wait for 10 seconds (length of audio beacon), then clear material
-            //StartCoroutine(ClearAfterTenSeconds(currentTarget));
+            StartCoroutine(ClearAfterTenSeconds(currentTarget));
             m_OpenAIQueriesScript.targetForModification = null;
-        }
-        else
-        {
-            // Handle highlighting clean-up on modification end
-            //lastHighlightedTarget = null;
-            //isHighlighted = false;
+            lastHighlightedTarget = null;
         }
     }
 
@@ -497,7 +499,6 @@ public class AIGuide : MonoBehaviour
             {
                 HighlightSelectedReaderReference(currentTarget);
                 lastHighlightedTarget = currentTarget;
-                isHighlighted = true;
             }
 
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
@@ -524,6 +525,7 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.ForceStopAndReset();
                         ClearPreviousHighlight(currentTarget);
                         m_OpenAIQueriesScript.targetForGuidance = null;
+                        lastHighlightedTarget = null;
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
@@ -545,11 +547,6 @@ public class AIGuide : MonoBehaviour
         }
         else
         {
-            // Handle highlighting clean-up on guidance end
-            lastHighlightedTarget = null;
-            isHighlighted = false;
-            previousMaterial = null;
-
             if (m_SharedMovementScript != null)
             {
                 m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
