@@ -27,6 +27,7 @@ public class AutomaticGuide : MonoBehaviour
     private void Update()
     {
         UpdateAnimation();
+        //CheckArrivalStatus();
     }
 
     private void UpdateAnimation()
@@ -295,6 +296,17 @@ public class AutomaticGuide : MonoBehaviour
 
         Vector3 offsetPoint = targetPos + (directionToAgent * offsetDistance);
 
+        // Quick check to make sure we don't go through a wall -- this RUINS our teleport next to and staying outside of colliders...
+        // I think a better idea is to check if the collider is inside of another collider's bounds and stay inside it
+        /*NavMeshHit wallHit;
+        if (NavMesh.Raycast(targetPos, offsetPoint, out wallHit, NavMesh.AllAreas))
+        {
+            // The ray hit a boundary (like a wall) before reaching the offset point
+            // In that case, we set the offset point to be right in front of the wall, minus the agent's radius/size
+            offsetPoint = wallHit.position - (directionToAgent * agent.radius);
+            Debug.Log("Adjusted teleport to avoid clipping through a wall.");
+        }*/
+
         // Find the nearest NavMesh point to our offset point
         NavMeshHit hit;
         if (NavMesh.SamplePosition(offsetPoint, out hit, 5.0f, NavMesh.AllAreas))
@@ -311,6 +323,43 @@ public class AutomaticGuide : MonoBehaviour
         {
             Debug.LogWarning("Could not find a valid NavMesh point next to the object. Falling back to simple Warp.");
             agent.Warp(offsetPoint); // Force it and hope for the best
+        }
+    }
+
+    private void CheckArrivalStatus()
+    {
+        // Only run if we are actively guiding and the agent is actually computing a path
+        if (targetActive && agent != null && agent.enabled && !agent.pathPending)
+        {
+            // Check if we hit a bottleneck and can't go any further
+            if (agent.pathStatus == NavMeshPathStatus.PathPartial)
+            {
+                if (agent.velocity.sqrMagnitude < 0.1f) // If we stopped moving on the partial path
+                {
+                    Debug.LogWarning("[Automatic Guide] Agent cannot reach the target. Space is too tight. Canceling guidance.");
+                    CancelGuidance();
+                }
+                return; // Stop evaluating arrival for this frame
+            }
+
+            /*if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
+            {
+                Debug.Log("[Automatic Guide] Agent reached the target" + target.name + " via guidance");
+                agent.ResetPath(); // Clear the destination to stop further movement
+                targetActive = false;
+                // Switch the targetForGuidance to null so guide will begin following player again
+                m_OpenAIQueriesScript.targetForGuidance = null;
+            }*/
+
+            // Normal arrival check - the Log line is being reached, but the guidance never stops...but when we do it from above, it works fine??
+            // Seems to work better placing it here with not stopping before actually reaching the object though...
+            if (agent.remainingDistance <= agent.stoppingDistance)
+            {
+                Debug.Log("[Automatic Guide] Agent reached the target via guidance");
+                agent.ResetPath();
+                targetActive = false;
+                m_OpenAIQueriesScript.targetForGuidance = null;
+            }
         }
     }
 
