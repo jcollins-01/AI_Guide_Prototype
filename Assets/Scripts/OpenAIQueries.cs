@@ -1065,6 +1065,7 @@ public class OpenAIQueries : MonoBehaviour
 {
     // Variables to hold scripts we need access to
     private AIGuide m_AIGuideScript;
+    private SharedMovement m_SharedMovementScript;
     public RealtimeAvatarVoice _avatarVoice;
 
     public string objectNames;
@@ -1134,8 +1135,9 @@ public class OpenAIQueries : MonoBehaviour
 
     private void Update()
     {
-        // Calls until the audio sync is assigned
+        // Calls until the necessary components are assigned
         getAvatarVoice();
+        getSharedMovement();
 
         // Calls continously to check for a role change
         getGuideRole();
@@ -1188,6 +1190,12 @@ public class OpenAIQueries : MonoBehaviour
     {
         if (_avatarVoice == null)
             _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
+    }
+
+    private void getSharedMovement()
+    {
+        if (m_SharedMovementScript == null)
+            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
     }
 
     public void getGuideRole()
@@ -1244,13 +1252,13 @@ public class OpenAIQueries : MonoBehaviour
         //if (string.IsNullOrEmpty(detectedObjectName) || string.IsNullOrEmpty(detectedKeyword)) return result;
         if (string.IsNullOrEmpty(detectedObjectName))
         {
-            Debug.Log($"Didn't find a known object {detectedObjectName}");
+            //Debug.Log($"Didn't find a known object {detectedObjectName}");
             return result;
         }
 
         if (string.IsNullOrEmpty(detectedKeyword))
         {
-            Debug.Log($"Didn't find a known keyword {detectedKeyword}");
+            //Debug.Log($"Didn't find a known keyword {detectedKeyword}");
             return result;
         }
 
@@ -1259,11 +1267,12 @@ public class OpenAIQueries : MonoBehaviour
             FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
             Debug.Log($"Looking for a target {detectedObjectName} for guidance since we detected the keyword guide or teleport");
             modeOfTransportation = detectedKeyword;
-            targetForGuidance = GameObject.Find(detectedObjectName);
+            //targetForGuidance = GameObject.Find(detectedObjectName);
+            targetForGuidance = GetClosestObjectByName(detectedObjectName);
 
             if (targetForGuidance != null)
             {
-                Debug.Log($"Found the game object {targetForGuidance.name}");
+                //Debug.Log($"Found the game object {targetForGuidance.name}");
                 // Return a randomized confirmation message
                 string[] options = {
                     $"Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
@@ -1275,13 +1284,14 @@ public class OpenAIQueries : MonoBehaviour
             }
             else
             {
-                Debug.Log($"Couldn't find the game object {targetForGuidance.name}");
+                //Debug.Log($"Couldn't find the game object {targetForGuidance.name}");
             }
         }
         else if (detectedKeyword == "modify")
         {
             modeOfModification = "modify";
-            targetForModification = GameObject.Find(detectedObjectName);
+            //targetForModification = GameObject.Find(detectedObjectName);
+            targetForModification = GetClosestObjectByName(detectedObjectName);
 
             if (targetForModification != null)
             {
@@ -1292,6 +1302,34 @@ public class OpenAIQueries : MonoBehaviour
         // If we get here, it means it was just a normal conversation about an object
         // but not an actual command, so just return the original text.
         return result;
+    }
+
+    private GameObject GetClosestObjectByName(string name)
+    {
+        // Find EVERY object in the scene (active only)
+        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        GameObject closest = null;
+        float minDistance = Mathf.Infinity;
+        Vector3 playerPos = m_SharedMovementScript.thePlayer.transform.position;
+
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.name == name)
+            {
+                float dist = Vector3.Distance(obj.transform.position, playerPos);
+                if (dist < minDistance)
+                {
+                    closest = obj;
+                    minDistance = dist;
+                }
+            }
+        }
+
+        if (closest != null)
+        {
+            Debug.Log($"[Logic] Found {name} closest to player at distance: {minDistance}");
+        }
+        return closest;
     }
 
     public void LoadRoomDescriptions()

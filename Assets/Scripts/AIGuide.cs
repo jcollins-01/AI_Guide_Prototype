@@ -17,6 +17,8 @@ public class AIGuide : MonoBehaviour
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
+    private GameObject lastHighlightedTarget;
+    private Material previousMaterial;
     private bool isRecording = false;
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
@@ -433,20 +435,22 @@ public class AIGuide : MonoBehaviour
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
-        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
+        previousMaterial = selectedReference.GetComponent<Renderer>().material;
         selectedReference.GetComponent<Renderer>().material = Resources.Load<Material>("Screenreader/Glow");
-        isHighlighted = true;
-
-        // Return selectedReference renderers to normal after coroutine finishes
-        StartCoroutine(WaitForTenSeconds(selectedReference, previousMaterial));
     }
 
-    IEnumerator WaitForTenSeconds(GameObject selectedReference, Material previousMaterial)
+    void ClearPreviousHighlight(GameObject selectedReference)
+    {
+        selectedReference.GetComponent<Renderer>().material = previousMaterial;
+    }
+
+    IEnumerator ClearAfterTenSeconds(GameObject selectedReference)
     {
         yield return new WaitForSeconds(10f);
 
         selectedReference.GetComponent<Renderer>().material = previousMaterial;
-        isHighlighted = false;
+
+        previousMaterial = null;
     }
 
     private void checkModificationRequests()
@@ -457,11 +461,26 @@ public class AIGuide : MonoBehaviour
             // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
             // Also calls to highlight the object while the temporary audio beacon exists
             Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
-            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification);
 
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForModification;
+
+            /*if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+                isHighlighted = true;
+            }*/
+
+            m_AutomaticModificationScript.AddAudioBeacon(currentTarget);
+            // Wait for 10 seconds (length of audio beacon), then clear material
+            //StartCoroutine(ClearAfterTenSeconds(currentTarget));
             m_OpenAIQueriesScript.targetForModification = null;
+        }
+        else
+        {
+            // Handle highlighting clean-up on modification end
+            //lastHighlightedTarget = null;
+            //isHighlighted = false;
         }
     }
 
@@ -472,9 +491,14 @@ public class AIGuide : MonoBehaviour
         {
             //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
 
-            // Calls to highlight the object
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForGuidance;
+
+            if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+                isHighlighted = true;
+            }
 
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
@@ -487,7 +511,7 @@ public class AIGuide : MonoBehaviour
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
                     //Debug.Log("The mode of transit is guide");
-                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    m_AutomatedGuideScript.GuideToPosition(currentTarget); // was openAiQueries.targetForGuidance
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
 
@@ -498,6 +522,7 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                         m_SharedMovementScript.ForceStopAndReset();
+                        ClearPreviousHighlight(currentTarget);
                         m_OpenAIQueriesScript.targetForGuidance = null;
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
@@ -513,13 +538,18 @@ public class AIGuide : MonoBehaviour
                     if (!m_AutomatedGuideScript.targetActive)
                     {
                         //Debug.Log("Guide reached the object");
-                        StartCoroutine(DelayGuideStopDuringTeleport());
+                        StartCoroutine(DelayGuideStopDuringTeleport(currentTarget));
                     }
                 }
             }
         }
         else
         {
+            // Handle highlighting clean-up on guidance end
+            lastHighlightedTarget = null;
+            isHighlighted = false;
+            previousMaterial = null;
+
             if (m_SharedMovementScript != null)
             {
                 m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
@@ -529,13 +559,14 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    IEnumerator DelayGuideStopDuringTeleport()
+    IEnumerator DelayGuideStopDuringTeleport(GameObject currentTarget)
     {
         yield return new WaitForSeconds(1f);
         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
         playEffect("subway_chime");
         m_SharedMovementScript.ForceStopAndReset();
+        ClearPreviousHighlight(currentTarget);
         m_OpenAIQueriesScript.targetForGuidance = null;
     }
 

@@ -27,7 +27,6 @@ public class AutomaticGuide : MonoBehaviour
     private void Update()
     {
         UpdateAnimation();
-        //CheckArrivalStatus();
     }
 
     private void UpdateAnimation()
@@ -42,114 +41,6 @@ public class AutomaticGuide : MonoBehaviour
 
         // Tell the Animator the new speed - DampTime (0.1f) makes the transition look smooth instead of robotic
         animator.SetFloat("Speed", speedPercent, 0.1f, Time.deltaTime);
-    }
-
-    // Version used for Wizard when assigned target object directly in Editor
-    public void GuideToPosition()
-    {
-        if (m_targetObject != null)
-        {
-            Debug.Log("Target is not null " + m_targetObject.name);
-            // If the target object is one of the people avatars, take user to the gameobject of one of the people
-            switch (m_targetObject.name)
-            {
-                case "Couple By Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    Debug.Log("Switching on target name Couple By Fountain");
-                    break;
-                case "Couple By Southern Gazebo":
-                    m_targetObject = GameObject.Find("5_m_Talking2");
-                    break;
-                case "Huddle of People by Gazebo":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Dancing People":
-                    m_targetObject = GameObject.Find("3_f@House Dancing");
-                    break;
-                case "Western Huddle of People":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Couple by the Platform":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    break;
-                case "Couple By Puffy Tree":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-                case "Northwest Huddle of People":
-                    m_targetObject = GameObject.Find("2_f_Talking2");
-                    break;
-                case "Couple By the Yellow-Roofed Gazebo":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    Debug.Log("Switching on target name Couple By the Yellow-Roofed Gazebo");
-                    break;
-                case "Couple By the Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    Debug.Log("Switching on target name Couple By Fountain");
-                    break;
-            }
-
-            Debug.Log("The target object is " + m_targetObject);
-            Debug.Log("The target positition destination is " + m_targetObject.transform.position);
-
-            agent.SetDestination(m_targetObject.transform.position); // Set the destination of the NavMeshAgent to the position of the target's transform
-            
-            if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
-                agent.ResetPath(); // Clear the destination to stop further movement
-        }
-        else
-        {
-            Debug.LogWarning("Target not assigned.");
-        }
-    }
-
-    // Version used for Wizard when assigned target object directly in Editor
-    public void TeleportToPosition()
-    {
-        if (m_targetObject != null)
-        {
-            // If the target object is one of the people avatars, take user to the gameobject of one of the people
-            switch (m_targetObject.name)
-            {
-                case "Couple By Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-                case "Couple By Southern Gazebo":
-                    m_targetObject = GameObject.Find("5_m_Talking2");
-                    break;
-                case "Huddle of People by Gazebo":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Dancing People":
-                    m_targetObject = GameObject.Find("3_f@House Dancing");
-                    break;
-                case "Western Huddle of People":
-                    m_targetObject = GameObject.Find("3_f_Talking");
-                    break;
-                case "Couple by the Platform":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    break;
-                case "Couple By Puffy Tree":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-                case "Northwest Huddle of People":
-                    m_targetObject = GameObject.Find("2_f_Talking2");
-                    break;
-                case "Couple By the Yellow-Roofed Gazebo":
-                    m_targetObject = GameObject.Find("4_m_Talking1");
-                    break;
-                case "Couple By the Fountain":
-                    m_targetObject = GameObject.Find("6_m_Talking1");
-                    break;
-            }
-
-            agent.ResetPath(); // Reset path in case we had just set a guide destination
-            var targetPosition = m_targetObject.transform.position;
-            agent.transform.position = targetPosition + new Vector3(1f, 0f, 0f); // Sets the destination of the agent to 1 unit to the right of the target
-        }
-        else
-        {
-            Debug.LogWarning("Target not assigned.");
-        }
     }
 
     // Version used for automated guide when calling guidance function with an assigned target object
@@ -170,9 +61,10 @@ public class AutomaticGuide : MonoBehaviour
             // Set destination to our determined location
             agent.SetDestination(targetLocation);
 
+            // This is checked multiple times/updated as the guide moves, as GuideToPosition is called in AIGuide's Update flow
             if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
             {
-                Debug.Log("[Automatic Guide] Agent reached the target" + target.name + " via guidance");
+                Debug.Log($"[Automatic Guide] Agent reached the target {target.name} via guidance");
                 agent.ResetPath(); // Clear the destination to stop further movement
                 targetActive = false;
                 // Switch the targetForGuidance to null so guide will begin following player again
@@ -328,38 +220,43 @@ public class AutomaticGuide : MonoBehaviour
 
     private void CheckArrivalStatus()
     {
-        // Only run if we are actively guiding and the agent is actually computing a path
-        if (targetActive && agent != null && agent.enabled && !agent.pathPending)
+        // If we aren't actively guiding, completely ignore this method
+        if (!targetActive || agent == null) return;
+
+        // Wait for the NavMesh to actually start calculating
+        if (agent.pathPending) return;
+
+        Debug.Log("Path is pending now");
+
+        // Check for bottlenecks (Partial Paths)
+        if (agent.pathStatus == NavMeshPathStatus.PathPartial)
         {
-            // Check if we hit a bottleneck and can't go any further
-            if (agent.pathStatus == NavMeshPathStatus.PathPartial)
+            if (agent.velocity.sqrMagnitude < 0.1f)
             {
-                if (agent.velocity.sqrMagnitude < 0.1f) // If we stopped moving on the partial path
-                {
-                    Debug.LogWarning("[Automatic Guide] Agent cannot reach the target. Space is too tight. Canceling guidance.");
-                    CancelGuidance();
-                }
-                return; // Stop evaluating arrival for this frame
-            }
-
-            /*if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending) // Check if the agent has reached the destination
-            {
-                Debug.Log("[Automatic Guide] Agent reached the target" + target.name + " via guidance");
-                agent.ResetPath(); // Clear the destination to stop further movement
-                targetActive = false;
-                // Switch the targetForGuidance to null so guide will begin following player again
-                m_OpenAIQueriesScript.targetForGuidance = null;
-            }*/
-
-            // Normal arrival check - the Log line is being reached, but the guidance never stops...but when we do it from above, it works fine??
-            // Seems to work better placing it here with not stopping before actually reaching the object though...
-            if (agent.remainingDistance <= agent.stoppingDistance)
-            {
-                Debug.Log("[Automatic Guide] Agent reached the target via guidance");
-                agent.ResetPath();
-                targetActive = false;
+                Debug.Log("[Automatic Guide] Agent cannot reach the target. Space is too tight. Canceling guidance.");
+                CancelGuidance();
                 m_OpenAIQueriesScript.targetForGuidance = null;
             }
+            return;
+        }
+
+        if (agent.hasPath)
+            Debug.Log("Agent claims to have a path");
+
+        if (agent.remainingDistance <= agent.stoppingDistance)
+        {
+            Debug.Log($"The distance has been closed - should have arrived - path status is {agent.pathStatus}");
+            CancelGuidance();
+            Debug.Log($"[distance check] For chime to play, targetActive needs to be false, it is {targetActive}");
+        }
+            
+
+        // Arrival check -- agent.hasPath prevents false positives where remainingDistance is 0 before the agent starts moving.
+        if (agent.hasPath && agent.remainingDistance <= agent.stoppingDistance)
+        {
+            Debug.Log("[Automatic Guide] Agent reached the target via guidance");
+            CancelGuidance();
+            m_OpenAIQueriesScript.targetForGuidance = null;
         }
     }
 
@@ -367,7 +264,9 @@ public class AutomaticGuide : MonoBehaviour
     // Stops the agent and clears the target so the guide can follow the player again
     public void CancelGuidance()
     {
+        Debug.Log("Canceled guidance");
         targetActive = false;
+        Debug.Log($"[Cancel guidance] For chime to play, targetActive needs to be false, it is {targetActive}");
         m_targetObject = null;
         if (agent != null)
         {

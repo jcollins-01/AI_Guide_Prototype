@@ -91,7 +91,7 @@ public class SharedMovement : MonoBehaviour
             // Otherwise, check for player grip and teleport them with the guide
             if (playerGrabbingGuide && !movingWithGuide)
             {
-                Debug.Log("Trying to move player with shared movement");
+                //Debug.Log("Trying to move player with shared movement");
                 StartCoroutine(Teleport());
                 movingWithGuide = true;
                 playerGrabbingGuide = false; // Reset here so we don't accidentally trigger it again
