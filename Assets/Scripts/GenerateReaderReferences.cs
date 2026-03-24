@@ -321,9 +321,12 @@ public class GenerateReaderReferences : MonoBehaviour
 
                 // Generate the audio file path
                 string audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
+                //Debug.Log($"Looking for audio for {objectName}.");
 
-                // Check if the audio already exists
-                if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
+                // Check if the audio already exists AND is greater than 0 bytes (wasn't corrupted by having generated cancelled/stopping scene partway through generation)
+                bool fileIsValid = File.Exists(audioFilePath) && new FileInfo(audioFilePath).Length > 0;
+
+                if (fileIsValid && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
                 {
                     //Debug.Log($"Audio for {objectName} already exists, skipping generation.");
                     continue; // Skip the request to PlayHT

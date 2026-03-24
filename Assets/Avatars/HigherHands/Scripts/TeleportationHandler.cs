@@ -34,7 +34,7 @@ public class TeleportationHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("[TeleportationHandler] NEW SCRIPT VERSION LOADED");
+        //Debug.Log("[TeleportationHandler] NEW SCRIPT VERSION LOADED");
         leftRay = leftTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         leftReticle = leftRay.reticle;
 
