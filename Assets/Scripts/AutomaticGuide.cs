@@ -188,25 +188,65 @@ public class AutomaticGuide : MonoBehaviour
 
         Vector3 offsetPoint = targetPos + (directionToAgent * offsetDistance);
 
-        // Quick check to make sure we don't go through a wall -- this RUINS our teleport next to and staying outside of colliders...
-        // I think a better idea is to check if the collider is inside of another collider's bounds and stay inside it
-        /*NavMeshHit wallHit;
-        if (NavMesh.Raycast(targetPos, offsetPoint, out wallHit, NavMesh.AllAreas))
+        GameObject surroundingRoom = CheckAllParentLayers(targetObject);
+        Bounds? roomBounds = null; // Nullable Bounds that we can use to hold all the colliders making up the room/get its true boundaries
+        if (surroundingRoom != null)
         {
-            // The ray hit a boundary (like a wall) before reaching the offset point
-            // In that case, we set the offset point to be right in front of the wall, minus the agent's radius/size
-            offsetPoint = wallHit.position - (directionToAgent * agent.radius);
-            Debug.Log("Adjusted teleport to avoid clipping through a wall.");
-        }*/
+            Debug.Log("This target is inside of a room!");
+
+            // Grab all colliders that make up this room (walls, floors, etc.)
+            Collider[] roomColliders = surroundingRoom.GetComponentsInChildren<Collider>();
+            if (roomColliders.Length > 0)
+            {
+                // Start the bounds with the first collider, then expand it to include the rest
+                Bounds bounds = roomColliders[0].bounds;
+                for (int i = 1; i < roomColliders.Length; i++)
+                {
+                    Debug.Log($"Bounds include collider from {roomColliders[i].gameObject.name}");
+                    bounds.Encapsulate(roomColliders[i].bounds);
+                }
+
+                // Shrink the bounds artificially so that we don't have a chance of including room edges/puts us closer to inside of the room
+                bounds.extents = new Vector3(
+                    bounds.extents.x / 0.5f,
+                    bounds.extents.y / 0.5f,
+                    bounds.extents.z / 0.5f
+                );
+
+                roomBounds = bounds;
+            }
+        }
 
         // Find the nearest NavMesh point to our offset point
         NavMeshHit hit;
-        if (NavMesh.SamplePosition(offsetPoint, out hit, 5.0f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(offsetPoint, out hit, 1.5f, NavMesh.AllAreas)) // search radius was 5.0f
         {
+            // Double check the would-be warp spot to manage teleporting inside a room
+            Vector3 finalWarpPoint = hit.position;
+
+            // If we are in a room, and the initial NavMesh hit bled outside the room's bounds
+            if (roomBounds.HasValue && !roomBounds.Value.Contains(finalWarpPoint))
+            {
+                Debug.Log("Warp point is outside the room! Clamping it back inside.");
+
+                // Pull the point to the closest spot mathematically inside the room's bounding box
+                Vector3 clampedPoint = roomBounds.Value.ClosestPoint(finalWarpPoint);
+
+                // Force the Y level to stay at the target's floor level so we don't get pushed under
+                clampedPoint.y = targetPos.y;
+
+                // Sample the NavMesh one last time at this new clamped point to ensure it's still walkable
+                if (NavMesh.SamplePosition(clampedPoint, out NavMeshHit clampedHit, 1.0f, NavMesh.AllAreas)) // search radius was 5.0f
+                {
+                    finalWarpPoint = clampedHit.position;
+                }
+            }
+
+            // Proceed to teleport to the approved, verified warp point
             agent.isStopped = true;
             agent.ResetPath();
 
-            if (agent.Warp(hit.position))
+            if (agent.Warp(finalWarpPoint)) // was hit.position
             {
                 Debug.Log($"Successfully warped next to {targetObject.name} at {hit.position}");
             }
@@ -218,46 +258,24 @@ public class AutomaticGuide : MonoBehaviour
         }
     }
 
-    private void CheckArrivalStatus()
+    GameObject CheckAllParentLayers(GameObject childObject)
     {
-        // If we aren't actively guiding, completely ignore this method
-        if (!targetActive || agent == null) return;
+        GameObject surroundingRoom = null;
+        Transform currentTransform = childObject.transform;
 
-        // Wait for the NavMesh to actually start calculating
-        if (agent.pathPending) return;
-
-        Debug.Log("Path is pending now");
-
-        // Check for bottlenecks (Partial Paths)
-        if (agent.pathStatus == NavMeshPathStatus.PathPartial)
+        // Loop until there are no more parents (transform.parent is null)
+        while (currentTransform.parent != null)
         {
-            if (agent.velocity.sqrMagnitude < 0.1f)
-            {
-                Debug.Log("[Automatic Guide] Agent cannot reach the target. Space is too tight. Canceling guidance.");
-                CancelGuidance();
-                m_OpenAIQueriesScript.targetForGuidance = null;
-            }
-            return;
+            currentTransform = currentTransform.parent;
+            GameObject parentGameObject = currentTransform.gameObject;
+
+            if (parentGameObject.layer == 16) // If it's on the Rooms layer
+                surroundingRoom = parentGameObject;
         }
 
-        if (agent.hasPath)
-            Debug.Log("Agent claims to have a path");
-
-        if (agent.remainingDistance <= agent.stoppingDistance)
-        {
-            Debug.Log($"The distance has been closed - should have arrived - path status is {agent.pathStatus}");
-            CancelGuidance();
-            Debug.Log($"[distance check] For chime to play, targetActive needs to be false, it is {targetActive}");
-        }
-            
-
-        // Arrival check -- agent.hasPath prevents false positives where remainingDistance is 0 before the agent starts moving.
-        if (agent.hasPath && agent.remainingDistance <= agent.stoppingDistance)
-        {
-            Debug.Log("[Automatic Guide] Agent reached the target via guidance");
-            CancelGuidance();
-            m_OpenAIQueriesScript.targetForGuidance = null;
-        }
+        if (surroundingRoom != null)
+            Debug.Log($"Reached the top of the hierarchy and found the parent {surroundingRoom.name}.");
+        return surroundingRoom;
     }
 
     // Cancels current teleportation

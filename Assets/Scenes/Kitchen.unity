@@ -23760,7 +23760,6 @@ Transform:
   - {fileID: 5328124011688891336}
   - {fileID: 3227426612448985357}
   - {fileID: 595955988}
-  - {fileID: 543450652012161850}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1168169841
@@ -25026,7 +25025,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 31.45
+      value: 2.4
       objectReference: {fileID: 0}
     - target: {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_Enabled
@@ -25038,15 +25037,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: pushToTalk
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRScreenreaderActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5603520807464278789, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: playerAudio
@@ -45377,6 +45376,11 @@ MonoBehaviour:
   teleportableLayers:
     serializedVersion: 2
     m_Bits: 0
+--- !u!4 &2099414668 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5509872644750215594, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+  m_PrefabInstance: {fileID: 4280557288900568259}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2109633532
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46246,13 +46250,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132147486552448}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.7071068, z: -0.7071068, w: 0}
-  m_LocalPosition: {x: -63.806, y: 135.31548, z: -399.79}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_LocalRotation: {x: 0.5, y: -0.5, z: -0.5, w: -0.5}
+  m_LocalPosition: {x: -3.6222987, y: 2.7150033, z: -8.642403}
+  m_LocalScale: {x: 0.50000006, y: 0.5, z: 0.50000006}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 971044629}
-  m_Father: {fileID: 1165691686}
+  m_Father: {fileID: 2099414668}
   m_LocalEulerAnglesHint: {x: 270, y: 180, z: 0}
 --- !u!1 &587638852128796900 stripped
 GameObject:
@@ -47423,6 +47427,10 @@ PrefabInstance:
     - target: {fileID: 2026930612773201248, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_TagString
       value: Grass
+      objectReference: {fileID: 0}
+    - target: {fileID: 2059026054707786454, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 2059026054707786454, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_IsActive
@@ -50016,6 +50024,9 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: 3457320388130658585, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5509872644750215594, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 543450652012161850}
     - targetCorrespondingSourceObject: {fileID: 3368591756456356884, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1125310371}

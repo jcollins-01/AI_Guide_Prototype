@@ -365,7 +365,7 @@ public class GenerateReaderReferences : MonoBehaviour
     // Version that uses OpenAI default voices
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        Debug.Log($"Trying to generate audio for {objectName}");
+        //Debug.Log($"Generating audio for {objectName}");
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
         var ttsRequest = new SpeechRequest(description, model: "tts-1", voice: SpeechVoice.Alloy, responseFormat: SpeechResponseFormat.MP3);
