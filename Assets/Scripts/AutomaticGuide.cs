@@ -167,115 +167,71 @@ public class AutomaticGuide : MonoBehaviour
     {
         if (targetObject == null || agent == null) return;
 
-        Vector3 targetPos = targetObject.transform.position;
-        Vector3 finalPosition = targetPos;
-
         // Try to get the size of the object to know how far to stay away
+        Vector3 targetPos = targetObject.transform.position;
         float offsetDistance = padding;
-        Collider targetCollider = targetObject.GetComponent<Collider>();
 
+        Collider targetCollider = targetObject.GetComponent<Collider>();
         if (targetCollider != null)
         {
             // Use the largest extent (width/depth) so we stay outside the long side of big objects
             offsetDistance += Mathf.Max(targetCollider.bounds.extents.x, targetCollider.bounds.extents.z);
         }
 
-        // Determine the direction (warp to the side closest to the agent's current position)
-        Vector3 directionToAgent = (agent.transform.position - targetPos).normalized;
+        // Find the guaranteed NavMesh floor directly under/at the target object
+        Vector3 lockedFloorPos = targetPos;
+        if (NavMesh.SamplePosition(targetPos, out NavMeshHit floorHit, 2.0f, NavMesh.AllAreas))
+        {
+            // Even if the object is on a table/other surface, we still get the floor height
+            lockedFloorPos = floorHit.position;
+        }
+
+        // Determine the direction (warp to the side closest to the agent's current position) and keep direction strictly on the flat XZ plane
+        Vector3 directionToAgent = (agent.transform.position - lockedFloorPos);
+        directionToAgent.y = 0;
+        directionToAgent.Normalize();
 
         // If the agent and target are at the exact same spot, default to 'Forward'
         if (directionToAgent == Vector3.zero) directionToAgent = Vector3.forward;
 
-        Vector3 offsetPoint = targetPos + (directionToAgent * offsetDistance);
+        // Calculate where we want to go, locking the Y height to the room's floor
+        Vector3 desiredPoint = lockedFloorPos + (directionToAgent * offsetDistance);
+        desiredPoint.y = lockedFloorPos.y;
 
-        GameObject surroundingRoom = CheckAllParentLayers(targetObject);
-        Bounds? roomBounds = null; // Nullable Bounds that we can use to hold all the colliders making up the room/get its true boundaries
-        if (surroundingRoom != null)
+        // Ensure we don't cross any walls using a Linecast - temporarily disable the target's collider so the line doesn't hit the object itself
+        if (targetCollider != null) targetCollider.enabled = false;
+
+        // Lift the line slightly (0.5f) so it doesn't scrape the floor and trigger false hits
+        Vector3 lineStart = lockedFloorPos + (Vector3.up * 0.5f);
+        Vector3 lineEnd = desiredPoint + (Vector3.up * 0.5f);
+
+        if (Physics.Linecast(lineStart, lineEnd, out RaycastHit wallHit))
         {
-            Debug.Log("This target is inside of a room!");
-
-            // Grab all colliders that make up this room (walls, floors, etc.)
-            Collider[] roomColliders = surroundingRoom.GetComponentsInChildren<Collider>();
-            if (roomColliders.Length > 0)
-            {
-                // Start the bounds with the first collider, then expand it to include the rest
-                Bounds bounds = roomColliders[0].bounds;
-                for (int i = 1; i < roomColliders.Length; i++)
-                {
-                    Debug.Log($"Bounds include collider from {roomColliders[i].gameObject.name}");
-                    bounds.Encapsulate(roomColliders[i].bounds);
-                }
-
-                // Shrink the bounds artificially so that we don't have a chance of including room edges/puts us closer to inside of the room
-                bounds.extents = new Vector3(
-                    bounds.extents.x / 0.5f,
-                    bounds.extents.y / 0.5f,
-                    bounds.extents.z / 0.5f
-                );
-
-                roomBounds = bounds;
-            }
+            // We hit an interior wall! Clamp the position just inside the room
+            desiredPoint = wallHit.point - (directionToAgent * agent.radius);
+            desiredPoint.y = lockedFloorPos.y; // Re-enforce the floor height
+            //Debug.Log($"Linecast hit {wallHit.collider.name}. Clamping inside room.");
         }
 
-        // Find the nearest NavMesh point to our offset point
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(offsetPoint, out hit, 1.5f, NavMesh.AllAreas)) // search radius was 5.0f
+        if (targetCollider != null) targetCollider.enabled = true;
+
+        // Final NavMesh check using a TINY radius (1.0f)
+        // Because the Y-axis is locked to the target's floor, a 1.0f radius shouldn't reach a roof or any space below the room flooring
+        if (NavMesh.SamplePosition(desiredPoint, out NavMeshHit finalHit, 1.0f, NavMesh.AllAreas))
         {
-            // Double check the would-be warp spot to manage teleporting inside a room
-            Vector3 finalWarpPoint = hit.position;
-
-            // If we are in a room, and the initial NavMesh hit bled outside the room's bounds
-            if (roomBounds.HasValue && !roomBounds.Value.Contains(finalWarpPoint))
-            {
-                Debug.Log("Warp point is outside the room! Clamping it back inside.");
-
-                // Pull the point to the closest spot mathematically inside the room's bounding box
-                Vector3 clampedPoint = roomBounds.Value.ClosestPoint(finalWarpPoint);
-
-                // Force the Y level to stay at the target's floor level so we don't get pushed under
-                clampedPoint.y = targetPos.y;
-
-                // Sample the NavMesh one last time at this new clamped point to ensure it's still walkable
-                if (NavMesh.SamplePosition(clampedPoint, out NavMeshHit clampedHit, 1.0f, NavMesh.AllAreas)) // search radius was 5.0f
-                {
-                    finalWarpPoint = clampedHit.position;
-                }
-            }
-
-            // Proceed to teleport to the approved, verified warp point
             agent.isStopped = true;
             agent.ResetPath();
-
-            if (agent.Warp(finalWarpPoint)) // was hit.position
-            {
-                Debug.Log($"Successfully warped next to {targetObject.name} at {hit.position}");
-            }
+            agent.Warp(finalHit.position);
+            //Debug.Log($"Successfully warped next to {targetObject.name} at {finalHit.position}");
         }
         else
         {
-            Debug.LogWarning("Could not find a valid NavMesh point next to the object. Falling back to simple Warp.");
-            agent.Warp(offsetPoint); // Force it and hope for the best
+            // If the tiny search fails (e.g., clamped into a weird corner), warp directly onto the target's floor position
+            //Debug.Log("Offset NavMesh search failed. Warping directly to target's floor instead.");
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.Warp(lockedFloorPos); // Force it and hope for the best
         }
-    }
-
-    GameObject CheckAllParentLayers(GameObject childObject)
-    {
-        GameObject surroundingRoom = null;
-        Transform currentTransform = childObject.transform;
-
-        // Loop until there are no more parents (transform.parent is null)
-        while (currentTransform.parent != null)
-        {
-            currentTransform = currentTransform.parent;
-            GameObject parentGameObject = currentTransform.gameObject;
-
-            if (parentGameObject.layer == 16) // If it's on the Rooms layer
-                surroundingRoom = parentGameObject;
-        }
-
-        if (surroundingRoom != null)
-            Debug.Log($"Reached the top of the hierarchy and found the parent {surroundingRoom.name}.");
-        return surroundingRoom;
     }
 
     // Cancels current teleportation
