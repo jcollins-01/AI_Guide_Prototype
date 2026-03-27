@@ -312,12 +312,14 @@ public class VRScreenreader : MonoBehaviour
                             BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
                             newBoxCollider.center = parentBoxCollider.center;
                             newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                            ConfigureReaderReferenceCollider(newBoxCollider);
                         }
                         else if (parentCollider is SphereCollider parentSphereCollider)
                         {
                             SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
                             newSphereCollider.center = parentSphereCollider.center;
                             newSphereCollider.radius = parentSphereCollider.radius * 1.05f; // Increase radius by 5%
+                            ConfigureReaderReferenceCollider(newSphereCollider);
                         }
                         else if (parentCollider is CapsuleCollider parentCapsuleCollider)
                         {
@@ -326,13 +328,15 @@ public class VRScreenreader : MonoBehaviour
                             newCapsuleCollider.radius = parentCapsuleCollider.radius * 1.05f; // Increase radius by 5%
                             newCapsuleCollider.height = parentCapsuleCollider.height * 1.05f; // Increase height by 5%
                             newCapsuleCollider.direction = parentCapsuleCollider.direction;
+                            ConfigureReaderReferenceCollider(newCapsuleCollider);
                         }
                         else if (parentCollider is MeshCollider parentMeshCollider)
                         {
                             MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
                             newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
-                            newMeshCollider.convex = parentMeshCollider.convex;
+                            newMeshCollider.convex = true;
                             // Cannot uniformly "enlarge" a MeshCollider easily
+                            ConfigureReaderReferenceCollider(newMeshCollider);
                         }
 
                         // Reattach to the original parent
@@ -401,6 +405,16 @@ public class VRScreenreader : MonoBehaviour
                 reticle.SetActive(false);
             }
         }
+    }
+
+    private void ConfigureReaderReferenceCollider(Collider collider)
+    {
+        if (collider == null)
+            return;
+
+        // Reader references are helper volumes for audio lookup only.
+        // Keep them non-physical so they never block player locomotion in tight spaces.
+        collider.isTrigger = true;
     }
 
     void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)

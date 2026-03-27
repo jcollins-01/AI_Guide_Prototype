@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.11867006, g: 0.18316743, b: 0.32951242, a: 1}
+  m_IndirectSpecularColor: {r: 0.11884108, g: 0.18339348, b: 0.32976314, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -25048,11 +25048,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.46
+      value: 2.1
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.172
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_Enabled
@@ -41622,6 +41622,8 @@ MonoBehaviour:
   restrictedTag: Restricted
   checkRadius: 0.5
   minorCheckRadius: 0.12
+  useCharacterControllerRadius: 1
+  characterControllerPadding: 0.05
   maxSlope: 10
   delayTimeCustom: 0.1
 --- !u!114 &1981902148
@@ -47022,6 +47024,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: floor
       objectReference: {fileID: 0}
+    - target: {fileID: 762515695601828506, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.9419999
+      objectReference: {fileID: 0}
     - target: {fileID: 790810684128144075, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 10
@@ -47378,6 +47384,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 1918543743460043102, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.9299998
+      objectReference: {fileID: 0}
     - target: {fileID: 1947360953357609574, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: City Center Sector Roads
@@ -47437,6 +47447,10 @@ PrefabInstance:
     - target: {fileID: 2098985192165354486, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117337078286190854, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.901
       objectReference: {fileID: 0}
     - target: {fileID: 2133761804878663871, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
@@ -48250,6 +48264,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 4153001141135299913, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.9299998
+      objectReference: {fileID: 0}
     - target: {fileID: 4216300637533073202, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Kitchen Counter
@@ -48593,6 +48611,10 @@ PrefabInstance:
     - target: {fileID: 5385547784842684580, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 5424953349889682705, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.09
       objectReference: {fileID: 0}
     - target: {fileID: 5427780396358814124, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
@@ -49730,6 +49752,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 13
       objectReference: {fileID: 0}
+    - target: {fileID: 8582662469016722456, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.11
+      objectReference: {fileID: 0}
     - target: {fileID: 8607553548218657667, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name
       value: Market and Warehouse Sector Roads
@@ -49893,6 +49919,10 @@ PrefabInstance:
     - target: {fileID: 8977845252260887316, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 8994322051340237841, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.29
       objectReference: {fileID: 0}
     - target: {fileID: 9017121303896362775, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
       propertyPath: m_Name

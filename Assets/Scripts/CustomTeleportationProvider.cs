@@ -29,6 +29,12 @@ public class CustomTeleportationProvider : TeleportationProvider
     [Tooltip("Minor collision radius in meters.")]
     public float minorCheckRadius = 0.12f;
 
+    [Tooltip("Use CharacterController radius (+padding) for major collision checks. Helps with narrow walkways.")]
+    public bool useCharacterControllerRadius = true;
+
+    [Tooltip("Extra clearance added to CharacterController radius when used for checks.")]
+    public float characterControllerPadding = 0.05f;
+
     public float maxSlope = 10f;
 
     public float delayTimeCustom = 0.1f; // if you need editable delay time, use this one
@@ -43,10 +49,12 @@ public class CustomTeleportationProvider : TeleportationProvider
 
     [System.NonSerialized] bool m_HasExclusiveLocomotion;
     [System.NonSerialized] float m_TimeStarted = -1f;
+    CharacterController m_CharacterController;
 
     protected override void Awake()
     {
         base.Awake();
+        m_CharacterController = GetComponent<CharacterController>();
         //Debug.Log("[Provider] Awake");
     }
 
@@ -138,12 +146,14 @@ public class CustomTeleportationProvider : TeleportationProvider
         }
 
         // 3) Major collision check (big blockers)
-        Collider[] majorNearby = Physics.OverlapSphere(feetPos, checkRadius, majorObstacleLayers, QueryTriggerInteraction.Ignore);
+        float effectiveMajorRadius = GetEffectiveMajorRadius();
+        Collider[] majorNearby = Physics.OverlapSphere(feetPos, effectiveMajorRadius, majorObstacleLayers, QueryTriggerInteraction.Ignore);
         //Debug.Log($"[Provider] Major check at {feetPos}, found {majorNearby.Length} colliders within {checkRadius}m");
 
         foreach (Collider col in majorNearby)
         {
             if (col == null || !col.enabled) continue;
+            if (ShouldIgnoreBlockingCollider(col)) continue;
 
             // Hard override: restricted tag blocks always
             if (!string.IsNullOrEmpty(restrictedTag) && col.CompareTag(restrictedTag))
@@ -153,7 +163,7 @@ public class CustomTeleportationProvider : TeleportationProvider
             }
 
             float dist = Vector3.Distance(col.ClosestPoint(feetPos), feetPos);
-            if (dist < checkRadius)
+            if (dist < effectiveMajorRadius)
             {
                 Debug.LogWarning($"[Provider] Blocked teleport (major), too close to {col.name} ({dist:F2}m)");
                 return false;
@@ -169,6 +179,7 @@ public class CustomTeleportationProvider : TeleportationProvider
             foreach (Collider col in minorNearby)
             {
                 if (col == null || !col.enabled) continue;
+                if (ShouldIgnoreBlockingCollider(col)) continue;
 
                 if (!string.IsNullOrEmpty(restrictedTag) && col.CompareTag(restrictedTag))
                 {
@@ -187,5 +198,33 @@ public class CustomTeleportationProvider : TeleportationProvider
 
         //Debug.Log("[Provider] Teleport destination approved");
         return true;
+    }
+
+    float GetEffectiveMajorRadius()
+    {
+        if (!useCharacterControllerRadius || m_CharacterController == null)
+            return checkRadius;
+
+        // Use the locomotion capsule size so narrow spaces remain reachable.
+        float computedRadius = m_CharacterController.radius + Mathf.Max(0f, characterControllerPadding);
+        return Mathf.Min(checkRadius, computedRadius);
+    }
+
+    bool ShouldIgnoreBlockingCollider(Collider col)
+    {
+        Transform t = col.transform;
+
+        // Ignore the player rig/capsule and its children.
+        if (m_CharacterController != null && t.IsChildOf(m_CharacterController.transform))
+            return true;
+
+        // Reader-reference helper colliders should provide audio context only and not block locomotion.
+        if (col.CompareTag("Reader Reference") || t.CompareTag("Reader Reference"))
+            return true;
+
+        if (t.name.Contains("Reader Reference"))
+            return true;
+
+        return false;
     }
 }
