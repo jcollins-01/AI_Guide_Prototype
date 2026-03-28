@@ -264,6 +264,8 @@ public class SharedMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(0f);
 
+        //Debug.Log("[Shared Movement, teleport] At this point in time, guide position is " + theGuide.transform.position);
+
         // Plays a haptic impulse while teleporting
         rightXRController.SendHapticImpulse(1u, 0.1f, 1f);
         leftXRController.SendHapticImpulse(1u, 0.1f, 1f);

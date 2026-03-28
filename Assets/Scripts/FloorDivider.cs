@@ -75,7 +75,7 @@ public class FloorDivider : MonoBehaviour
                 else
                 {
                     floorSection = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                    floorSection.layer = 10; // Set layer to Walls and Floors so that a Reader Reference will be added to it
+                    floorSection.layer = 15; // Set layer to Bounds so that a Reader Reference will be added to it
                     floorSection.transform.position = sectionPosition;
                     floorSection.transform.localScale = new Vector3(sectionWidth / 10, 1, sectionLength / 10); // Adjust scale to match section size
                 }

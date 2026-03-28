@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -11,13 +12,15 @@ public class AIGuide : MonoBehaviour
     public SharedMovement m_SharedMovementScript;
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
-    public GuideAudioSync m_guideAudioSync;
     private RealtimeGuideClient realtimeClient;
 
     // Variables for monitoring
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
+    private GameObject lastHighlightedTarget;
+    private Material previousMaterial;
+    private Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
     private bool isRecording = false;
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
@@ -128,7 +131,6 @@ public class AIGuide : MonoBehaviour
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();
-        getAudioSync();
 
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
@@ -296,7 +298,7 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.converted)
         {
-            Debug.Log("Images converted. Sending to Vision API...");
+            //Debug.Log("Images converted. Sending to Vision API...");
 
             // Call our helper function to get image descriptions from GPT-4
             Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
@@ -310,7 +312,7 @@ public class AIGuide : MonoBehaviour
 
             string fullContext = $"[Visual Context] {visionDesc}";
 
-            Debug.Log("Injecting Combined Context: " + fullContext);
+            //Debug.Log("Injecting Combined Context: " + fullContext);
             realtimeClient.SendTextContext(fullContext);
         }
         else
@@ -415,18 +417,15 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    // This is never actually used to highlight objects of targeted description - leave it for now, since a user probably wants to see the normal appearance of what's being described
     private void checkDescriptionRequests()
     {
         //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
-        // Checking if a target GameObject was selected to be modified
+        // Checking if a target GameObject was selected to be descsribed
         if (m_OpenAIQueriesScript.targetForDescription != null)
         {
             // Call to highlight the game object being described while the guide is talking
             Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
-
-            // If the guide is invisible, see if the local audio player has stopped - else, check the networked one
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription);
 
             m_OpenAIQueriesScript.targetForDescription = null;
         }
@@ -435,20 +434,28 @@ public class AIGuide : MonoBehaviour
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
-        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
-        selectedReference.GetComponent<Renderer>().material = Resources.Load<Material>("Screenreader/Glow");
-        isHighlighted = true;
+        Renderer renderer = selectedReference.GetComponent<Renderer>();
+        if (!originalMaterials.ContainsKey(selectedReference))
+            originalMaterials.Add(selectedReference, renderer.material);
 
-        // Return selectedReference renderers to normal after coroutine finishes
-        StartCoroutine(WaitForTenSeconds(selectedReference, previousMaterial));
+        renderer.material = Resources.Load<Material>("Screenreader/Glow");
     }
 
-    IEnumerator WaitForTenSeconds(GameObject selectedReference, Material previousMaterial)
+    void ClearPreviousHighlight(GameObject selectedReference)
+    {
+        //selectedReference.GetComponent<Renderer>().material = previousMaterial;
+
+        if (originalMaterials.TryGetValue(selectedReference, out Material originalMat))
+        {
+            selectedReference.GetComponent<Renderer>().material = originalMat;
+            originalMaterials.Remove(selectedReference); // Clean up the dictionary
+        }
+    }
+
+    IEnumerator ClearAfterTenSeconds(GameObject selectedReference)
     {
         yield return new WaitForSeconds(10f);
-
-        selectedReference.GetComponent<Renderer>().material = previousMaterial;
-        isHighlighted = false;
+        ClearPreviousHighlight(selectedReference);
     }
 
     private void checkModificationRequests()
@@ -459,11 +466,20 @@ public class AIGuide : MonoBehaviour
             // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
             // Also calls to highlight the object while the temporary audio beacon exists
             Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
-            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification);
 
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForModification;
+
+            if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+            }
+
+            m_AutomaticModificationScript.AddAudioBeacon(currentTarget);
+            // Wait for 10 seconds (length of audio beacon), then clear material
+            StartCoroutine(ClearAfterTenSeconds(currentTarget));
             m_OpenAIQueriesScript.targetForModification = null;
+            lastHighlightedTarget = null;
         }
     }
 
@@ -474,9 +490,13 @@ public class AIGuide : MonoBehaviour
         {
             //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
 
-            // Calls to highlight the object
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForGuidance;
+
+            if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+            }
 
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
@@ -489,7 +509,7 @@ public class AIGuide : MonoBehaviour
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
                     //Debug.Log("The mode of transit is guide");
-                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    m_AutomatedGuideScript.GuideToPosition(currentTarget); // was openAiQueries.targetForGuidance
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
 
@@ -500,7 +520,9 @@ public class AIGuide : MonoBehaviour
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
                         m_SharedMovementScript.ForceStopAndReset();
+                        ClearPreviousHighlight(currentTarget);
                         m_OpenAIQueriesScript.targetForGuidance = null;
+                        lastHighlightedTarget = null;
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
@@ -514,11 +536,8 @@ public class AIGuide : MonoBehaviour
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
-                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                        playEffect("subway_chime");
-                        m_SharedMovementScript.ForceStopAndReset();
-                        m_OpenAIQueriesScript.targetForGuidance = null;
+                        //Debug.Log("Guide reached the object");
+                        StartCoroutine(DelayGuideStopDuringTeleport(currentTarget));
                     }
                 }
             }
@@ -534,15 +553,20 @@ public class AIGuide : MonoBehaviour
         }
     }
 
+    IEnumerator DelayGuideStopDuringTeleport(GameObject currentTarget)
+    {
+        yield return new WaitForSeconds(1f);
+        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+        playEffect("subway_chime");
+        m_SharedMovementScript.ForceStopAndReset();
+        ClearPreviousHighlight(currentTarget);
+        m_OpenAIQueriesScript.targetForGuidance = null;
+    }
+
     private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-    }
-
-    private void getAudioSync()
-    {
-        if (m_guideAudioSync == null)
-            m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 }
