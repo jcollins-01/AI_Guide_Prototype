@@ -13,7 +13,6 @@ using UnityEngine.SceneManagement;
 public class GenerateReaderReferences : MonoBehaviour
 {
     // Variables and resources for creating Reader References
-    private int floorsLayer = 10;
     private int keyItemsLayer = 13;
     private int interactableLayer = 7;
     private int boundsLayer = 15;
@@ -74,7 +73,6 @@ public class GenerateReaderReferences : MonoBehaviour
         GetSpawnableNames();
 
         // Find all objects in both target layers
-        AddReaderReferencesToLayer(floorsLayer);
         AddReaderReferencesToLayer(boundsLayer);
         AddReaderReferencesToLayer(keyItemsLayer);
         AddReaderReferencesToLayer(interactableLayer);
@@ -174,7 +172,7 @@ public class GenerateReaderReferences : MonoBehaviour
                             {
                                 audioSource.clip = audioClip;
                                 //Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
-                                
+
                                 // If we have already gone through our first round of audio assignment,
                                 // Any object being assigned is a dynamic interactable
                                 if (audioAssigned)
@@ -250,7 +248,7 @@ public class GenerateReaderReferences : MonoBehaviour
             {
                 GameObject readerReferenceInstance = Instantiate(readerReferencePrefab, obj.transform); // Instantiate the Reader Reference as a child of each object
                 objectNames.Add(obj.name); // Add the objects name for the list of key objects in our config file
-            }  
+            }
         }
     }
 
