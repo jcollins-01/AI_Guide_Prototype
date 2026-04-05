@@ -8,7 +8,7 @@ public class TeleportationHandler : MonoBehaviour
     public XRController leftTarget;
     public XRController rightTarget;
     public InputHelpers.Button teleportRayTrigger;
-    public float activationThreshold = 0.2f;
+    public float activationThreshold = 0.95f;
 
     private XRInteractorLineVisual leftRay;
     public GameObject leftReticle;
