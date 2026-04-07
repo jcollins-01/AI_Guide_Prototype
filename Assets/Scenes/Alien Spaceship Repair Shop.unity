@@ -18505,6 +18505,8 @@ MonoBehaviour:
   restrictedTag: Restricted
   checkRadius: 0.5
   minorCheckRadius: 0.12
+  useCharacterControllerRadius: 1
+  characterControllerPadding: 0.05
   maxSlope: 10
   delayTimeCustom: 0.1
 --- !u!4 &1357755755 stripped
@@ -27262,7 +27264,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 0}
+  m_NavMeshData: {fileID: 23800000, guid: 66890f988275a2144963f1f346ace4ea, type: 2}
   m_BuildHeightMesh: 0
 --- !u!65 &2035485996
 BoxCollider:
