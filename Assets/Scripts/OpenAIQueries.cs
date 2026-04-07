@@ -104,7 +104,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private const int BufferThreshold = 5; // Start playing once we have 5 chunks
 
     // Configuration
-    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"; // was gpt-4o-realtime-preview, was deprecated on May 7th - gpt-realtime-1.5
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
