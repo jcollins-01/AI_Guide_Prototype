@@ -83,13 +83,15 @@ public class AIGuide : MonoBehaviour
     {
         // Set up realtime client
         realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
+        SwitchTools switchTools = FindObjectOfType<SwitchTools>();
 
         string basePrompt = GetFormattedPrompt();
 
         // Load config and connect to client
         realtimeClient.LoadConfig();
-        realtimeClient._pushToTalkOn = (FindObjectOfType<SwitchTools>().pushToTalk) ? true : false;
-        realtimeClient._continuousVoiceOn = (FindObjectOfType<SwitchTools>().continuousVoice) ? true : false;
+        realtimeClient._legacyHoldToSpeakOn = switchTools != null && switchTools.legacyHoldToSpeak;
+        realtimeClient._continuousVoiceOn = switchTools != null && switchTools.continuousVoice;
+        realtimeClient._defaultPushToTalkOn = switchTools == null || switchTools.UseDefaultPushToTalk;
         realtimeClient.Connect(basePrompt);
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
@@ -165,9 +167,9 @@ public class AIGuide : MonoBehaviour
         bool isDownThisFrame = (vrButtonDown && !wasVRButtonDownLastFrame) || spaceDown;
         wasVRButtonDownLastFrame = vrButtonDown; // Store for next frame
 
-        if (realtimeClient._pushToTalkOn)
+        if (realtimeClient._defaultPushToTalkOn)
         {
-            // Tap-to-talk mode (using voice detection to stop)
+            // Default push-to-talk mode: press once, then auto-stop after silence.
 
             // Start recording on press, but ONLY if we aren't already recording
             if ((spaceDown || vrButtonDown) && !isRecording)
@@ -203,7 +205,7 @@ public class AIGuide : MonoBehaviour
         }
         else
         {
-            // Push-to-talk mode (holding down the button)
+            // Legacy hold-to-speak mode.
 
             bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
             bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
