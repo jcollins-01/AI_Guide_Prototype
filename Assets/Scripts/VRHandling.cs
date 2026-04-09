@@ -69,29 +69,29 @@ public class VRHandling : MonoBehaviour
         return false;
     }
 
-    // Function to get the state of the secondary button on the XR controller, which is used to call all accessibility tools
+    // Function to get the state of the primary button on the XR controller, which is used to call all accessibility tools
     private bool GetCallingButtonPress()
     {
         if (rightXRController != null)
         {
-            bool secondaryButtonValue;
-            if (rightXRController.TryGetFeatureValue(CommonUsages.secondaryButton, out secondaryButtonValue))
+            bool primaryButtonValue;
+            if (rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out primaryButtonValue))
             {
-                return secondaryButtonValue;
+                return primaryButtonValue;
             }
         }
         return false;
     }
 
-    // Function to get the state of the secondary button on the left XR controller
+    // Function to get the state of the primary button on the left XR controller
     private bool GetMutingButtonPress()
     {
         if (leftXRController != null)
         {
-            bool secondaryButtonValue;
-            if (leftXRController.TryGetFeatureValue(CommonUsages.secondaryButton, out secondaryButtonValue))
+            bool primaryButtonValue;
+            if (leftXRController.TryGetFeatureValue(CommonUsages.primaryButton, out primaryButtonValue))
             {
-                return secondaryButtonValue;
+                return primaryButtonValue;
             }
         }
         return false;
