@@ -23,6 +23,7 @@ public class VRScreenreader : MonoBehaviour
     Dictionary<GameObject, float> referencesAndDistances = new Dictionary<GameObject, float>();
     Dictionary<GameObject, bool> objectsHitByLeftController = new Dictionary<GameObject, bool>();
     Dictionary<GameObject, bool> objectsHitByRightController = new Dictionary<GameObject, bool>();
+    List<AudioSource> playingReferenceAudio = new List<AudioSource>();
     
     // Variables for reader reticles, teleport reticles, and raycast
     public GameObject leftParentController;
@@ -106,24 +107,38 @@ public class VRScreenreader : MonoBehaviour
                     PlayHapticImpulse(controller); // Play a short haptic impulse to signal to user that they're hitting an object
                 }
 
-                // If right or left secondary buttons are pressed (left secondary is muting button for the guide)
-                if (m_VRHandlingScript.isButtonPressed || m_VRHandlingScript.isMutingButtonPressed)
+                // Determine WHICH controller pressed to play screen reader audio
+                bool rightControllerWantsToPlay = (controller == rightXRController) && m_VRHandlingScript.isButtonPressed;
+                bool leftControllerWantsToPlay = (controller == leftXRController) && m_VRHandlingScript.isMutingButtonPressed;
+
+                // If the specific button for the specific controller aiming at this object is pressed
+                if (rightControllerWantsToPlay || leftControllerWantsToPlay)
                 {
-                    // Play audio label if the button is pressed
                     selectedAudio = readerReference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                    if (!selectedAudio.isPlaying && selectedAudio.clip != null) // If the source isn't playing and the clip is assigned
+
+                    if (selectedAudio != null && selectedAudio.clip != null)
                     {
-                        selectedAudio.Play();
-                        HighlightSelectedReaderReference(hit, selectedAudio);
-                        Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                        // Prevent restarting the exact same audio every frame the button is held
+                        if (!selectedAudio.isPlaying)
+                        {
+                            // Stop any other playing descriptions before starting this one
+                            StopAllReferenceAudio();
+
+                            selectedAudio.Play();
+                            playingReferenceAudio.Add(selectedAudio);
+                            HighlightSelectedReaderReference(hit, selectedAudio);
+                            Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                        }
                     }
                     else
+                    {
                         Debug.Log("Object found with reader reference but no assigned audio clip");
+                    }
                 }
             }
 
-            // Mark all objects not hit by the ray as false so that they can trigger buzzes later
-            foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
+                // Mark all objects not hit by the ray as false so that they can trigger buzzes later
+                foreach (GameObject obj in objectsHitByCurrentController.Keys.ToList())
             {
                 if (obj != hit)
                     objectsHitByCurrentController[obj] = false;
@@ -137,6 +152,19 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
+    // Safely stops any currently playing audio and clears the tracking list
+    private void StopAllReferenceAudio()
+    {
+        foreach (AudioSource audio in playingReferenceAudio)
+        {
+            if (audio != null && audio.isPlaying)
+            {
+                audio.Stop();
+            }
+        }
+        playingReferenceAudio.Clear();
+    }
+
     private void PlayHapticImpulse(InputDevice controller)
     {
         controller.SendHapticImpulse(1u, 0.25f, 0.25f);
@@ -146,7 +174,7 @@ public class VRScreenreader : MonoBehaviour
     // Teleport reticle is separate from the reader reticle
     public void TeleportCheckReferenceAndPlayAudio(Vector3 reticlePosition) // was GameObject hit
     {
-        //Debug.Log("Teleport reticle is being checked with " + hit.name);
+        //Debug.Log("Teleport reticle is being checked");
         AudioSource selectedAudio;
 
         // Assign handlerReticlePosition to the value passed from TeleportationHandler, to be used in CheckSmallestReferenceDistance
@@ -160,6 +188,7 @@ public class VRScreenreader : MonoBehaviour
             // If the value of distance attached to the given reference matches the smallestDistance
             if (referencesAndDistances[reference] == smallestDistance)
             {
+                //Debug.Log($"Closest environmental object is at {referencesAndDistances[reference]}, for {reference.transform.parent.name}");
                 // This is the closest environment object, so play its label to tell the reader the name of the environment their reticle is on
                 selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
                 // Assign the environmental object as the hit to compare between teleports, since this object contains the appropriate name to compare
@@ -172,9 +201,14 @@ public class VRScreenreader : MonoBehaviour
                     {
                         if (!selectedAudio.isPlaying)
                         {
+                            StopAllReferenceAudio(); // Cut off any currently playing object descriptions
                             selectedAudio.Play(); // Play the sound automatically as it is hit
+
+                            // Track this audio so hands can cut it off later
+                            playingReferenceAudio.Add(selectedAudio);
+
                             HighlightSelectedReaderReference(hit, selectedAudio);
-                            Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
+                            //Debug.Log("Now playing from " + selectedAudio.transform.parent.transform.parent.name);
                         }
 
                         // Update last object hit
@@ -201,20 +235,23 @@ public class VRScreenreader : MonoBehaviour
             // If the value of distance attached to the given reference matches the smallestDistance
             if (referencesAndDistances[reference] == smallestDistance)
             {
-                //Debug.Log("Closest environmental object is " + reference.transform.parent.name);
+                //Debug.Log($"Closest environmental object is at {referencesAndDistances[reference]}, for {reference.transform.parent.name}");
                 // Play the label of the closest floor / environmental object
                 selectedAudio = reference.transform.Find("Object Label + Description").GetComponent<AudioSource>();
-                if (selectedAudio.isPlaying)
-                    selectedAudio.Stop(); // Stops playing if we were just using the reticle to hear this area's name
+                // Cut off everything - this properly stops object descriptions AND pre-teleport area names if we were just in another area
+                StopAllReferenceAudio();
                 selectedAudio.Play();
-                Debug.Log("Now playing post audio from " + selectedAudio.transform.parent.transform.parent.name);
+
+                // Track this post-teleport audio
+                playingReferenceAudio.Add(selectedAudio);
+                //Debug.Log("Now playing post audio from " + selectedAudio.transform.parent.transform.parent.name);
             }
         }
     }
 
     public void GetReaderReferences()
     {
-        Debug.Log("Getting reader references");
+        //Debug.Log("Getting reader references");
 
         // Clear larger readerReferences dictionary each time this is called, so our dictionary is fresh + won't call for destroyed items
         readerReferences.Clear();
@@ -225,10 +262,10 @@ public class VRScreenreader : MonoBehaviour
         foreach(GameObject reference in tempReaderReferences)
         {
             readerReferences.Add(reference);
-            Debug.Log("Found reference " + reference.transform.parent.name);
+            // Debug.Log("Found reference " + reference.transform.parent.name);
         }
 
-        Debug.Log("Reader refs size is " + readerReferences.Count);
+        //Debug.Log("Reader refs size is " + readerReferences.Count);
         if (readerReferences.Count > 0)
         {
             referencesFound = true;
@@ -276,12 +313,14 @@ public class VRScreenreader : MonoBehaviour
                             BoxCollider newBoxCollider = reference.gameObject.AddComponent<BoxCollider>();
                             newBoxCollider.center = parentBoxCollider.center;
                             newBoxCollider.size = parentBoxCollider.size * 1.05f; // Increase size by 5%
+                            ConfigureReaderReferenceCollider(newBoxCollider);
                         }
                         else if (parentCollider is SphereCollider parentSphereCollider)
                         {
                             SphereCollider newSphereCollider = reference.gameObject.AddComponent<SphereCollider>();
                             newSphereCollider.center = parentSphereCollider.center;
                             newSphereCollider.radius = parentSphereCollider.radius * 1.05f; // Increase radius by 5%
+                            ConfigureReaderReferenceCollider(newSphereCollider);
                         }
                         else if (parentCollider is CapsuleCollider parentCapsuleCollider)
                         {
@@ -290,13 +329,15 @@ public class VRScreenreader : MonoBehaviour
                             newCapsuleCollider.radius = parentCapsuleCollider.radius * 1.05f; // Increase radius by 5%
                             newCapsuleCollider.height = parentCapsuleCollider.height * 1.05f; // Increase height by 5%
                             newCapsuleCollider.direction = parentCapsuleCollider.direction;
+                            ConfigureReaderReferenceCollider(newCapsuleCollider);
                         }
                         else if (parentCollider is MeshCollider parentMeshCollider)
                         {
                             MeshCollider newMeshCollider = reference.gameObject.AddComponent<MeshCollider>();
                             newMeshCollider.sharedMesh = parentMeshCollider.sharedMesh;
-                            newMeshCollider.convex = parentMeshCollider.convex;
+                            newMeshCollider.convex = true;
                             // Cannot uniformly "enlarge" a MeshCollider easily
+                            ConfigureReaderReferenceCollider(newMeshCollider);
                         }
 
                         // Reattach to the original parent
@@ -367,6 +408,16 @@ public class VRScreenreader : MonoBehaviour
         }
     }
 
+    private void ConfigureReaderReferenceCollider(Collider collider)
+    {
+        if (collider == null)
+            return;
+
+        // Reader references are helper volumes for audio lookup only.
+        // Keep them non-physical so they never block player locomotion in tight spaces.
+        collider.isTrigger = true;
+    }
+
     void HighlightSelectedReaderReference(GameObject selectedReference, AudioSource selectedAudio)
     {
         // Store original materials for each renderer
@@ -402,33 +453,37 @@ public class VRScreenreader : MonoBehaviour
 
     private float CheckSmallestReferenceDistance(string version)
     {
+        //Debug.Log("Checking smallest ref distance");
         float distance;
         List<float> distancesToReferences = new List<float>();
         referencesAndDistances.Clear(); // Reset dict values with each check
 
         if (version.Equals("teleport"))
         {
+            //Debug.Log("Reached teleport");
             // Calculate the distance between the player and each object in environmentCues
             foreach (GameObject reference in readerReferences)
             {
-                // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
-                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                // If the reference has an environment label (is part of the bounds on layer 15) and its clip is assigned
+                if (reference.transform.parent.gameObject.layer == 15 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
                     distance = Vector3.Distance(reference.transform.position, thePlayer.transform.position);
                     distancesToReferences.Add(distance);
                     referencesAndDistances.Add(reference, distance);
+                    Debug.Log($"Added the reference {reference.transform.parent.name}");
                 }
             }
         }
         else if (version.Equals("pre-teleport"))
         {
-            Debug.Log("Reached pre-teleport");
+            //Debug.Log("Reached pre-teleport");
             // Calculate the distance between the player and each object in environmentCues
             foreach (GameObject reference in readerReferences)
             {
                 // If the reference has an environment label (is part of the floor spaces on layer 10) and its clip is assigned
-                if (reference.transform.parent.gameObject.layer == 10 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
+                if (reference.transform.parent.gameObject.layer == 15 && reference.transform.Find("Object Label + Description").GetComponent<AudioSource>().clip != null)
                 {
+                    Debug.Log($"Found a bound {reference.transform.parent.name}");
                     distance = Vector3.Distance(reference.transform.position, handlerReticlePosition);
                     distancesToReferences.Add(distance);
                     referencesAndDistances.Add(reference, distance);
@@ -436,7 +491,7 @@ public class VRScreenreader : MonoBehaviour
             }
         }
 
-        //Debug.Log("Checking for nearby obstacles - smallest distance is " + distancesToReferences.Min());
+        //Debug.Log("Checking for nearby bounds - smallest distance is " + distancesToReferences.Min());
         return distancesToReferences.Min();
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,13 +9,19 @@ public class UnloadObject : MonoBehaviour
     public bool playerUnloadedObject = false;
     private GameObject bag;
     private Collider bagBounds;
-    private bool isGrabbed = false;
     private bool trackingStarted = false;
+    private bool objectOutsideOfBag = false;
+    private float raycastDistance = 10.0f;
+    private string nameOfCollidingObject;
+    private Coroutine unloadConfirmRoutine;
+    private bool objectGrabbed = false;
 
     // Variables for scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
+    private RandomObjectSpawner m_UnloadSpawnerAndPrepareTaskScript;
     private VRScreenreader m_VRScreenreaderScript;
     private SwitchTools m_SwitchToolsScript;
+    private XRGrabInteractable m_XRGrabInteractableScript;
 
     // Start is called before the first frame update
     void Start()
@@ -58,6 +65,15 @@ public class UnloadObject : MonoBehaviour
             // Grab the screenreader script to access the unloadingBagCollider
             m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
 
+            m_UnloadSpawnerAndPrepareTaskScript = m_ShortTaskControllerScript.unloadingBag.GetComponent<RandomObjectSpawner>();
+            m_XRGrabInteractableScript = m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetComponent<XRGrabInteractable>();
+
+            if (m_XRGrabInteractableScript != null)
+            {
+                m_XRGrabInteractableScript.selectEntered.AddListener(CheckSpawnedObjectGrabbed);
+                m_XRGrabInteractableScript.selectExited.AddListener(CheckSpawnedObjectReleased);
+            }
+
             // Alt. grab the unloading bag, find child object named ReaderReference, get collider from that child, ignore collisions
 
             if (bagBounds != null)
@@ -68,18 +84,117 @@ public class UnloadObject : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        CheckIfGrabbed();
+        bool raycastCheckAbovePrepTable = CheckIfObjectAboveInteractionTable();
+
+        // Check if the object is no longer inside the bag's bounds
+        if (!bagBounds.bounds.Contains(transform.position))
+        {
+            objectOutsideOfBag = true;
+            // Debug.Log("Player lifted the object outside of the bag.");
+        }
+        else if (bagBounds.bounds.Contains(transform.position))
+        {
+            // Debug.Log("object is still in the bag");
+            objectOutsideOfBag = false;
+            return;
+        }
 
         // Check if the object has been released outside the bounds of the bag
-        if (trackingStarted && !isGrabbed && playerUnloadedObject == false && bagBounds != null)
+        if (trackingStarted && !playerUnloadedObject && !objectGrabbed && raycastCheckAbovePrepTable && bagBounds != null)
         {
-            // Check if the object is no longer inside the bag's bounds
-            if (!bagBounds.bounds.Contains(transform.position))
+            if (unloadConfirmRoutine == null)
             {
-                playerUnloadedObject = true;
-                Debug.Log("Player unloaded the object outside the bag.");
+                unloadConfirmRoutine = StartCoroutine(ConfirmUnloadAfterADelay());
             }
         }
+        else if (trackingStarted && objectOutsideOfBag && !objectGrabbed && !raycastCheckAbovePrepTable && bagBounds != null) // object falls off table
+        {
+            // Debug.Log("object was not correctly placed; now destroying and spawning a new one");
+            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion(false);
+        }
+    }
+
+    private IEnumerator ConfirmUnloadAfterADelay()
+    {
+        yield return new WaitForSeconds(1.0f);
+
+        bool onTable = !objectGrabbed && CheckIfObjectAboveInteractionTable() && 
+                            nameOfCollidingObject == m_ShortTaskControllerScript.interactionTable.name;
+
+        if (objectGrabbed)
+        {
+            unloadConfirmRoutine = null;
+            yield break;
+        }
+        else if (!onTable)
+        {
+            unloadConfirmRoutine = null;
+            m_UnloadSpawnerAndPrepareTaskScript.ResetUnloadingPortion(false);
+            yield break;
+        }
+
+        // Revert reference collider layer to restore proper collision effects between it and other interactables
+        m_ShortTaskControllerScript.unloadingBag.layer = 13;
+        m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.layer = 0;
+        playerUnloadedObject = true;
+        // Destroy the grabbable component so the object can't be grabbed anymore
+        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetComponentInChildren<XRGrabInteractable>());
+        m_ShortTaskControllerScript.unloadingTaskScore++;
+        m_UnloadSpawnerAndPrepareTaskScript.audioSource.clip = m_UnloadSpawnerAndPrepareTaskScript.unloaded;
+        m_UnloadSpawnerAndPrepareTaskScript.audioSource.Play();
+        Debug.Log("move on to prep portion of task");
+
+        m_UnloadSpawnerAndPrepareTaskScript.StartPreparationPart();
+        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetComponent<UnloadObject>()); // destroy script so that no other code runs after we've moved on
+    }
+
+    private void CheckSpawnedObjectGrabbed(SelectEnterEventArgs args)
+    {
+        objectGrabbed = true;
+    }
+
+    private void CheckSpawnedObjectReleased(SelectExitEventArgs args)
+    {
+        objectGrabbed = false;
+    }
+
+    void OnDestroy()
+    {
+        if (m_XRGrabInteractableScript != null)
+        {
+            m_XRGrabInteractableScript.selectEntered.RemoveListener(CheckSpawnedObjectGrabbed);
+            m_XRGrabInteractableScript.selectExited.RemoveListener(CheckSpawnedObjectReleased);
+        }
+    }
+
+    private bool CheckIfObjectAboveInteractionTable()
+    {
+        if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null)
+        {
+            RaycastHit[] returnedRaycastHits = Physics.RaycastAll(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.transform.position, Vector3.down, raycastDistance);
+
+            foreach (RaycastHit hit in returnedRaycastHits)
+            {
+                if (hit.collider.gameObject == m_ShortTaskControllerScript.interactionTable)
+                {
+                    // Debug.Log("above prep table!");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        nameOfCollidingObject = other.gameObject.name;
+        // Debug.Log($"The object that spawnedObject collided with: {nameOfCollidingObject}");
+    }
+
+    void OnCollisionExit(Collision other)
+    {
+        nameOfCollidingObject = null;
+        // Debug.Log($"The object that spawnedObject is no longer colliding with: {other.gameObject.name}");
     }
 
     private IEnumerator StartUnloadCheckAfterDelay()
@@ -92,12 +207,6 @@ public class UnloadObject : MonoBehaviour
     public void AssignBag(GameObject passedBag)
     {
         bag = passedBag;
-    }
-
-    private void CheckIfGrabbed()
-    {
-        if (GetComponent<GrabRequest>() != null)
-            isGrabbed = GetComponent<GrabRequest>().grabbed;
     }
 
     private void CheckForBagReferenceCollider()
@@ -113,27 +222,5 @@ public class UnloadObject : MonoBehaviour
             // Ignore collisions between the spawned ingredients and the unloadingBag's ref collider so ingredients can fall in bag
             bagReferenceCollider = bag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
         }
-
-        /* 
-        The following code is used to shift the bag collider/gameObject in order to give IgnoreCollisions enough time to register.
-        It causes the bag to visually disappear and then reappear in its original position (see WaitToShiftCollider function).
-        
-        Currently, we do not need it as we can just have the spawnedObject created from RandomObjectSpawner.cs to spawn a little higher (i.e. more time to fall).
-        If this ever changes in the future, we may need to include this code again.
-        */
-        // Transform colliderTransform = bagReferenceCollider.gameObject.transform;
-        // Vector3 originalColliderPosition = colliderTransform.position;
-
-        // // Shift the collider slightly at the start to give IgnoreCollisions time to kick in
-        // colliderTransform.position = new Vector3(originalColliderPosition.x, originalColliderPosition.y, originalColliderPosition.z);
-
-        // // Determine how long to wait before shifting back
-        // StartCoroutine(WaitToShiftCollider(colliderTransform, originalColliderPosition));
     }
-
-    // private IEnumerator WaitToShiftCollider(Transform colliderTransform, Vector3 originalColliderPosition)
-    // {
-    //     yield return new WaitForSeconds(0.8f); // cheese bounces at 0.35 - 0.5f
-    //     colliderTransform.position = originalColliderPosition;
-    // }
 }

@@ -16,7 +16,17 @@ public class TeleportationHandler : MonoBehaviour
     private XRInteractorLineVisual rightRay;
     public GameObject rightReticle;
 
-    private TeleportationProvider teleport;
+    private XRRayInteractor leftRayInteractor;
+    private XRRayInteractor rightRayInteractor;
+
+    public LayerMask teleportRayMask;
+    private LayerMask leftNormalMask;
+    private LayerMask rightNormalMask;
+
+    private bool leftWasPressedLastFrame;
+    private bool rightWasPressedLastFrame;
+
+    private CustomTeleportationProvider teleport;
     private CharacterController characterController;
     private float characterControllerCenterY;
     private float characterControllerHeight;
@@ -27,16 +37,32 @@ public class TeleportationHandler : MonoBehaviour
     // Bools to control for screenreader/guide switch
     private bool screenreaderActive = false;
 
+    // Global flag that allows other systems (e.g., navigation tasks)
+    // to temporarily disable teleport input and rays.
+    public static bool teleportationBlocked = false;
+
     // Start is called before the first frame update
     void Start()
     {
+        //Debug.Log("[TeleportationHandler] NEW SCRIPT VERSION LOADED");
         leftRay = leftTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         leftReticle = leftRay.reticle;
 
         rightRay = rightTarget.gameObject.GetComponent<XRInteractorLineVisual>();
         rightReticle = rightRay.reticle;
 
-        teleport = this.gameObject.GetComponent<TeleportationProvider>();
+        leftRayInteractor = leftTarget.GetComponent<XRRayInteractor>();
+        rightRayInteractor = rightTarget.GetComponent<XRRayInteractor>();
+
+        if (leftRayInteractor != null)
+            leftNormalMask = leftRayInteractor.raycastMask;
+
+        if (rightRayInteractor != null)
+            rightNormalMask = rightRayInteractor.raycastMask;
+
+        teleportRayMask = LayerMask.GetMask("Floors");
+
+        teleport = this.gameObject.GetComponent<CustomTeleportationProvider>();
         characterController = this.gameObject.GetComponent<CharacterController>();
         characterControllerCenterY = 0.88f;
         characterControllerHeight = 1.6f;
@@ -49,6 +75,26 @@ public class TeleportationHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // If teleportation is globally blocked, make sure rays/reticles are off and skip input.
+        if (teleportationBlocked)
+        {
+            if (leftRay != null)
+            {
+                leftRay.enabled = false;
+                if (leftReticle != null)
+                    leftReticle.SetActive(false);
+            }
+
+            if (rightRay != null)
+            {
+                rightRay.enabled = false;
+                if (rightReticle != null)
+                    rightReticle.SetActive(false);
+            }
+
+            return;
+        }
+
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
@@ -66,7 +112,24 @@ public class TeleportationHandler : MonoBehaviour
         if (!leftIsPressed && !rightIsPressed)
         {
             // If both teleportation triggers are not being held down, reset the lastHitObject
-            m_VRScreenreaderScript.lastHitObject = null;
+            if (m_VRScreenreaderScript != null)
+                m_VRScreenreaderScript.lastHitObject = null;
+        }
+
+        if (leftRayInteractor != null)
+            leftRayInteractor.raycastMask = leftIsPressed ? teleportRayMask : leftNormalMask;
+
+        if (rightRayInteractor != null)
+            rightRayInteractor.raycastMask = rightIsPressed ? teleportRayMask : rightNormalMask;
+
+        if (leftRayInteractor != null && leftRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+        {
+            Debug.Log($"[Left Interactor] Hitting: {hit.collider.name}");
+        }
+
+        if (rightRayInteractor != null && rightRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit2))
+        {
+            Debug.Log($"[Right Interactor] Hitting: {hit2.collider.name}");
         }
 
         // If the action of teleportation has completed
@@ -75,8 +138,11 @@ public class TeleportationHandler : MonoBehaviour
             Debug.Log("Teleport motion completed");
             characterController.center = new Vector3(0f, characterControllerCenterY, 0f);
             characterController.height = characterControllerHeight;
-            if (m_VRScreenreaderScript.sharedMovementFound)
-                m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
+            if (m_VRScreenreaderScript != null)
+            {
+                if (m_VRScreenreaderScript.sharedMovementFound)
+                    m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
+            }
         }
     }
 
@@ -104,11 +170,11 @@ public class TeleportationHandler : MonoBehaviour
 
         if (hitColliders.Length > 0)
         {
-            //Debug.Log("Teleport reticle hit an object");
+            Debug.Log("Teleport reticle hit an object");
             // Hitting a teleportable object, so activate screenreader and share position of reticle
-            // m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
+            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
         }
-        else
-            Debug.Log("No objects detected at reticle position.");
+        //else
+            //Debug.Log("No objects detected at reticle position.");
     }
 }

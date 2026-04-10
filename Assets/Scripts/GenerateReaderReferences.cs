@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using OpenAI;
+using OpenAI.Audio;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -11,9 +13,9 @@ using UnityEngine.SceneManagement;
 public class GenerateReaderReferences : MonoBehaviour
 {
     // Variables and resources for creating Reader References
-    private int floorsLayer = 10;
     private int keyItemsLayer = 13;
     private int interactableLayer = 7;
+    private int boundsLayer = 15;
     private GameObject readerReferencePrefab;
     private List<string> spawnableNames = new List<string>();
     public bool audioAssigned = false;
@@ -31,18 +33,30 @@ public class GenerateReaderReferences : MonoBehaviour
     private string audioFilePath;
 
     // Variables to load PlayHT credentials + alt-text
+    public static OpenAIClient client { get; set; }
     [HideInInspector]
     public string playHTApiKey;
     [HideInInspector]
     public string playHTUserId;
+    private string elevenLabsApiKey;
+    private string openAIApiKey;
     // Config file to hold api keys, credentials
     [HideInInspector]
     private const string configFileName = "config";
+
+    // Variable to handle which voice is used for generation
+    public bool personalVoicesMode = false;
 
     void Start()
     {
         // Load relevant credentials from config file
         LoadConfig();
+
+        // Open client
+        client = new OpenAIClient(openAIApiKey);
+
+        // Determine which version of audio generation is to be used
+        personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
 
         // Load the Reader Reference prefab from Resources
         readerReferencePrefab = Resources.Load<GameObject>("Screenreader/Reader Reference");
@@ -59,7 +73,7 @@ public class GenerateReaderReferences : MonoBehaviour
         GetSpawnableNames();
 
         // Find all objects in both target layers
-        AddReaderReferencesToLayer(floorsLayer);
+        AddReaderReferencesToLayer(boundsLayer);
         AddReaderReferencesToLayer(keyItemsLayer);
         AddReaderReferencesToLayer(interactableLayer);
 
@@ -92,6 +106,9 @@ public class GenerateReaderReferences : MonoBehaviour
         // Loop through each object and add its name to the list
         foreach (Object obj in resources)
             spawnableNames.Add(obj.name);
+
+        // Add this manually since the target is the only dynamic prefab that isn't environment specific
+        spawnableNames.Add("Target Destination");
     }
 
     private void CheckForNewInteractables()
@@ -103,7 +120,7 @@ public class GenerateReaderReferences : MonoBehaviour
         foreach (GameObject obj in allObjects)
         {
             string cleanedName = obj.name.Replace("(Clone)", "").Trim();
-            if (obj.layer == 7 && spawnableNames.Contains(cleanedName)) // If there's an interactable that matches a name from our spawnable objects
+            if ((obj.layer == 7 || obj.layer == 13) && spawnableNames.Contains(cleanedName)) // If there's an interactable/key item (for target) that matches a name from our spawnable objects
             {
                 // Add Reader Reference if one does not exist on the object
                 GameObject readerReference = FindChildWithTag(obj, "Reader Reference");
@@ -154,8 +171,8 @@ public class GenerateReaderReferences : MonoBehaviour
                             if (audioSource.clip == null)
                             {
                                 audioSource.clip = audioClip;
-                                Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
-                                
+                                //Debug.Log($"Assigned audio file {Path.GetFileName(path)} to GameObject {cleanedName}");
+
                                 // If we have already gone through our first round of audio assignment,
                                 // Any object being assigned is a dynamic interactable
                                 if (audioAssigned)
@@ -190,7 +207,7 @@ public class GenerateReaderReferences : MonoBehaviour
         // Define the directory path where audio files are stored
         string audioDirectoryPath = resourcesPath;
 
-        Debug.Log("Audio directory is " + audioDirectoryPath);
+        //Debug.Log("Audio directory is " + audioDirectoryPath);
 
         // Check if the directory exists and contains audio files
         if (Directory.Exists(audioDirectoryPath))
@@ -199,7 +216,7 @@ public class GenerateReaderReferences : MonoBehaviour
 
             if (audioFiles.Length > 0)
             {
-                Debug.Log("Audio files exist in this directory.");
+                //Debug.Log("Audio files exist in this directory.");
 
                 foreach (string filePath in audioFiles)
                 {
@@ -231,7 +248,7 @@ public class GenerateReaderReferences : MonoBehaviour
             {
                 GameObject readerReferenceInstance = Instantiate(readerReferencePrefab, obj.transform); // Instantiate the Reader Reference as a child of each object
                 objectNames.Add(obj.name); // Add the objects name for the list of key objects in our config file
-            }  
+            }
         }
     }
 
@@ -302,16 +319,22 @@ public class GenerateReaderReferences : MonoBehaviour
 
                 // Generate the audio file path
                 string audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
+                //Debug.Log($"Looking for audio for {objectName}.");
 
-                // Check if the audio already exists
-                if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
+                // Check if the audio already exists AND is greater than 0 bytes (wasn't corrupted by having generated cancelled/stopping scene partway through generation)
+                bool fileIsValid = File.Exists(audioFilePath) && new FileInfo(audioFilePath).Length > 0;
+
+                if (fileIsValid && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
                 {
-                    Debug.Log($"Audio for {objectName} already exists, skipping generation.");
+                    //Debug.Log($"Audio for {objectName} already exists, skipping generation.");
                     continue; // Skip the request to PlayHT
                 }
 
                 // Generate the audio if not cached
-                yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
+                if (personalVoicesMode)
+                    yield return StartCoroutine(GenerateAndSavePersonalAudio(objectName, description, descriptionHash));
+                else
+                    yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
             }
             else
             {
@@ -324,40 +347,108 @@ public class GenerateReaderReferences : MonoBehaviour
                 // Check if the audio already exists
                 if (File.Exists(audioFilePath) && audioHashes.ContainsKey(objectName) && audioHashes[objectName] == descriptionHash)
                 {
-                    Debug.Log($"Audio for {objectName} already exists, skipping generation.");
+                    //Debug.Log($"Audio for {objectName} already exists, skipping generation.");
                     continue; // Skip the request to PlayHT
                 }
 
                 // Generate the audio if not cached
-                yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
+                if (personalVoicesMode)
+                    yield return StartCoroutine(GenerateAndSavePersonalAudio(objectName, description, descriptionHash));
+                else
+                    yield return StartCoroutine(GenerateAndSaveAudio(objectName, description, descriptionHash));
             }
         }
     }
 
+    // Version that uses OpenAI default voices
     private IEnumerator GenerateAndSaveAudio(string objectName, string description, string descriptionHash)
     {
-        string playHTUrl = "https://play.ht/api/v2/tts/stream";
-        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
+        //Debug.Log($"Generating audio for {objectName}");
+        audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
+
+        var ttsRequest = new SpeechRequest(description, model: "tts-1", voice: SpeechVoice.Alloy, responseFormat: SpeechResponseFormat.MP3);
+
+        var task = client.AudioEndpoint.CreateSpeechAsync(ttsRequest);
+
+        while (!task.IsCompleted)
+        {
+            yield return null;
+        }
+
+        if (task.IsFaulted || task.IsCanceled)
+        {
+            Debug.LogError($"TTS Task failed: {task.Exception}");
+            yield break;
+        }
+
+        // Task.Result is where the actual path string lives
+        var result = task.Result;
+        string actualPath = result.ToString();
+        // Clean up the string to get a valid Windows path
+        string clipPath = actualPath.Replace("file://", "").Split(',')[0].Trim('(', ' ');
+
+        if (File.Exists(clipPath))
+        {
+            byte[] audioData = File.ReadAllBytes(clipPath);
+            File.WriteAllBytes(audioFilePath, audioData);
+            Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
+
+            audioHashes[objectName] = descriptionHash;
+            SaveAudioHashes();
+
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.Refresh();
+#endif
+        }
+        else
+        {
+            Debug.LogError("OpenAI returned success, but the temp file path does not exist: " + clipPath);
+            yield break;
+        }
+    }
+
+    private IEnumerator GenerateAndSavePersonalAudio(string objectName, string description, string descriptionHash)
+    {
+        string voice = "SAz9YHcvj6GT2YYXdXww"; // Default voice, Human
         audioFilePath = Path.Combine(resourcesPath, $"{objectName}.mp3");
 
         var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + description + "\"}";
 
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
+        var payloadObj = new
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
-            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
-
-            Debug.Log("Sending request to PlayHT: " + playHTData);
-
-            yield return playHTRequest.SendWebRequest();
-
-            if (playHTRequest.result == UnityWebRequest.Result.Success)
+            text = description,
+            model_id = "eleven_turbo_v2",
+            voice_settings = new
             {
-                byte[] audioData = playHTRequest.downloadHandler.data;
+                stability = 0.5f,
+                similarity_boost = 0.7f,
+                style = 0.02f,
+                use_speaker_boost = true
+            }
+        };
+
+        string finalUrl = $"https://api.elevenlabs.io/v1/text-to-speech/{voice}/";
+        string jsonBody = JsonConvert.SerializeObject(payloadObj);
+
+        using (UnityWebRequest elevenLabsRequest = new UnityWebRequest(finalUrl, "POST"))
+        {
+            elevenLabsRequest.method = UnityWebRequest.kHttpVerbPOST;
+
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+            elevenLabsRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            elevenLabsRequest.downloadHandler = new DownloadHandlerAudioClip(finalUrl, AudioType.MPEG);
+
+            elevenLabsRequest.SetRequestHeader("Content-Type", "application/json");
+            elevenLabsRequest.SetRequestHeader("xi-api-key", elevenLabsApiKey); // Use 'xi-api-key', NOT 'Authorization'
+            elevenLabsRequest.SetRequestHeader("Accept", "audio/mpeg");
+
+            Debug.Log($"Sending a request to ElevenLabs: {jsonBody}");
+
+            yield return elevenLabsRequest.SendWebRequest();
+
+            if (elevenLabsRequest.result == UnityWebRequest.Result.Success)
+            {
+                byte[] audioData = elevenLabsRequest.downloadHandler.data;
                 Debug.Log($"Received audio data of size: {audioData.Length} bytes");
                 File.WriteAllBytes(audioFilePath, audioData);
                 Debug.Log($"Audio for {objectName} saved at {audioFilePath}");
@@ -372,8 +463,15 @@ public class GenerateReaderReferences : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
+                Debug.LogError("Error calling ElevenLabs: " + elevenLabsRequest.error);
+                //Debug.LogError("Response Text: " + elevenLabsRequest.downloadHandler.text);
+
+                Debug.LogError("Error Code: " + elevenLabsRequest.responseCode);
+                if (elevenLabsRequest.downloadHandler.data != null)
+                {
+                    string errorJson = Encoding.UTF8.GetString(elevenLabsRequest.downloadHandler.data);
+                    Debug.LogError("ElevenLabs Detailed Error: " + errorJson);
+                }
                 yield break;
             }
         }
@@ -432,6 +530,8 @@ public class GenerateReaderReferences : MonoBehaviour
             ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
             playHTApiKey = configData.PlayHTAPIKey;
             playHTUserId = configData.PlayHTUserID;
+            elevenLabsApiKey = configData.ElevenLabsAPIKey;
+            openAIApiKey = configData.APIKey;
         }
         else
         {
@@ -444,5 +544,6 @@ public class GenerateReaderReferences : MonoBehaviour
         public string APIKey;
         public string PlayHTAPIKey;
         public string PlayHTUserID;
+        public string ElevenLabsAPIKey;
     }
 }

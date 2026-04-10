@@ -2135,9 +2135,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rows: 2
-  columns: 1
+  columns: 2
   floorPrefab: {fileID: 0}
-  defaultMaterial: {fileID: 2100000, guid: 9c8a28ed36442d34786b22a5f854147d, type: 2}
+  defaultMaterial: {fileID: 0}
 --- !u!1 &1924003407
 GameObject:
   m_ObjectHideFlags: 0
@@ -2737,13 +2737,37 @@ PrefabInstance:
       propertyPath: rightParentController
       value: 
       objectReference: {fileID: 2705192287667906667}
+    - target: {fileID: 2029537097534794439, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2960497261650544495, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: _localAvatarPrefab
+      value: 
+      objectReference: {fileID: 1241684057453767626, guid: 2c6cca66f8edd724ba6a9900765605fa, type: 3}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: pushToTalk
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: voiceDetection
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: continuousVoice
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: realtimeQueryOn
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRScreenreaderActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7787742017789161219, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_Name

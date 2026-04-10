@@ -1,28 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.Rendering.PostProcessing;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class ShortTaskController : MonoBehaviour
 {
     // Variables to hold important gameobjects for controlling tasks
     public GameObject unloadingBag;
     public GameObject interactionTable;
-    [HideInInspector]
-    public string taskName;
+    public GameObject preparationTool;
+    private BoxCollider bagReferenceCollider;
 
     // Bools to control set-up and take down of short tasks from editor
     public bool navigationTaskActive;
     private bool previousNavTaskState;
-    public bool unloadingTaskActive;
-    private bool previousUnloadTaskState;
-    public bool preparationTaskActive;
-    private bool previousPrepTaskState;
+    public bool unloadingAndPreparationTaskActive;
+    private bool previousUnloadingAndPreparationTaskState;
 
     // Scripts we need access to
     private RandomTarget m_RandomTargetScript;
-    private RandomObjectSpawner m_UnloadSpawnerScript;
-    private RandomObjectSpawner m_PrepareSpawnerScript;
+    private RandomObjectSpawner m_UnloadSpawnerAndPrepareTaskScript;
     private SwitchTools m_SwitchToolsScript;
 
     // Variables to track scores
@@ -44,8 +43,7 @@ public class ShortTaskController : MonoBehaviour
 
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
-        previousUnloadTaskState = unloadingTaskActive;
-        previousPrepTaskState = preparationTaskActive;
+        previousUnloadingAndPreparationTaskState = unloadingAndPreparationTaskActive;
 
         // Set up Physics Matrix to ignore collisions between Interactables and any objects on the IgnoreCollisions layer
         Physics.IgnoreLayerCollision(7, 9, true); // Interactables, IgnoreCollisions
@@ -61,11 +59,8 @@ public class ShortTaskController : MonoBehaviour
         if (m_RandomTargetScript != null)
             CheckNavigationTaskActive();
 
-        // Check if unloading task is active or inactive -- needs to be run to set up m_UnloadSpawnerScript
-        CheckUnloadingTaskActive();
-
-        // Check if prerpation task is active or inactive -- needs to be run to set up m_PrepareSpawnerScript
-        CheckPreparationTaskActive();
+        // Check if unloading and preparation task is active or inactive -- needs to be run to set up m_UnloadSpawnerScript and m_PrepareSpawnerScript
+        CheckUnloadingAndPreparationTaskActive();
     }
 
     private void CheckNavigationTaskActive()
@@ -88,120 +83,83 @@ public class ShortTaskController : MonoBehaviour
         }
     }
 
-    private void CheckUnloadingTaskActive()
-    {
-        if (unloadingTaskActive != previousUnloadTaskState)
+    private void CheckUnloadingAndPreparationTaskActive()
+    {        
+        if (m_SwitchToolsScript.VRGuideActive)
         {
-            BoxCollider bagReferenceCollider;
-
-            if (m_SwitchToolsScript.VRGuideActive)
-            {
-                bagReferenceCollider = unloadingBag.GetComponentInChildren<BoxCollider>();
-            }
-            else
-            {
-                // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
-                bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
-            }
-
-            if (unloadingTaskActive)
+            bagReferenceCollider = unloadingBag.GetComponentInChildren<BoxCollider>();
+        }
+        else
+        {
+            // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
+            bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
+        }
+        
+        if (previousUnloadingAndPreparationTaskState != unloadingAndPreparationTaskActive)
+        {
+            if (unloadingAndPreparationTaskActive)
             {
                 // Set reference collider to IgnoreCollisions layer
                 bagReferenceCollider.gameObject.layer = 9;
 
-                Debug.Log("Setting up unloading task");
-                SetUpUnloadSpawner();
+                Debug.Log("Setting up unloading and preparation task");
+                SetUpUnloadAndPrepareSpawner();
             }
             else
             {
-                // Revert reference collider layer to restore proper collision effects between it and other interactables
-                bagReferenceCollider.gameObject.layer = 0;
+                bagReferenceCollider.gameObject.layer = 13;
+                preparationTool.GetComponent<XRGrabInteractable>().enabled = true;
 
-                Debug.Log("Taking down unloading task");
-                TakeDownUnloadSpawner();
+                Debug.Log("Taking down unloading and preparation task");
+                TakeDownUnloadAndPrepareSpawner();
             }
 
-            // Update previousUnloadTaskState to match the new state of unloadingTaskActive
-            previousUnloadTaskState = unloadingTaskActive;
+            // Update previous task state to match the new state of unloadingAndPreparationTaskActive
+            previousUnloadingAndPreparationTaskState = unloadingAndPreparationTaskActive;
         }
     }
 
-    private void CheckPreparationTaskActive()
-    {
-        if (preparationTaskActive != previousPrepTaskState)
-        {
-            if (preparationTaskActive)
-            {
-                Debug.Log("Setting up preparation task");
-                SetUpPrepareSpawner();
-            }
-            else
-            {
-                Debug.Log("Taking down preparation task");
-                TakeDownPrepareSpawner();
-            }
-
-            // Update previousPrepTaskState to match the new state of preparationTaskActive
-            previousPrepTaskState = preparationTaskActive;
-        }
-    }
-
-    private void SetUpPrepareSpawner()
-    {
-        if (interactionTable != null)
-        {
-            taskName = "Preparation"; // Set task name as Preparatino to guide Spawner
-
-            if (m_PrepareSpawnerScript == null) // First time running the preparation task
-            {
-                interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
-                m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
-                m_PrepareSpawnerScript.SpawnRandomObject();
-            }
-            else
-                m_PrepareSpawnerScript.SpawnRandomObject(); // All other times, the table should already have the spawner added
-        }
-    }
-
-    private void TakeDownPrepareSpawner()
-    {
-        if (interactionTable != null)
-        {
-            if (m_PrepareSpawnerScript != null) // If the table has had a RandomObjectSpawner added (the task had begun at some point)
-            {
-                if (m_PrepareSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from preparation
-                    Destroy(m_PrepareSpawnerScript.spawnedObject);
-            }
-        }
-    }
-
-    private void SetUpUnloadSpawner()
+    private void SetUpUnloadAndPrepareSpawner()
     {
         if (unloadingBag != null)
-        {
-            taskName = "Unloading"; // Set task name as Unloading to guide Spawner
-
-            if (m_UnloadSpawnerScript == null) // First time running the unloading task
+        {   
+            if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
             {
                 unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
-                m_UnloadSpawnerScript = unloadingBag.GetComponent<RandomObjectSpawner>();
-                m_UnloadSpawnerScript.SpawnRandomObject();
+                m_UnloadSpawnerAndPrepareTaskScript = unloadingBag.GetComponent<RandomObjectSpawner>();   
             }
-            else
-                m_UnloadSpawnerScript.SpawnRandomObject(); // All other times, the bag should already have the spawner added
+            m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
         }
+
+        // if (interactionTable != null)
+        // {
+        //     if (m_PrepareSpawnerScript == null) // First time running the unloading and preparing task
+        //     {
+        //         interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
+        //         m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
+        //     }
+        // }
     }
 
-    private void TakeDownUnloadSpawner()
+    private void TakeDownUnloadAndPrepareSpawner()
     {
         if (unloadingBag != null)
         {
-            if (m_UnloadSpawnerScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+            if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
             {
-                if (m_UnloadSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
-                    Destroy(m_UnloadSpawnerScript.spawnedObject);
+                if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
+                    Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
             }
         }
+
+        // if (interactionTable != null)
+        // {
+        //     if (m_PrepareSpawnerScript != null) // If the interactionTable has had a RandomObjectSpawner added (the task had begun at some point)
+        //     {
+        //         if (m_PrepareSpawnerScript.spawnedObject != null) // Destroy any lingering spawnedObjects from preparing
+        //             Destroy(m_PrepareSpawnerScript.spawnedObject);
+        //     }
+        // }
     }
 
     void CheckScoreUpdates()
@@ -209,9 +167,5 @@ public class ShortTaskController : MonoBehaviour
         // Pull latest scores from scripts
         if (m_RandomTargetScript != null)
             navigationTaskScore = m_RandomTargetScript.timesTargetReached;
-        if (m_UnloadSpawnerScript != null)
-            unloadingTaskScore = m_UnloadSpawnerScript.timesObjectUnloaded;
-        if (m_PrepareSpawnerScript != null)
-            preparationTaskScore = m_PrepareSpawnerScript.timesObjectPrepared;
     }
 }

@@ -1,241 +1,141 @@
 using Normal.Realtime;
-using System.Collections;
+using Normal.Realtime.Native;
 using UnityEngine;
-using System.Threading.Tasks;
-using OpenAI;
-using System;
-using UnityEngine.Networking;
-using System.Text;
-using System.IO;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 
+[RequireComponent(typeof(AudioSource))]
 public class GuideAudioSync : RealtimeComponent<GuideAudioSyncModel>
 {
-    // Scripts we need access to
-    private AIGuide m_AIGuideScript;
-    private OpenAIQueries m_openAIQueriesScript;
-    private VRHandling m_VRHandlingScript;
+    [SerializeField] private AudioSource _outputAudioSource; // Set to Remote Guide Voice Proxy in Unity Editor
 
-    public AudioSource _audioSource;
-    private bool isPlayingAudio;
+    private AudioInputStream _inputStream;
+    private AudioOutputStream _outputStream;
 
-    // Config file to hold api keys, credentials
-    [HideInInspector]
-    private const string configFileName = "config";
-    private string apiKey;
-    [HideInInspector]
-    public string playHTApiKey;
-    [HideInInspector]
-    public string playHTUserId;
+    // OpenAI standard sample rate
+    private int _sampleRate = 24000;
+    private int _channels = 1;
 
-    private void Awake()
+    // Buffers to prevent crashing from memory access violation (sending too many packets too quickly)
+    private ConcurrentQueue<float[]> _threadSafeQueue = new ConcurrentQueue<float[]>();
+    private List<float> _sendBuffer = new List<float>();
+    private const int BufferThreshold = 480;
+    // Caching this avoids calling RealtimeView from the Audio Thread
+    private bool _isHost = false;
+
+    private void Start()
     {
-        // Explicitly set the values here since old ones are being cached
-        LoadConfig();
-        //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
-        _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>(); // grabs an audio source specifically for sharing guide voice
-        m_AIGuideScript = GameObject.Find("Human Model").GetComponent<AIGuide>();
+        _isHost = realtimeView.isOwnedLocallySelf;
 
-        if (_audioSource == null)
-            Debug.LogError("AudioSource missing from this GameObject");
-
-        if (m_AIGuideScript == null)
-            Debug.LogError("AI Guide missing from this GameObject");
+        // If we are a remote client, we need this AudioSource to be "Playing" a dummy clip so that OnAudioFilterRead actually fires
+        if (!_isHost)
+        {
+            _outputAudioSource.clip = AudioClip.Create("Silence", 1, _channels, _sampleRate, false);
+            _outputAudioSource.loop = true;
+            _outputAudioSource.Play();
+        }
     }
 
+    private void Update()
+    {
+        // Safety check: Only the owner of the Guide should broadcast its audio - others just receive
+        if (model == null || !_isHost) return;
+
+        //Debug.Log("Reached Broadcast Audio Chunk");
+
+        while (_threadSafeQueue.TryDequeue(out float[] pcmData))
+        {
+            _sendBuffer.AddRange(pcmData);
+        }
+
+        // Only send to Normcore once we have enough data for a stable packet
+        while (_sendBuffer.Count >= BufferThreshold)
+        {
+            // Create an array to hold the chunk data up to the size of our buffer
+            float[] chunk = new float[BufferThreshold];
+            _sendBuffer.CopyTo(0, chunk, 0, BufferThreshold);
+            _sendBuffer.RemoveRange(0, BufferThreshold);
+
+            SendToNormcore(chunk);
+        }
+    }
+
+    // --- SENDING (Called locally on the Host) ---
+    public void BroadcastAudioChunk(float[] pcmData)
+    {
+        if (pcmData == null) return;
+        _threadSafeQueue.Enqueue(pcmData);
+    }
+
+    private void SendToNormcore(float[] chunk)
+    {
+        // Initialize the stream if it doesn't exist yet
+        if (_inputStream == null)
+        {
+            _inputStream = realtime.room.CreateAudioInputStream(true, _channels, _sampleRate);
+            // Sync the IDs so remote clients know where to listen
+            model.streamID = _inputStream.StreamID();
+            model.clientID = realtime.room.clientID;
+            //Debug.Log($"[GuideAudio] Created Stream ID: {model.streamID}");
+        }
+
+        // Feed the raw PCM data into Normcore's compressed voice network
+        _inputStream.SendRawAudioData(chunk);
+        //Debug.Log("Sending raw audio data via Normcore");
+    }
+
+    // --- RECEIVING (Called on Remote Clients) ---
     protected override void OnRealtimeModelReplaced(GuideAudioSyncModel previousModel, GuideAudioSyncModel currentModel)
     {
-        if (previousModel != null)
-            previousModel.resultDidChange -= ResultDidChange;
+        if (previousModel != null) previousModel.streamIDDidChange -= StreamIDDidChange;
 
         if (currentModel != null)
         {
-            if (currentModel.isFreshModel)
-                currentModel.result = null; // Ensure initial state for result
-            currentModel.resultDidChange += ResultDidChange;
-        }
-    }
+            currentModel.streamIDDidChange += StreamIDDidChange;
 
-    private async void ResultDidChange(GuideAudioSyncModel model, string result)
-    {
-        //Debug.Log("Detected that the result did change: " + result);
-        //Debug.Log("PlayHT credentials are " + playHTApiKey + " " + playHTUserId);
-
-        if (!string.IsNullOrEmpty(result))
-            StartCoroutine(StreamTextToPlayHT(result));
-    }
-
-    // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
-    private IEnumerator StreamTextToPlayHT(string textChunk)
-    {
-        string playHTUrl = "https://play.ht/api/v2/tts/stream";
-        string voice = "s3://voice-cloning-zero-shot/a59cb96d-bba8-4e24-81f2-e60b888a0275/charlottenarrativesaad/manifest.json"; // Default voice, Human
-
-        // Customize the voice as per the role
-        if (m_AIGuideScript.role == 2) voice = "s3://voice-cloning-zero-shot/b41d1a8c-2c99-4403-8262-5808bc67c3e0/bentonsaad/manifest.json";
-        else if (m_AIGuideScript.role == 3) voice = "s3://voice-cloning-zero-shot/d82d246c-148b-457f-9668-37b789520891/adolfosaad/manifest.json";
-        else if (m_AIGuideScript.role == 4) voice = "s3://voice-cloning-zero-shot/f6594c50-e59b-492c-bac2-047d57f8bdd8/susanadvertisingsaad/manifest.json";
-        else if (m_AIGuideScript.role == 5) voice = "s3://voice-cloning-zero-shot/3a831d1f-2183-49de-b6d8-33f16b2e9867/dylansaad/manifest.json";
-        else if (m_AIGuideScript.role == 6) voice = "s3://voice-cloning-zero-shot/1afba232-fae0-4b69-9675-7f1aac69349f/delilahsaad/manifest.json";
-
-        var playHTData = "{\"voice\":\"" + voice + "\", \"text\":\"" + textChunk + "\"}";
-
-        using (UnityWebRequest playHTRequest = new UnityWebRequest(playHTUrl, "POST"))
-        {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(playHTData);
-            playHTRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            playHTRequest.downloadHandler = new DownloadHandlerBuffer();
-            playHTRequest.SetRequestHeader("Content-Type", "application/json");
-            playHTRequest.SetRequestHeader("Authorization", "Bearer " + playHTApiKey);
-            playHTRequest.SetRequestHeader("X-User-ID", playHTUserId);
-
-            // Send the request
-            yield return playHTRequest.SendWebRequest();
-
-            if (playHTRequest.result == UnityWebRequest.Result.ConnectionError || playHTRequest.result == UnityWebRequest.Result.ProtocolError)
+            // If they join mid-sentence, catch the active stream immediately
+            if (currentModel.streamID != -1) //&& currentModel.clientID != -1)
             {
-                Debug.LogError("Error calling PlayHT: " + playHTRequest.error);
-                Debug.LogError("Response Text: " + playHTRequest.downloadHandler.text);
-                yield break;
-            }
-            else
-            {
-                //Debug.Log("PlayHT audio chunk conversion successful!");
-                // Get the binary MP3 data from the response and play it sequentially
-                byte[] mp3Data = playHTRequest.downloadHandler.data;
-                yield return StartCoroutine(PlayAudioSequentially(mp3Data));
+                StreamIDDidChange(currentModel, currentModel.streamID);
             }
         }
     }
 
-    // Coroutine to play audio chunks sequentially without overlapping
-    // Coroutine to play audio chunks sequentially without overlapping
-    private IEnumerator PlayAudioSequentially(byte[] mp3Data)
+    private void StreamIDDidChange(GuideAudioSyncModel model, int value)
     {
-        // Wait until the previous audio chunk is finished
-        while (isPlayingAudio)
-            yield return null;  // Wait until the current audio has stopped
+        // If I'm the host sending the audio, I don't need to listen to the network stream
+        if (_isHost) return;
 
-        // Mark as playing
-        isPlayingAudio = true;
+        // Ensure we don't try to grab the stream before the clientID is synced
+        if (model.clientID == -1 || value == -1) return;
 
-        // Create a temporary file for the MP3 data
-        string tempPath = Path.Combine(Application.persistentDataPath, "tempAudio.mp3");
-        File.WriteAllBytes(tempPath, mp3Data);
+        // Fetch the corresponding audio stream from the network
+        _outputStream = realtime.room.GetAudioOutputStream(model.clientID, value);
+        //Debug.Log($"[GuideAudio] Connected to Remote Stream: {value}");
+    }
 
-        // Load the audio file as an AudioClip
-        using (UnityWebRequest audioRequest = UnityWebRequestMultimedia.GetAudioClip("file://" + tempPath, AudioType.MPEG))
+    // --- PLAYBACK (Native Unity Audio Pipeline) ---
+
+    // Unity automatically calls this every frame on any object with an AudioSource
+    private void OnAudioFilterRead(float[] data, int channels)
+    {
+        // If we are the sender, or we don't have a stream yet, do nothing and output silence
+        if (_isHost)
         {
-            yield return audioRequest.SendWebRequest();
-
-            if (audioRequest.result == UnityWebRequest.Result.ConnectionError || audioRequest.result == UnityWebRequest.Result.ProtocolError)
-                Debug.LogError("Error loading audio: " + audioRequest.error);
-            else
-            {
-                AudioClip audioClip = DownloadHandlerAudioClip.GetContent(audioRequest);
-                _audioSource.clip = audioClip;
-                _audioSource.loop = false;
-                float startTime = Time.time;  // Capture the time when the audio starts
-                float clipLength = _audioSource.clip.length;
-                _audioSource.Play();
-
-                // Wait until the audio has finished playing before allowing the next chunk
-                while (_audioSource.isPlaying) // was just yield return null in the while loop
-                {
-                    float elapsedTime = Time.time - startTime;
-                    // If the audio has reached a not playing state, or the time it is active is longer than the length of the clip, manually stop it
-                    // For highlights
-                    if (elapsedTime >= clipLength)
-                    {
-                        _audioSource.Stop();  // Force stop if it somehow keeps playing
-                        Debug.Log("Audio manually stopped in guide audio sync.");
-                        break;
-                    }
-                    yield return null;
-                }
-
-                Debug.Log("Audio chunk finished playing.");
-            }
+            System.Array.Clear(data, 0, data.Length);
+            return;
         }
-        isPlayingAudio = false;
-    }
 
-    public void SetResult(string result)
-    {
-        //Debug.Log("Reached SetResult in GuideAudioSync");
-        if (model != null)
-            model.result = result;
-        else
-            Debug.LogError("Model is not initialized.");
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        gameObject.AddComponent<GuideController>();
-    }
-
-    private void LoadConfig()
-    {
-        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
-        if (configAsset != null)
+        // Pull the decompressed network audio directly into Unity's audio playback buffer
+        if (_outputStream != null)
         {
-            // Parse the JSON data from config.json and assign apiKey values accordingly
-            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
-            apiKey = configData.APIKey;
-            playHTApiKey = configData.PlayHTAPIKey;
-            playHTUserId = configData.PlayHTUserID;
+            _outputStream.GetAudioData(data);
+            //Debug.Log("Playing audio data received remotely via Normcore");
         }
         else
         {
-            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+            // If no audio is coming in, we must explicitly clear the buffer to silence - not doing so makes Unity loop/replay last buffer
+            System.Array.Clear(data, 0, data.Length);
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (apiKey == null)
-            GetAPIKey();
-
-        if (m_openAIQueriesScript == null)
-            if (FindObjectOfType<OpenAIQueries>())
-                m_openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
-
-        if (m_VRHandlingScript == null)
-            GetVRHandling();
-        else
-        {
-            if (m_VRHandlingScript.isMutingButtonPressed)
-                _audioSource.Stop();
-        }
-
-        // If this is in a confed client and the audio source is null, grab it from a guide in the scene
-        if (FindObjectOfType<ConfederateHandler>() && _audioSource == null)
-            if (GameObject.FindWithTag("Guide"))
-                _audioSource = GameObject.Find("Guide Voice").GetComponent<AudioSource>();
-    }
-
-    void GetAPIKey()
-    {
-        // If there's a guide in the scene, get the api key (a confed won't have this available until a guide joins them)
-        if (GameObject.FindWithTag("Guide"))
-        {
-            OpenAIQueries aIQueries = FindObjectOfType<OpenAIQueries>();
-            apiKey = aIQueries.apiKey;
-        }
-    }
-
-    void GetVRHandling()
-    {
-        // If there's a guide in the scene, get the VR handling script from them
-        if (GameObject.FindWithTag("Guide"))
-            m_VRHandlingScript = FindObjectOfType<VRHandling>();
-    }
-
-    private class ConfigData
-    {
-        public string APIKey;
-        public string PlayHTAPIKey;
-        public string PlayHTUserID;
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class AIGuide : MonoBehaviour
@@ -10,36 +12,105 @@ public class AIGuide : MonoBehaviour
     public SharedMovement m_SharedMovementScript;
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
-    public GuideAudioSync m_guideAudioSync;
+    private RealtimeGuideClient realtimeClient;
 
     // Variables for monitoring
-    private int screenshotsCaptured = 0;
-    private int whisperCalls = 0;
-    private int completionCalls = 0;
-    //private bool firstQuery = true;
-    private bool buttonPressed = false;
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
     private bool isHighlighted = false;
+    private GameObject lastHighlightedTarget;
+    private Material previousMaterial;
+    private Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
+    private bool isRecording = false;
+    private bool wasMutingLastFrame = false;
+    private bool wasVRButtonDownLastFrame = false;
 
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
 
+    // Audio relevant variables
+    private AudioSource sfxAudioSource;
+    private AudioClip chimeClip;
+    private AudioClip processingClip;
+    private AudioClip listeningClip;
+    private AudioClip doneListeningClip;
+
     // Start is called before the first frame update
     void Start()
+    {
+        AddGuideComponents();
+
+        SetupRealtimeClient();
+
+        InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+
+        Debug.Log("AIGuide is active!");
+    }
+
+    private void AddGuideComponents()
     {
         // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
 
         // Add necessary components to the attached GameObject
-        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
         m_AutomatedGuideScript = gameObject.AddComponent<AutomaticGuide>();
         m_VRHandlingScript = gameObject.AddComponent<VRHandling>();
+        m_OpenAIQueriesScript = gameObject.AddComponent<OpenAIQueries>();
+        LoadAudioResources();
 
-        Debug.Log("AIGuide is active!");
+        // This line is needed if we use the invisible guide role
+        if (role == 6)
+            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject);
+    }
 
+    private void LoadAudioResources()
+    {
+        // Load clips once at the start
+        chimeClip = Resources.Load<AudioClip>("Audio/subway_chime");
+        processingClip = Resources.Load<AudioClip>("Audio/processing");
+        listeningClip = Resources.Load<AudioClip>("Audio/listening");
+        doneListeningClip = Resources.Load<AudioClip>("Audio/done_listening");
+
+        // Add a special audio source for the sound effects so it doesn't interfere with the mic channel
+        sfxAudioSource = gameObject.AddComponent<AudioSource>();
+        sfxAudioSource.playOnAwake = false;
+        sfxAudioSource.spatialBlend = 0; // 2D sound for UI effects (clearer)
+    }
+
+    private void SetupRealtimeClient()
+    {
+        // Set up realtime client
+        realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
+
+        string basePrompt = GetFormattedPrompt();
+
+        // Load config and connect to client
+        realtimeClient.LoadConfig();
+        realtimeClient._pushToTalkOn = (FindObjectOfType<SwitchTools>().pushToTalk) ? true : false;
+        realtimeClient._continuousVoiceOn = (FindObjectOfType<SwitchTools>().continuousVoice) ? true : false;
+        realtimeClient.Connect(basePrompt);
+
+        realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
+        //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
+        //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
+    }
+
+    // For ensuring proper realtime data
+    public string GetFormattedPrompt()
+    {
+        // Ensure data is fresh
+        m_OpenAIQueriesScript.LoadRoomDescriptions();
+        m_OpenAIQueriesScript.getGuideRole();
+
+        return "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
+               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications + 
+               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.commandClassifications + m_OpenAIQueriesScript.guideRules;
+    }
+
+    private void PresetAvatarRoles()
+    {
         // Set avatars to correct roles in separate scenes for the guide
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (currentSceneName.Equals("Tutorial"))
@@ -52,31 +123,6 @@ public class AIGuide : MonoBehaviour
             role = 4; // robot
         else
             role = 1; // human is default guide for all other rooms
-
-        // This line is needed if we use the invisible guide role
-        if (role == 6)
-            DisableColliders(FindObjectOfType<GuideRoleSync>().gameObject); 
-
-        // Line to test guide changes over network
-        //InvokeRepeating("ChangeGuideRole", 0f, 10f);
-    }
-
-    // For testing the role change over the network
-    private void ChangeGuideRole()
-    {
-        int randRole = Random.Range(1, 6);
-
-        role = randRole;
-    }
-
-    // Method to test if result is working
-    public void SetNewResult(string result)
-    {
-        // Debug.Log("Reached SetNewResult");
-        if (m_guideAudioSync != null)
-            m_guideAudioSync.SetResult(result);
-        else
-            Debug.LogError("GuideAudioSync is not initialized.");
     }
 
     // Update is called once per frame
@@ -85,19 +131,12 @@ public class AIGuide : MonoBehaviour
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network
         getSharedMovement();
-        getAudioSync();
 
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
         {
-            // Check for space button or A button press from user
-            checkUserInput();
-
-            // Send recorded input to Whisper
-            sendUserInput();
-
-            // Take transcribed input as query and send to GPT-4
-            sendQueryToGPT();
+            // Call the guide
+            RealtimeGuide();
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -113,6 +152,172 @@ public class AIGuide : MonoBehaviour
 
             // Check if both confederates are present and send guide roles each time they are (in case of confederates leaving and coming back)
             BothConfederatesPresent();
+        }
+    }
+
+    private void RealtimeGuide()
+    {
+        bool vrButtonDown = m_VRHandlingScript.isButtonPressed;
+        bool spaceDown = Input.GetKeyDown(KeyCode.Space);
+        // For continuous voice mode
+        bool spaceUp = Input.GetKeyUp(KeyCode.Space);
+        // Create a strict "Down This Frame" trigger for VR to prevent toggle spamming
+        bool isDownThisFrame = (vrButtonDown && !wasVRButtonDownLastFrame) || spaceDown;
+        wasVRButtonDownLastFrame = vrButtonDown; // Store for next frame
+
+        if (realtimeClient._pushToTalkOn)
+        {
+            // Tap-to-talk mode (using voice detection to stop)
+
+            // Start recording on press, but ONLY if we aren't already recording
+            if ((spaceDown || vrButtonDown) && !isRecording)
+            {
+                playEffect("listening");
+                isRecording = true;
+                StartCoroutine(CaptureAndSendContext());
+            }
+            // We DO NOT have a stop condition here. 
+            // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
+        }
+        else if (realtimeClient._continuousVoiceOn)
+        {
+            if (isDownThisFrame)
+            {
+                if (!realtimeClient._isContinuousSessionActive)
+                {
+                    // Toggle ON
+                    playEffect("listening");
+                    realtimeClient._isContinuousSessionActive = true;
+                    realtimeClient.StartRecording(); // Opens mic permanently
+                    Debug.Log("Continuous Voice Mode: ON");
+                }
+                else
+                {
+                    // Toggle OFF
+                    playEffect("done_listening");
+                    realtimeClient._isContinuousSessionActive = false;
+                    _ = realtimeClient.StopRecordingSilently(); // Closes mic
+                    Debug.Log("Continuous Voice Mode: OFF");
+                }
+            }
+        }
+        else
+        {
+            // Push-to-talk mode (holding down the button)
+
+            bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
+            bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                playEffect("listening");
+                StartCoroutine(CaptureAndSendContext());
+            }
+
+            if (Input.GetKeyUp(KeyCode.Space))
+            {
+                playEffect("done_listening");
+                _ = realtimeClient.StopRecordingAndCommit();
+            }
+
+            // Separate set with flag vars for VR
+            if (isDown && !isRecording)
+            {
+                playEffect("listening");
+                isRecording = true; // Lock it immediately
+                StartCoroutine(CaptureAndSendContext());
+            }
+
+            if (isUp && isRecording)
+            {
+                playEffect("done_listening");
+                isRecording = false; // Unlock
+                _ = realtimeClient.StopRecordingAndCommit();
+            }
+        }
+
+        // Logic to mute the guide
+        if (m_VRHandlingScript.isMutingButtonPressed || Input.GetKeyDown(KeyCode.M))
+        {
+            // Only fire if this is the FIRST frame the button is down
+            if (!wasMutingLastFrame)
+            {
+                _ = realtimeClient.StopAiSpeech();
+                // Failsafe: if guide is taking the user somewhere and gets stuck, mute cancels guidance and resets
+                m_AutomatedGuideScript.CancelGuidance();
+                m_GuideFollowScript.enabled = true;
+                m_SharedMovementScript.guideCollider.enabled = false;
+                m_SharedMovementScript.ForceStopAndReset();
+                m_OpenAIQueriesScript.targetForGuidance = null;
+                wasMutingLastFrame = true; // Lock it
+            }
+        }
+        else
+        {
+            wasMutingLastFrame = false; // Reset when the user lets go
+        }
+    }
+
+    private void HandleAutoStop()
+    {
+        playEffect("done_listening");
+        isRecording = false; // Unlock it so they can press the button again later
+    }
+
+    // Coroutine for sending info to the realtime API to prevent freezing in VR
+    private IEnumerator CaptureAndSendContext()
+    {
+        // Start Audio Recording immediately
+        realtimeClient.StartRecording();
+        realtimeClient._isProcessingCommand = false;
+        //StartCoroutine(CaptureImageContext());
+        yield return null;
+    }
+
+    void UpdateVisualContext()
+    {
+        if (realtimeClient._isConnected)
+        {
+            StartCoroutine(CaptureImageContext());
+        }
+    }
+
+    private IEnumerator CaptureImageContext()
+    {
+        // Trigger the screenshot
+        CameraSystem camSystem = FindObjectOfType<CameraSystem>();
+        camSystem.converted = false;
+        camSystem.CaptureScreenshot();
+
+        // Wait for the capture to finish and convert
+        while (!camSystem.converted)
+        {
+            yield return null; 
+        }
+
+        // Send the context once we have the links
+        if (camSystem.converted)
+        {
+            //Debug.Log("Images converted. Sending to Vision API...");
+
+            // Call our helper function to get image descriptions from GPT-4
+            Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
+
+            while (!visionTask.IsCompleted)
+            {
+                yield return null; // Let Unity render the next frame
+            }
+
+            string visionDesc = visionTask.Status == TaskStatus.RanToCompletion ? visionTask.Result : "Error reading images .";
+
+            string fullContext = $"[Visual Context] {visionDesc}";
+
+            //Debug.Log("Injecting Combined Context: " + fullContext);
+            realtimeClient.SendTextContext(fullContext);
+        }
+        else
+        {
+            Debug.LogWarning("Image upload timed out");
         }
     }
 
@@ -176,43 +381,51 @@ public class AIGuide : MonoBehaviour
 
     private void playEffect(string clipName)
     {
-        AudioSource audioSource = GetComponent<AudioSource>();
-
         switch(clipName)
         {
             case "subway_chime":
                 {
                     //Debug.Log("Played arrival effect");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/subway_chime");
-                    audioSource.mute = false;
-                    audioSource.loop = false;
-                    audioSource.Play();
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(chimeClip);
                     break;
                 }
             case "processing":
                 {
                     //Debug.Log("Playing processing sound");
-                    audioSource.clip = Resources.Load<AudioClip>("Audio/processing");
-                    audioSource.mute = false;
-                    audioSource.loop = true;
-                    audioSource.Play();
+                    sfxAudioSource.clip = processingClip;
+                    sfxAudioSource.loop = true;
+                    sfxAudioSource.Play();
+                    break;
+                }
+            case "listening":
+                {
+                    sfxAudioSource.mute = false;
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(listeningClip);
+                    break;
+                }
+            case "done_listening":
+                {
+                    //Debug.Log("Played done listening sound");
+                    if (sfxAudioSource.clip == processingClip) sfxAudioSource.Stop(); // If processing sound was used (in cases of high latency)
+
+                    sfxAudioSource.loop = false;
+                    sfxAudioSource.PlayOneShot(doneListeningClip);
                     break;
                 }
         }
     }
 
+    // This is never actually used to highlight objects of targeted description - leave it for now, since a user probably wants to see the normal appearance of what's being described
     private void checkDescriptionRequests()
     {
         //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
-        // Checking if a target GameObject was selected to be modified
+        // Checking if a target GameObject was selected to be descsribed
         if (m_OpenAIQueriesScript.targetForDescription != null)
         {
             // Call to highlight the game object being described while the guide is talking
             Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
-
-            // If the guide is invisible, see if the local audio player has stopped - else, check the networked one
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForDescription);
 
             m_OpenAIQueriesScript.targetForDescription = null;
         }
@@ -221,20 +434,28 @@ public class AIGuide : MonoBehaviour
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
-        Material previousMaterial = selectedReference.GetComponent<Renderer>().material;
-        selectedReference.GetComponent<Renderer>().material = Resources.Load<Material>("Screenreader/Glow");
-        isHighlighted = true;
+        Renderer renderer = selectedReference.GetComponent<Renderer>();
+        if (!originalMaterials.ContainsKey(selectedReference))
+            originalMaterials.Add(selectedReference, renderer.material);
 
-        // Return selectedReference renderers to normal after coroutine finishes
-        StartCoroutine(WaitForTenSeconds(selectedReference, previousMaterial));
+        renderer.material = Resources.Load<Material>("Screenreader/Glow");
     }
 
-    IEnumerator WaitForTenSeconds(GameObject selectedReference, Material previousMaterial)
+    void ClearPreviousHighlight(GameObject selectedReference)
+    {
+        //selectedReference.GetComponent<Renderer>().material = previousMaterial;
+
+        if (originalMaterials.TryGetValue(selectedReference, out Material originalMat))
+        {
+            selectedReference.GetComponent<Renderer>().material = originalMat;
+            originalMaterials.Remove(selectedReference); // Clean up the dictionary
+        }
+    }
+
+    IEnumerator ClearAfterTenSeconds(GameObject selectedReference)
     {
         yield return new WaitForSeconds(10f);
-
-        selectedReference.GetComponent<Renderer>().material = previousMaterial;
-        isHighlighted = false;
+        ClearPreviousHighlight(selectedReference);
     }
 
     private void checkModificationRequests()
@@ -245,11 +466,20 @@ public class AIGuide : MonoBehaviour
             // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
             // Also calls to highlight the object while the temporary audio beacon exists
             Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
-            m_AutomaticModificationScript.AddAudioBeacon(m_OpenAIQueriesScript.targetForModification);
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForModification);
 
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForModification;
+
+            if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+            }
+
+            m_AutomaticModificationScript.AddAudioBeacon(currentTarget);
+            // Wait for 10 seconds (length of audio beacon), then clear material
+            StartCoroutine(ClearAfterTenSeconds(currentTarget));
             m_OpenAIQueriesScript.targetForModification = null;
+            lastHighlightedTarget = null;
         }
     }
 
@@ -258,22 +488,28 @@ public class AIGuide : MonoBehaviour
         // Checking if a target GameObject was selected to be moved to
         if (m_OpenAIQueriesScript.targetForGuidance != null)
         {
-            // Calls to highlight the object
-            if (!isHighlighted)
-                HighlightSelectedReaderReference(m_OpenAIQueriesScript.targetForGuidance);
+            //Debug.Log("Was passed a target for guidance " + m_OpenAIQueriesScript.targetForGuidance);
+
+            GameObject currentTarget = m_OpenAIQueriesScript.targetForGuidance;
+
+            if (lastHighlightedTarget != currentTarget)
+            {
+                HighlightSelectedReaderReference(currentTarget);
+                lastHighlightedTarget = currentTarget;
+            }
 
             //Debug.Log("Has a target to move to: " + m_OpenAIQueriesScript.targetForGuidance);
             m_SharedMovementScript.guideCollider.enabled = true; // Turns guide collider on so it's grabbable when there is a specific move target
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
             // Turn off guide follow so that the guide begins to lead the player
-            if (m_SharedMovementScript.playerGrabbingGuide)
+            if (m_SharedMovementScript.movingWithGuide) // was playerGrabbingGuide
             {
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
                     //Debug.Log("The mode of transit is guide");
-                    m_AutomatedGuideScript.GuideToPosition(m_OpenAIQueriesScript.targetForGuidance);
+                    m_AutomatedGuideScript.GuideToPosition(currentTarget); // was openAiQueries.targetForGuidance
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
 
@@ -283,8 +519,10 @@ public class AIGuide : MonoBehaviour
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
-                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
+                        m_SharedMovementScript.ForceStopAndReset();
+                        ClearPreviousHighlight(currentTarget);
                         m_OpenAIQueriesScript.targetForGuidance = null;
+                        lastHighlightedTarget = null;
                     }
                     else if (distance > 1.5f) // If the guide left the participant behind at some point during guidance and ended by standing more than an arm's reach away
                     {
@@ -298,11 +536,8 @@ public class AIGuide : MonoBehaviour
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
-                        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-                        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-                        playEffect("subway_chime");
-                        m_SharedMovementScript.playerGrabbingGuide = false; // Mark as false when we reach the destination to reset grab for next call
-                        m_OpenAIQueriesScript.targetForGuidance = null;
+                        //Debug.Log("Guide reached the object");
+                        StartCoroutine(DelayGuideStopDuringTeleport(currentTarget));
                     }
                 }
             }
@@ -318,101 +553,20 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    private void sendQueryToGPT()
+    IEnumerator DelayGuideStopDuringTeleport(GameObject currentTarget)
     {
-        // Checking for completion of speech transcription and image upload
-        if (m_OpenAIQueriesScript.whisperCompleted && completionCalls == 0 && FindObjectOfType<CameraSystem>().uploaded)
-        {
-            // Start to play processing sound
-            playEffect("processing");
-
-            // Stream GPT response and audio
-            var guideResult = m_OpenAIQueriesScript.CallChatGPTAndStreamAudioCompletions();
-
-            Debug.Log("Called GPT for streaming");
-
-            completionCalls += 1;
-        }
-    }
-
-    private void sendUserInput()
-    {
-        // If PC user lifts finger off space, assume their query is completed
-        if ((Input.GetKeyUp(KeyCode.Space)) && whisperCalls == 0 && screenshotsCaptured == 0)
-        {
-            // End microphone ownership from OpenAI and mark that the recording is not in progress
-            Microphone.End(Microphone.devices[0]);
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            Debug.Log("Recording ended");
-
-            // Take screenshots and upload to ImageShack
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            screenshotsCaptured += 1;
-            //Debug.Log("Screenshot captured");
-
-            // Call the Whisper API to transcribe the recorded speech to text
-            var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-            whisperCalls += 1;
-        }
-
-        // If VR user lifts finger off primary button, assume their query is completed
-        if (!m_VRHandlingScript.isButtonPressed && whisperCalls == 0 && buttonPressed == true && screenshotsCaptured == 0)
-        {
-            // End microphone ownership from OpenAI and mark that the recording is not in progress
-            Microphone.End(Microphone.devices[0]);
-            m_OpenAIQueriesScript.recordingInProgress = false;
-            Debug.Log("Recording ended");
-
-            // Take screenshots and upload to ImageShack
-            FindObjectOfType<CameraSystem>().CaptureScreenshot();
-            screenshotsCaptured += 1;
-
-            // Call the Whisper API to transcribe the recorded speech to 
-            if (!Microphone.IsRecording(Microphone.devices[0]))
-            {
-                Debug.Log("Mic not recording so we can call");
-                var transcribeResult = m_OpenAIQueriesScript.CallWhisper(m_OpenAIQueriesScript.audioSource.clip);
-                whisperCalls += 1;
-                buttonPressed = false;
-            }
-        }
-    }
-
-    private void checkUserInput()
-    {
-        // If PC user presses and holds space
-        if (Input.GetKey(KeyCode.Space))
-        {
-            m_OpenAIQueriesScript.CaptureAudio();
-
-            // Reset call counters so they can each be called once more
-            screenshotsCaptured = 0;
-            whisperCalls = 0;
-            completionCalls = 0;
-        }
-
-        // If VR user presses right primary button on an XR controller
-        if (m_VRHandlingScript.isButtonPressed)
-        {
-            m_OpenAIQueriesScript.CaptureAudio();
-
-            // Reset call counters so they can each be called once more
-            screenshotsCaptured = 0;
-            whisperCalls = 0;
-            completionCalls = 0;
-            buttonPressed = true;
-        }
+        yield return new WaitForSeconds(1f);
+        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+        playEffect("subway_chime");
+        m_SharedMovementScript.ForceStopAndReset();
+        ClearPreviousHighlight(currentTarget);
+        m_OpenAIQueriesScript.targetForGuidance = null;
     }
 
     private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-    }
-
-    private void getAudioSync()
-    {
-        if (m_guideAudioSync == null)
-            m_guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 }
