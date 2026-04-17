@@ -1357,6 +1357,23 @@ public class OpenAIQueries : MonoBehaviour
             if (objectClassifications == null || objectNames == null)
             {
                 Debug.LogWarning("Description for the current scene not found in RoomDescriptions.json.");
+            } 
+            else
+            {
+                List<string> filteredObjectClassificationsList = new List<string>();
+                string[] objectClassificationsArray = objectClassifications.Split('|');
+                foreach(string str in objectClassificationsArray)
+                {
+                    if (str.Contains(':'))
+                    {
+                        filteredObjectClassificationsList.Add(str);
+                    }
+                }
+                objectClassificationsArray = filteredObjectClassificationsList.ToArray();
+                objectClassifications = string.Join(" | ", objectClassificationsArray);
+
+                // Debug.Log("These are the objectClassifications:" + objectClassifications);
+                // Debug.Log("These are the objectNames the AI reads from:" + objectNames);
             }
         }
         else
