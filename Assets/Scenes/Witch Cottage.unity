@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3201431, g: 0.25861406, b: 0.3684007, a: 1}
+  m_IndirectSpecularColor: {r: 0.3201698, g: 0.25864264, b: 0.36847174, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -860,12 +860,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.9075717, y: 0.5867208, z: 0.88984233}
-  m_Center: {x: -0.13875411, y: 0.28384018, z: -0.106850415}
+  m_Size: {x: 0.9075717, y: 0.1, z: 0.88984233}
+  m_Center: {x: -0.13875411, y: 0.05, z: -0.106850415}
 --- !u!65 &77944220
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -7004,12 +7004,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.9075717, y: 0.5867208, z: 0.88984233}
-  m_Center: {x: -0.13875411, y: 0.28384018, z: -0.106850415}
+  m_Size: {x: 0.9075717, y: 0.05, z: 0.88984233}
+  m_Center: {x: -0.13875411, y: 0.1, z: -0.106850415}
 --- !u!65 &668991628
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -11913,12 +11913,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.8913876, y: 0.8346225, z: 1.2690713}
-  m_Center: {x: -0.0000007599592, y: 0.41731125, z: -0.000000029802322}
+  m_Size: {x: 0.8913876, y: 0.05, z: 1.2690713}
+  m_Center: {x: -0.0000007599592, y: 0.1, z: -0.000000029802322}
 --- !u!65 &1199971675
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15279,6 +15279,8 @@ MonoBehaviour:
   restrictedTag: Restricted
   checkRadius: 0.5
   minorCheckRadius: 0.12
+  useCharacterControllerRadius: 1
+  characterControllerPadding: 0.05
   maxSlope: 10
   delayTimeCustom: 0.1
 --- !u!114 &1500557016 stripped
@@ -27606,6 +27608,14 @@ PrefabInstance:
     - target: {fileID: 3171165220915751791, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_LocalPosition.y
       value: -1.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3175400888769304707, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Size.z
+      value: 2.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 3175400888769304707, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3175829097320853770, guid: a9ce190625161fb4aad1ec212a827b68, type: 3}
       propertyPath: m_Name
