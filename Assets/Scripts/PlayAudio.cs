@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using Normal.Realtime;
+using System.Runtime.CompilerServices;
 
 public class PlayAudio : MonoBehaviour
 {
@@ -65,8 +66,7 @@ public class PlayAudio : MonoBehaviour
 
     // For sharing audio over network (not implemented yet)
     public AudioClip currentClip;
-    string playerSurfaceMaterial;
-    string guideSurfaceMaterial;
+    private string surfaceMaterial;
 
     // for dealing with trailing footstep sounds when stopping and changing direction - if the position changes back to the previous position, we don't want to play a footstep sound
     private Vector3 playerPreviousPosition;
@@ -208,11 +208,19 @@ public class PlayAudio : MonoBehaviour
                 guidePreviousPosition = guideLastKnownPosition;
                 guideLastKnownPosition = guideCurrPosition;
 
-                guideSurfaceMaterial = GetSurfaceUnderGuideController(guideCharacterController);
-                Debug.Log("Guide surface: " + guideSurfaceMaterial);
-
-                playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition, playerSurfaceMaterial);
-                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition, guideSurfaceMaterial);
+                // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
+                if (!m_SharedMovementScript.movingWithGuide)
+                {
+                    Debug.Log("Player is moving");
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                else
+                {
+                    Debug.Log("Guide is moving");
+                    GetSurfaceUnderPlayerController(playerCharacterController);
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -282,7 +290,7 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    private void playAudioForMovingPlayer(Vector3 currPosition, Vector3 lastPosition, string surfaceMaterial)
+    private void playAudioForMovingPlayer(Vector3 currPosition, Vector3 lastPosition)
     {
         bool isMoving = currPosition != lastPosition;
         string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
@@ -392,7 +400,7 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    private void playAudioForMovingGuide(Vector3 currPosition, Vector3 lastPosition, string surfaceMaterial)
+    private void playAudioForMovingGuide(Vector3 currPosition, Vector3 lastPosition)
     {
         // If our audio is coming from the guide, use the guide audio clips
         if (guideFollowFound && playerAudio.transform.tag == "Guide")
@@ -771,23 +779,28 @@ public class PlayAudio : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        //Debug.Log("Collided with " + hit.collider.tag + " object.");
+
+        if (m_SharedMovementScript.movingWithGuide)
+        {
+            return;
+        }
+
+        //Debug.Log("Collided with " + hit.transform.tag + " object.");
         // Collect surface materials for all objects we collide with to share over network
         if (hit.transform.tag == "Wood")
-            playerSurfaceMaterial = "wood";
+            surfaceMaterial = "wood";
         else if (hit.transform.tag == "Water")
-            playerSurfaceMaterial = "water";
+            surfaceMaterial = "water";
         else if (hit.transform.tag == "Grass")
-            playerSurfaceMaterial = "grass";
+            surfaceMaterial = "grass";
         else if (hit.transform.tag == "floor")
-            playerSurfaceMaterial = "floor";
+            surfaceMaterial = "floor";
         else
-            playerSurfaceMaterial = "other";
-
-        if (playerSurfaceMaterial != lastSurfaceMaterial)
+            surfaceMaterial = "other";
+        if (surfaceMaterial != lastSurfaceMaterial)
         {
-            Debug.Log($"[PlayAudio] Surface set to {playerSurfaceMaterial} via collision with {hit.transform.name} (tag {hit.transform.tag}, layer {hit.gameObject.layer})");
-            lastSurfaceMaterial = playerSurfaceMaterial;
+            Debug.Log($"[PlayAudio] Surface set by {this.gameObject.name} to {surfaceMaterial} via collision with {hit.transform.name} (tag {hit.transform.tag}, layer {hit.gameObject.layer})");
+            lastSurfaceMaterial = surfaceMaterial;
         }
 
         // If we hit Obstacles (layer 8), play a collision sound
@@ -821,25 +834,30 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    private string GetSurfaceUnderGuideController(CharacterController controller) // this function is specifically for the guide rig
+    private void GetSurfaceUnderPlayerController(CharacterController controller) // called on player controller when moving with guide
     {
-        int floorMask = 1 << 10; // Floors layer
+        int floorMask = 1 << 10; // floors layer
         RaycastHit hit;
         if (Physics.Raycast(controller.bounds.center, Vector3.down, out hit, 5.0f, floorMask, QueryTriggerInteraction.Ignore))
         {
             // Collect surface materials for all objects the raycast collides with to share over network
             if (hit.collider.tag == "Wood")
-                return "wood";
+                surfaceMaterial = "wood";
             else if (hit.collider.tag == "Water")
-                return "water";
+                surfaceMaterial = "water";
             else if (hit.collider.tag == "Grass")
-                return "grass";
+                surfaceMaterial = "grass";
             else if (hit.collider.tag == "floor")
-                return "floor";
+                surfaceMaterial = "floor";
             else
-                return "other";
+                surfaceMaterial = "other";
+
+            if (surfaceMaterial != lastSurfaceMaterial)
+            {
+                Debug.Log($"[PlayAudio] Surface set by {this.gameObject.name} to {surfaceMaterial} via collision with {hit.collider.gameObject.name} (tag {hit.collider.tag}, layer {hit.collider.gameObject.layer})");
+                lastSurfaceMaterial = surfaceMaterial;
+            }
         }
-        return "other";
     }
 
     // NOT IN USE
