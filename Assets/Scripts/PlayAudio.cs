@@ -6,15 +6,22 @@ using Normal.Realtime;
 
 public class PlayAudio : MonoBehaviour
 {
+    private const int DefaultLayer = 0;
+    private const int KeyItemsLayer = 13;
+
     // Components to grab from scripts
     private CustomTeleportationProvider teleport;
     private ActionBasedContinuousMoveProvider move;
     private XRInteractionManager interactionManager;
     private GameObject thePlayer;
     private GameObject theGuide;
+    private GameObject playerRig;
+    private GameObject guideRig;
     private int role;
-    private CharacterController characterController;
-    private Vector3 lastKnownPosition;
+    private CharacterController playerCharacterController;
+    private CharacterController guideCharacterController;
+    private Vector3 playerLastKnownPosition;
+    private Vector3 guideLastKnownPosition;
     private string lastAudioSourceLog;
     private string lastSurfaceMaterial;
     private int lastLoggedRole = -1;
@@ -26,6 +33,10 @@ public class PlayAudio : MonoBehaviour
     private bool teleportClipMissingLogged;
     private bool snapTurnMissingLogged;
     private bool snapTurnClipMissingLogged;
+    private float lastMeaningfulMovementTime = float.NegativeInfinity;
+    // CharacterController invokes OnControllerColliderHit every frame while contact persists.
+    // Track the last-seen time per object group so obstacle cues only fire on contact enter.
+    private readonly Dictionary<int, float> activeObstacleContacts = new Dictionary<int, float>();
 
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
@@ -64,7 +75,18 @@ public class PlayAudio : MonoBehaviour
     private string surfaceMaterial;
 
     // for dealing with trailing footstep sounds when stopping and changing direction - if the position changes back to the previous position, we don't want to play a footstep sound
-    private Vector3 previousPosition;
+    private Vector3 playerPreviousPosition;
+    private Vector3 guidePreviousPosition;
+
+    [SerializeField] private float minCollisionMoveSpeed = 0.5f;
+    [SerializeField] private float minImpactAlignment = 0.35f;
+    [SerializeField] private float wallScrapeVolume = 0.18f;
+    [SerializeField] private float directHitVolume = 0.35f;
+    [SerializeField] private float woodWallVolume = 0.24f;
+    [SerializeField] private float obstacleContactExitDelay = 0.15f;
+    [SerializeField] private float minWalkMoveSpeed = 0.08f;
+    [SerializeField] private float walkStopGracePeriod = 0.12f;
+    [SerializeField] private float minGroundSurfaceNormalY = 0.55f;
 
     // Start is called before the first frame update
     void Start()
@@ -73,11 +95,30 @@ public class PlayAudio : MonoBehaviour
         interactionManager = FindObjectOfType<XRInteractionManager>();
         teleport = FindObjectOfType<CustomTeleportationProvider>();
         move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
-        characterController = GetComponentInParent<CharacterController>();
-        if (characterController != null)
+
+        playerRig = GameObject.Find("XR Origin (Player Rig)");
+        guideRig = GameObject.Find("XR Origin (Guide Rig)");
+
+        if (playerRig != null)
         {
-            lastKnownPosition = characterController.transform.position;
-            previousPosition = lastKnownPosition;
+            playerCharacterController = playerRig.GetComponentInChildren<CharacterController>();
+        }
+
+        if (guideRig != null)
+        {
+            guideCharacterController = guideRig.GetComponentInChildren<CharacterController>();
+        }
+
+        if (playerCharacterController != null)
+        {
+            playerLastKnownPosition = playerCharacterController.transform.position;
+            playerPreviousPosition = playerLastKnownPosition;
+        }
+
+        if (guideCharacterController != null)
+        {
+            guideLastKnownPosition = guideCharacterController.transform.position;
+            guidePreviousPosition = guideLastKnownPosition;
         }
 
         // Assign sounds from Resources
@@ -101,6 +142,8 @@ public class PlayAudio : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        ClearExpiredObstacleContacts();
+
         // Grab components we need access to
         if (!sharedMovementFound)
         {
@@ -125,7 +168,8 @@ public class PlayAudio : MonoBehaviour
 
         // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
         bool hasConfederate = GameObject.FindWithTag("Confederate");
-        if (sharedMovementFound || hasConfederate || playerAudio != null)        {
+        if (sharedMovementFound || hasConfederate || playerAudio != null)
+        {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())
                 playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>(); // Ensure we grab the audio source for Play Audio, not Open AI
@@ -153,30 +197,49 @@ public class PlayAudio : MonoBehaviour
                 currentClip = noEffect;
 
             // Ensure we have a character controller reference before checking movement
-            if (characterController == null)
+            if (playerCharacterController == null && playerRig != null)
             {
-                characterController = GetComponentInParent<CharacterController>();
-                if (characterController == null && !missingControllerLogged)
+                playerCharacterController = playerRig.GetComponentInChildren<CharacterController>();
+                if (playerCharacterController == null && !missingControllerLogged)
                 {
                     //Debug.Log("[PlayAudio] No CharacterController found on parent. Walking sounds will not trigger.");
                     missingControllerLogged = true;
                 }
             }
 
-            if (playerAudio != null && characterController != null)
+            if (guideCharacterController == null && guideRig != null)
+            {
+                guideCharacterController = guideRig.GetComponentInChildren<CharacterController>();
+            }
+
+            if (playerAudio != null && playerCharacterController != null && guideCharacterController != null)
             {
                 CheckTeleport();
                 CheckTurning();
 
-                Vector3 currPosition = characterController.transform.position;
+                Vector3 playerCurrPosition = playerCharacterController.transform.position;
+                Vector3 guideCurrPosition = guideCharacterController.transform.position;
 
                 // compute movement using previous frame, not stale data
-                previousPosition = lastKnownPosition;
-                lastKnownPosition = currPosition;
+                playerPreviousPosition = playerLastKnownPosition;
+                playerLastKnownPosition = playerCurrPosition;
 
-                playAudioForMovingPlayer(currPosition, previousPosition);
-                playAudioForMovingGuide(currPosition, previousPosition);
+                guidePreviousPosition = guideLastKnownPosition;
+                guideLastKnownPosition = guideCurrPosition;
 
+                // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
+                if (!m_SharedMovementScript.movingWithGuide)
+                {
+                    Debug.Log("Player is moving");
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                else
+                {
+                    Debug.Log("Guide is moving");
+                    GetSurfaceUnderPlayerController(playerCharacterController);
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -248,10 +311,10 @@ public class PlayAudio : MonoBehaviour
 
     private void playAudioForMovingPlayer(Vector3 currPosition, Vector3 lastPosition)
     {
-        bool isMoving = currPosition != lastPosition;
+        bool isMoving = IsMeaningfullyMoving(currPosition, lastPosition);
         string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
         //Debug.Log($"[PlayAudio] Player path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, sourceTag={playerAudio.transform.tag}");
-        
+
         // HARD STOP: immediately cut walking audio when movement stops
         if (!isMoving)
         {
@@ -281,7 +344,7 @@ public class PlayAudio : MonoBehaviour
                     {
                         playerAudio.clip = waterEffect;
                         //m_audioClipSync.SetClipName(waterEffect.name);
-                    }  
+                    }
                     else if (surfaceMaterial == "grass")
                     {
                         playerAudio.clip = grassEffect;
@@ -319,7 +382,7 @@ public class PlayAudio : MonoBehaviour
                         {
                             playerAudio.clip = woodEffect;
                             //m_audioClipSync.SetClipName(woodEffect.name);
-                        }  
+                        }
                         else if (surfaceMaterial == "water")
                         {
                             playerAudio.clip = waterEffect;
@@ -361,7 +424,7 @@ public class PlayAudio : MonoBehaviour
         // If our audio is coming from the guide, use the guide audio clips
         if (guideFollowFound && playerAudio.transform.tag == "Guide")
         {
-            bool isMoving = currPosition != lastPosition;
+            bool isMoving = IsMeaningfullyMoving(currPosition, lastPosition);
             string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
             if (FindObjectOfType<AIGuide>())
                 role = FindObjectOfType<AIGuide>().role;
@@ -735,53 +798,91 @@ public class PlayAudio : MonoBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
+        if (playerAudio == null)
+            return;
+
+        if (m_SharedMovementScript.movingWithGuide)
+        {
+            return;
+        }
+
         //Debug.Log("Collided with " + hit.transform.tag + " object.");
 
-        // Collect surface materials for all objects we collide with to share over network
-        if (hit.transform.tag == "Wood")
-            surfaceMaterial = "wood";
-        else if (hit.transform.tag == "Water")
-            surfaceMaterial = "water";
-        else if (hit.transform.tag == "Grass")
-            surfaceMaterial = "grass";
-        else if (hit.transform.tag == "floor")
-            surfaceMaterial = "floor";
-        else
-            surfaceMaterial = "other";
+        // Temporarily ignore wall/object side-contact entirely so it cannot retrigger walk audio.
+        // Only upward-facing contacts should be allowed to classify the current footstep surface.
+        if (!IsGroundSurfaceCollision(hit))
+            return;
+
+        string detectedSurfaceMaterial = GetSurfaceMaterialFromTag(hit.transform.tag);
+        if (detectedSurfaceMaterial == null)
+            return;
+
+        surfaceMaterial = detectedSurfaceMaterial;
         if (surfaceMaterial != lastSurfaceMaterial)
         {
-            Debug.Log($"[PlayAudio] Surface set to {surfaceMaterial} via collision with {hit.transform.name} (tag {hit.transform.tag}, layer {hit.gameObject.layer})");
+            // Debug.Log($"[PlayAudio] Surface set to {surfaceMaterial} via collision with {hit.transform.name} (tag {hit.transform.tag}, layer {hit.gameObject.layer})");
             lastSurfaceMaterial = surfaceMaterial;
         }
 
-        // If we hit Obstacles (layer 8), play a collision sound
+        // Temporarily disable all hit/object collision audio.
+        // Keep the old obstacle cue path commented out for later restoration if needed.
+        /*
         if (hit.gameObject.layer == 8)
         {
+            int collisionGroupId = GetCollisionGroupId(hit);
+            if (IsObstacleContactActive(collisionGroupId))
+            {
+                activeObstacleContacts[collisionGroupId] = Time.time;
+                return;
+            }
+
+            AudioClip collisionClip;
             if (hit.transform.tag == "Wood")
             {
-                playerAudio.clip = woodCollisionEffect;
-                //m_audioClipSync.SetClipName(woodCollisionEffect.name);
+                collisionClip = woodCollisionEffect;
             }
-            else if (hit.transform.tag == "Player") // When collisions between Player and Rig are on at the scene open, ensure no collision sound occurs
+            else if (hit.transform.tag == "Player")
             {
-                playerAudio.clip = noEffect;
-                //m_audioClipSync.SetClipName(noEffect.name);
+                collisionClip = noEffect;
             }
             else
             {
-                playerAudio.clip = collisionEffect;
-                //m_audioClipSync.SetClipName(collisionEffect.name);
-            } 
+                collisionClip = noEffect;
+            }
 
-            if (!playerAudio.isPlaying)
+            if (ShouldPlayCollisionSound(hit, collisionClip, out float collisionVolume))
             {
-                playerAudio.Play();
-                LogClip($"Collision with {hit.transform.name}", playerAudio.clip);
+                activeObstacleContacts[collisionGroupId] = Time.time;
+                playerAudio.PlayOneShot(collisionClip, collisionVolume);
+                LogClip($"Collision with {hit.transform.name} at volume {collisionVolume:F2}", collisionClip);
             }
         }
-        else
+        */
+    }
+
+    private void GetSurfaceUnderPlayerController(CharacterController controller) // called on player controller when moving with guide
+    {
+        int floorMask = 1 << 10; // floors layer
+        RaycastHit hit;
+        if (Physics.Raycast(controller.bounds.center, Vector3.down, out hit, 5.0f, floorMask, QueryTriggerInteraction.Ignore))
         {
-            //Debug.Log($"[PlayAudio] Collision with {hit.transform.name} on layer {hit.gameObject.layer}; no collision SFX because layer != 8.");
+            // Collect surface materials for all objects the raycast collides with to share over network
+            if (hit.collider.tag == "Wood")
+                surfaceMaterial = "wood";
+            else if (hit.collider.tag == "Water")
+                surfaceMaterial = "water";
+            else if (hit.collider.tag == "Grass")
+                surfaceMaterial = "grass";
+            else if (hit.collider.tag == "floor")
+                surfaceMaterial = "floor";
+            else
+                surfaceMaterial = "other";
+
+            if (surfaceMaterial != lastSurfaceMaterial)
+            {
+                Debug.Log($"[PlayAudio] Surface set by {this.gameObject.name} to {surfaceMaterial} via collision with {hit.collider.gameObject.name} (tag {hit.collider.tag}, layer {hit.collider.gameObject.layer})");
+                lastSurfaceMaterial = surfaceMaterial;
+            }
         }
     }
 
@@ -867,6 +968,139 @@ public class PlayAudio : MonoBehaviour
                clip == dogWalkEffect ||
                clip == birdFlyEffect;
     }
+
+    private bool ShouldPlayCollisionSound(ControllerColliderHit hit, AudioClip collisionClip, out float collisionVolume)
+    {
+        collisionVolume = 0f;
+
+        if (collisionClip == null || collisionClip == noEffect)
+            return false;
+
+        Vector3 movement = playerLastKnownPosition - playerPreviousPosition;
+        float moveSpeed = movement.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
+        if (moveSpeed < minCollisionMoveSpeed)
+            return false;
+
+        Vector3 moveDirection = hit.moveDirection.sqrMagnitude > 0.0001f
+            ? hit.moveDirection.normalized
+            : movement.normalized;
+        if (moveDirection.sqrMagnitude <= 0.0001f)
+            return false;
+
+        float impactAlignment = Vector3.Dot(moveDirection, -hit.normal);
+        if (impactAlignment < minImpactAlignment)
+            return false;
+
+        bool isWallLikeContact = Mathf.Abs(hit.normal.y) < 0.35f;
+        collisionVolume = GetCollisionVolume(hit, collisionClip, impactAlignment, isWallLikeContact);
+        return true;
+    }
+
+    private bool IsGroundSurfaceCollision(ControllerColliderHit hit)
+    {
+        return hit.normal.y >= minGroundSurfaceNormalY;
+    }
+
+    private string GetSurfaceMaterialFromTag(string tagName)
+    {
+        if (tagName == "Wood")
+            return "wood";
+        if (tagName == "Water")
+            return "water";
+        if (tagName == "Grass")
+            return "grass";
+        if (tagName == "floor")
+            return "floor";
+
+        return null;
+    }
+
+    private bool IsMeaningfullyMoving(Vector3 currPosition, Vector3 lastPosition)
+    {
+        Vector3 movement = currPosition - lastPosition;
+        movement.y = 0f;
+
+        float moveSpeed = movement.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
+        if (moveSpeed >= minWalkMoveSpeed)
+        {
+            lastMeaningfulMovementTime = Time.time;
+            return true;
+        }
+
+        return Time.time - lastMeaningfulMovementTime < walkStopGracePeriod;
+    }
+
+    private void ClearExpiredObstacleContacts()
+    {
+        if (activeObstacleContacts.Count == 0)
+            return;
+
+        float now = Time.time;
+        List<int> expiredContactIds = null;
+
+        foreach (KeyValuePair<int, float> contact in activeObstacleContacts)
+        {
+            if (now - contact.Value >= obstacleContactExitDelay)
+            {
+                if (expiredContactIds == null)
+                    expiredContactIds = new List<int>();
+
+                expiredContactIds.Add(contact.Key);
+            }
+        }
+
+        if (expiredContactIds == null)
+            return;
+
+        foreach (int contactId in expiredContactIds)
+            activeObstacleContacts.Remove(contactId);
+    }
+
+    private bool IsObstacleContactActive(int collisionGroupId)
+    {
+        if (activeObstacleContacts.TryGetValue(collisionGroupId, out float lastSeenTime))
+            return Time.time - lastSeenTime < obstacleContactExitDelay;
+
+        return false;
+    }
+
+    private int GetCollisionGroupId(ControllerColliderHit hit)
+    {
+        Transform strictLayerAncestor = FindStrictLayerAncestor(hit.transform);
+        if (strictLayerAncestor != null)
+            return strictLayerAncestor.GetInstanceID();
+
+        return hit.transform.root.GetInstanceID();
+    }
+
+    private Transform FindStrictLayerAncestor(Transform start)
+    {
+        Transform current = start;
+        Transform lastStrictMatch = null;
+
+        while (current != null)
+        {
+            if (current.gameObject.layer == DefaultLayer || current.gameObject.layer == KeyItemsLayer)
+                lastStrictMatch = current;
+
+            current = current.parent;
+        }
+
+        return lastStrictMatch;
+    }
+
+    private float GetCollisionVolume(ControllerColliderHit hit, AudioClip collisionClip, float impactAlignment, bool isWallLikeContact)
+    {
+        float baseVolume = directHitVolume;
+        if (isWallLikeContact)
+            baseVolume = collisionClip == woodCollisionEffect ? woodWallVolume : wallScrapeVolume;
+        else if (collisionClip == woodCollisionEffect)
+            baseVolume = Mathf.Max(baseVolume, woodWallVolume);
+
+        float alignmentFactor = Mathf.InverseLerp(minImpactAlignment, 1f, impactAlignment);
+        return Mathf.Clamp(baseVolume * Mathf.Lerp(0.75f, 1f, alignmentFactor), 0f, 1f);
+    }
+
     private void LogClip(string reason, AudioClip clip)
     {
         string clipName = clip ? clip.name : "null";
