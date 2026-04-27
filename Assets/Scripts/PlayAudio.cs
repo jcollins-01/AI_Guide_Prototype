@@ -144,7 +144,8 @@ public class PlayAudio : MonoBehaviour
 
         // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
         bool hasConfederate = GameObject.FindWithTag("Confederate");
-        if (sharedMovementFound || hasConfederate || playerAudio != null)        {
+        if (sharedMovementFound || hasConfederate || playerAudio != null)
+        {
             // If we're calling Audio from a PlayAudio component on the guide's rig, use the guide's audio source
             if (GetComponent<GuideFollow>())
                 playerAudio = theGuide.transform.parent.GetComponentInParent<AudioSource>(); // Ensure we grab the audio source for Play Audio, not Open AI
@@ -270,7 +271,7 @@ public class PlayAudio : MonoBehaviour
         bool isMoving = IsMeaningfullyMoving(currPosition, lastPosition);
         string clipName = playerAudio && playerAudio.clip ? playerAudio.clip.name : "none";
         //Debug.Log($"[PlayAudio] Player path check: moving={isMoving}, surface={surfaceMaterial}, currentClip={clipName}, sourceTag={playerAudio.transform.tag}");
-        
+
         // HARD STOP: immediately cut walking audio when movement stops
         if (!isMoving)
         {
@@ -300,7 +301,7 @@ public class PlayAudio : MonoBehaviour
                     {
                         playerAudio.clip = waterEffect;
                         //m_audioClipSync.SetClipName(waterEffect.name);
-                    }  
+                    }
                     else if (surfaceMaterial == "grass")
                     {
                         playerAudio.clip = grassEffect;
@@ -338,7 +339,7 @@ public class PlayAudio : MonoBehaviour
                         {
                             playerAudio.clip = woodEffect;
                             //m_audioClipSync.SetClipName(woodEffect.name);
-                        }  
+                        }
                         else if (surfaceMaterial == "water")
                         {
                             playerAudio.clip = waterEffect;
