@@ -83,7 +83,8 @@ public class RealtimeGuideClient : MonoBehaviour
     public Action OnServerDetectedSpeechStart;
     public Action OnServerDetectedSpeechStop;
 
-    public bool _pushToTalkOn = false;
+    public bool _defaultPushToTalkOn = true;
+    public bool _legacyHoldToSpeakOn = false;
     public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
     private float _silenceTimer = 0f;
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
@@ -342,8 +343,8 @@ public class RealtimeGuideClient : MonoBehaviour
 
             // MicCheck(samples);
 
-            // If we are in push to talk mode, NOT for continuous voice or hold to speak
-            if (_pushToTalkOn && !_continuousVoiceOn)
+            // Voice activity detection is only used for the default push-to-talk flow.
+            if (_defaultPushToTalkOn && !_continuousVoiceOn && !_legacyHoldToSpeakOn)
                 ProcessVoiceActivity(samples);
 
             // Noise gate to ensure we aren't treating backround noise/AI voice as user voice

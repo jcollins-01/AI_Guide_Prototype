@@ -2,15 +2,20 @@ using Normal.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class SwitchTools : MonoBehaviour
 {
     // Set these in Unity Editor to switch tools/features
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
-    public bool pushToTalk = false;
+    [FormerlySerializedAs("pushToTalk")]
+    public bool legacyHoldToSpeak = false;
     public bool continuousVoice = false;
     [HideInInspector] public bool personalVoicesOn = false;
+
+    // Default guide interaction is the newer push-to-talk flow unless a legacy mode is explicitly enabled.
+    public bool UseDefaultPushToTalk => !continuousVoice && !legacyHoldToSpeak;
     
     // Start is called before the first frame update
     void Start()
