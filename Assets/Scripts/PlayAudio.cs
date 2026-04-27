@@ -15,9 +15,13 @@ public class PlayAudio : MonoBehaviour
     private XRInteractionManager interactionManager;
     private GameObject thePlayer;
     private GameObject theGuide;
+    private GameObject playerRig;
+    private GameObject guideRig;
     private int role;
-    private CharacterController characterController;
-    private Vector3 lastKnownPosition;
+    private CharacterController playerCharacterController;
+    private CharacterController guideCharacterController;
+    private Vector3 playerLastKnownPosition;
+    private Vector3 guideLastKnownPosition;
     private string lastAudioSourceLog;
     private string lastSurfaceMaterial;
     private int lastLoggedRole = -1;
@@ -71,7 +75,8 @@ public class PlayAudio : MonoBehaviour
     private string surfaceMaterial;
 
     // for dealing with trailing footstep sounds when stopping and changing direction - if the position changes back to the previous position, we don't want to play a footstep sound
-    private Vector3 previousPosition;
+    private Vector3 playerPreviousPosition;
+    private Vector3 guidePreviousPosition;
 
     [SerializeField] private float minCollisionMoveSpeed = 0.5f;
     [SerializeField] private float minImpactAlignment = 0.35f;
@@ -90,11 +95,30 @@ public class PlayAudio : MonoBehaviour
         interactionManager = FindObjectOfType<XRInteractionManager>();
         teleport = FindObjectOfType<CustomTeleportationProvider>();
         move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
-        characterController = GetComponentInParent<CharacterController>();
-        if (characterController != null)
+
+        playerRig = GameObject.Find("XR Origin (Player Rig)");
+        guideRig = GameObject.Find("XR Origin (Guide Rig)");
+
+        if (playerRig != null)
         {
-            lastKnownPosition = characterController.transform.position;
-            previousPosition = lastKnownPosition;
+            playerCharacterController = playerRig.GetComponentInChildren<CharacterController>();
+        }
+
+        if (guideRig != null)
+        {
+            guideCharacterController = guideRig.GetComponentInChildren<CharacterController>();
+        }
+
+        if (playerCharacterController != null)
+        {
+            playerLastKnownPosition = playerCharacterController.transform.position;
+            playerPreviousPosition = playerLastKnownPosition;
+        }
+
+        if (guideCharacterController != null)
+        {
+            guideLastKnownPosition = guideCharacterController.transform.position;
+            guidePreviousPosition = guideLastKnownPosition;
         }
 
         // Assign sounds from Resources
@@ -173,30 +197,49 @@ public class PlayAudio : MonoBehaviour
                 currentClip = noEffect;
 
             // Ensure we have a character controller reference before checking movement
-            if (characterController == null)
+            if (playerCharacterController == null && playerRig != null)
             {
-                characterController = GetComponentInParent<CharacterController>();
-                if (characterController == null && !missingControllerLogged)
+                playerCharacterController = playerRig.GetComponentInChildren<CharacterController>();
+                if (playerCharacterController == null && !missingControllerLogged)
                 {
                     //Debug.Log("[PlayAudio] No CharacterController found on parent. Walking sounds will not trigger.");
                     missingControllerLogged = true;
                 }
             }
 
-            if (playerAudio != null && characterController != null)
+            if (guideCharacterController == null && guideRig != null)
+            {
+                guideCharacterController = guideRig.GetComponentInChildren<CharacterController>();
+            }
+
+            if (playerAudio != null && playerCharacterController != null && guideCharacterController != null)
             {
                 CheckTeleport();
                 CheckTurning();
 
-                Vector3 currPosition = characterController.transform.position;
+                Vector3 playerCurrPosition = playerCharacterController.transform.position;
+                Vector3 guideCurrPosition = guideCharacterController.transform.position;
 
                 // compute movement using previous frame, not stale data
-                previousPosition = lastKnownPosition;
-                lastKnownPosition = currPosition;
+                playerPreviousPosition = playerLastKnownPosition;
+                playerLastKnownPosition = playerCurrPosition;
 
-                playAudioForMovingPlayer(currPosition, previousPosition);
-                playAudioForMovingGuide(currPosition, previousPosition);
+                guidePreviousPosition = guideLastKnownPosition;
+                guideLastKnownPosition = guideCurrPosition;
 
+                // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
+                if (!m_SharedMovementScript.movingWithGuide)
+                {
+                    Debug.Log("Player is moving");
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                else
+                {
+                    Debug.Log("Guide is moving");
+                    GetSurfaceUnderPlayerController(playerCharacterController);
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -758,6 +801,11 @@ public class PlayAudio : MonoBehaviour
         if (playerAudio == null)
             return;
 
+        if (m_SharedMovementScript.movingWithGuide)
+        {
+            return;
+        }
+
         //Debug.Log("Collided with " + hit.transform.tag + " object.");
 
         // Temporarily ignore wall/object side-contact entirely so it cannot retrigger walk audio.
@@ -810,6 +858,32 @@ public class PlayAudio : MonoBehaviour
             }
         }
         */
+    }
+
+    private void GetSurfaceUnderPlayerController(CharacterController controller) // called on player controller when moving with guide
+    {
+        int floorMask = 1 << 10; // floors layer
+        RaycastHit hit;
+        if (Physics.Raycast(controller.bounds.center, Vector3.down, out hit, 5.0f, floorMask, QueryTriggerInteraction.Ignore))
+        {
+            // Collect surface materials for all objects the raycast collides with to share over network
+            if (hit.collider.tag == "Wood")
+                surfaceMaterial = "wood";
+            else if (hit.collider.tag == "Water")
+                surfaceMaterial = "water";
+            else if (hit.collider.tag == "Grass")
+                surfaceMaterial = "grass";
+            else if (hit.collider.tag == "floor")
+                surfaceMaterial = "floor";
+            else
+                surfaceMaterial = "other";
+
+            if (surfaceMaterial != lastSurfaceMaterial)
+            {
+                Debug.Log($"[PlayAudio] Surface set by {this.gameObject.name} to {surfaceMaterial} via collision with {hit.collider.gameObject.name} (tag {hit.collider.tag}, layer {hit.collider.gameObject.layer})");
+                lastSurfaceMaterial = surfaceMaterial;
+            }
+        }
     }
 
     // NOT IN USE
@@ -902,7 +976,7 @@ public class PlayAudio : MonoBehaviour
         if (collisionClip == null || collisionClip == noEffect)
             return false;
 
-        Vector3 movement = lastKnownPosition - previousPosition;
+        Vector3 movement = playerLastKnownPosition - playerPreviousPosition;
         float moveSpeed = movement.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
         if (moveSpeed < minCollisionMoveSpeed)
             return false;
