@@ -8,7 +8,7 @@ public class TeleportationHandler : MonoBehaviour
     public XRController leftTarget;
     public XRController rightTarget;
     public InputHelpers.Button teleportRayTrigger;
-    public float activationThreshold = 0.2f;
+    public float activationThreshold = 0.95f;
 
     private XRInteractorLineVisual leftRay;
     public GameObject leftReticle;
@@ -172,7 +172,7 @@ public class TeleportationHandler : MonoBehaviour
         {
             Debug.Log("Teleport reticle hit an object");
             // Hitting a teleportable object, so activate screenreader and share position of reticle
-            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition);
+            m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition); // plays bounds audio before teleport completes
         }
         //else
             //Debug.Log("No objects detected at reticle position.");

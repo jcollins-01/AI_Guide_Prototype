@@ -36,7 +36,7 @@ public class CustomTeleportationProvider : TeleportationProvider
     [Tooltip("Extra clearance added to CharacterController radius when used for checks.")]
     public float characterControllerPadding = 0.05f;
 
-    public float maxSlope = 10f;
+    private float maxSlope = 75f;
 
     public float delayTimeCustom = 0.1f; // if you need editable delay time, use this one
 
@@ -141,6 +141,7 @@ public class CustomTeleportationProvider : TeleportationProvider
 
         // 2) Slope validation
         float slope = Vector3.Angle(floorHit.normal, Vector3.up);
+        // Debug.Log($"[Provider] slope={slope:F1}, maxSlope={maxSlope:F1}");
         if (slope > maxSlope)
         {
             Debug.LogWarning($"[Provider] Surface too steep: {slope:F1} degrees");
