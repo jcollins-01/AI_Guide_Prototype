@@ -1069,6 +1069,7 @@ public class OpenAIQueries : MonoBehaviour
     private SharedMovement m_SharedMovementScript;
     public RealtimeAvatarVoice _avatarVoice;
 
+    // Universal guide variables
     public string objectNames;
     public List<string> roles = new List<string>
     {
@@ -1079,6 +1080,8 @@ public class OpenAIQueries : MonoBehaviour
         "wise, old-fashioned, slightly Shakespearean-sounding mentor",
         "gentle, sweet, soft-spoken assistant slipping in words here and there"
     };
+
+    // Baseline guide variables
     [HideInInspector]
     public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. +" +
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally.";
@@ -1104,6 +1107,62 @@ public class OpenAIQueries : MonoBehaviour
                    "If a user asks 'What's around me?', synthesize the Registry and the Visual Context into a spatial summary.";
         }
     }
+
+    // Improved guide variables
+    [HideInInspector]
+    public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
+        "Follow the specified order for object details: First, define what an object is; second, provide its shape and size; third, provide its color; " +
+        "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
+        "Example Input: {What is that small thing on the table?} " +
+        "Example Output: {It’s a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}";
+
+    [HideInInspector]
+    public string objectLocationGuideline = "Give the object’s precise location using clock system directions and the estimated distance-to-target. " +
+        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
+        "Example Output: {The mug is at your 1 o’clock, about 2 feet away.}";
+
+    [HideInInspector]
+    public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
+        "Then, mention major landmarks that are relevant to the user’s current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
+        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters). " +
+        "If the environment is familiar, prioritize information about the nearest objects or information points, again providing precise locations of these objects." +
+        "Example Output: {You’re in a small rectangular kitchen. There’s a counter in front of you, a sink to your left, and a doorway behind you. A box of fruit is on the floor at 12 o’clock, one foot away.}";
+
+    [HideInInspector]
+    public string spaceNavigationGuideline = "When a user is actively navigating, prioritize information about object locations, dimensions, and identities over other details. " +
+        "Provide information on object appearance or state (i.e., what’s happening to it) only if requested or relevant for how a user needs to navigate around that object." +
+        "Example Output: {You’re at a four-way intersection. The café is across the street at your 11 o’clock, twenty feet away. There is a green light at the crosswalk, showing you can walk across.}" +
+        "During navigation, inform users about which directions or open spaces are traversable, and about the presence of obstacles that would impede movement." +
+        "Example Output: {There is clear walking space directly ahead for about 8 feet, with a counter on your left and a wall on your right.}" +
+        "Use allocentric spatial references when helping the user plan out and follow routes through the scene. " +
+        "You may use the relation of landmarks or information points in the scene to each other, cardinal directions, or patterns you notice in the scene, such as streets laid out in a grid or particular shape, to help guide the user. " +
+        "Use these types of references in combination or separately, based on how the user prefers to be guided." +
+        "Example Output: {North is in front of you; the lake is to the northeast.} {The city streets are laid out in a grid. After passing three streets, you can turn left to reach the museum.}";
+
+    [HideInInspector]
+    public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
+        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
+        "Then, every 1 to 2 seconds, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
+        "Use the command “Stop” to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using “Stop,” re-explain the precise location of the object before beginning repeated relative guidance again." +
+        "Inform the user when they have reached the target object." +
+        "Example Output: {The paper cup is at 2 o’clock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 o’clock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";
+
+    [HideInInspector]
+    public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
+        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user’s question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
+        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset’s guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don’t move too much and run into something. Let’s try backing up so that you are farther away from that boundary. Did that help?}";
+
+    // The idea is that when the guide then responds these particular symbols, we can use that symbol to select which guidelines to pass on each request.
+    // But this would be WAY more expensive. Far more tokens each time, rather than one longer request at the start. Better to re-inject periodically, right?
+    public string determineIntention = "Determine what the user's intention is out of these use cases and respond as instructed. When [Object Name] is required, use only names from the Registry." +
+        "USE CASE 1: Getting an object description. RESPONSE: '^'" +
+        "USE CASE 2: Locating a specific object. RESPONSE: '&'" +
+        "USE CASE 3: Understanding a scene or learning the scene's contents. RESPONSE: '*'" +
+        "USE CASE 4: Navigating through a space. RESPONSE: '%'" +
+        "USE CASE 5: Reaching or grabbing for a specific object (fine motor skills). RESPONSE: '#'" +
+        "USE CASE 6: Getting technical support on controls or system feedback in VR. RESPONSE: '@'" +
+        "USE CASE 7: Teleporting or taking the user to a specific object. RESPONSE: '[Object Name], teleport' or '[Object Name], guide'." +
+        "USE CASE 8: Modifying a specific object with a sound effect. RESPONSE: '[Object Name], modify'";
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;

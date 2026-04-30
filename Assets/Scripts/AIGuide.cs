@@ -106,9 +106,22 @@ public class AIGuide : MonoBehaviour
         m_OpenAIQueriesScript.LoadRoomDescriptions();
         m_OpenAIQueriesScript.getGuideRole();
 
-        return "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
-               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications + 
+        // Determine baseline or improved guide
+        string prompt;
+        bool baseline = true;
+
+        if (baseline)
+        {
+            prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
+               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
                m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.commandClassifications + m_OpenAIQueriesScript.guideRules;
+        }
+        else
+        {
+            prompt = "test";
+        }
+
+        return prompt;
     }
 
     private void PresetAvatarRoles()
