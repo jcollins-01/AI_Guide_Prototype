@@ -680,6 +680,26 @@ public class RealtimeGuideClient : MonoBehaviour
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
+    public async Task SendManualPrompt(string prompt)
+    {
+        var eventData = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new[]
+                {
+                    new { type = "input_text", text = prompt }
+                }
+            }
+        };
+
+        await SendJson(eventData);
+        await SendJson(new { type = "response.create" });
+    }
+
     // Gets a text description of the images taken to pass to Realtime API
     public async Task<string> GetImageDescriptionAsync(string viewpointBase64, string birdsEyeBase64)
     {

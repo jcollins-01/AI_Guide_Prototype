@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -25,6 +27,18 @@ public class AIGuide : MonoBehaviour
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
 
+    // Variables for hazard detection
+    private bool hazardDetectionEnabled = true; // hazard detection feature toggle
+    private float dangerZoneDistance = 1.5f;
+    private float hazardCheckInterval = 0.25f; // hazard detection frequency (see CheckHazardDistances())
+    private float hazardPromptCooldown = 6.0f; // response frequency from guide
+    private LayerMask hazardLayerMask;
+    private int maxHazardsDetected = 10;
+    private Collider[] hazardObjectColliders;
+    private float nextHazardCheckTime = 0f;
+    private float lastHazardPromptTime = -999f;
+    private GameObject lastHazardPrompted;
+
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
@@ -46,6 +60,9 @@ public class AIGuide : MonoBehaviour
         InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
 
         Debug.Log("AIGuide is active!");
+
+        hazardLayerMask = LayerMask.GetMask("Key Items");
+        hazardObjectColliders = new Collider[maxHazardsDetected];
     }
 
     private void AddGuideComponents()
@@ -139,6 +156,9 @@ public class AIGuide : MonoBehaviour
         {
             // Call the guide
             RealtimeGuide();
+
+            // Check for objects too close to the player
+            CheckHazardDistances();
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -570,5 +590,77 @@ public class AIGuide : MonoBehaviour
     {
         if (m_SharedMovementScript == null)
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+    }
+
+    private void CheckHazardDistances()
+    {
+        if (!hazardDetectionEnabled) 
+        {
+            return;
+        };
+
+        if (Time.time < nextHazardCheckTime)
+        {
+            return;
+        };
+        nextHazardCheckTime = Time.time + hazardCheckInterval;
+
+        Transform playerTransform = m_SharedMovementScript.thePlayer.transform;
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            playerTransform.position,
+            dangerZoneDistance,
+            hazardObjectColliders,
+            hazardLayerMask
+        );
+
+        if (hitCount <= 0)
+        {
+            return;
+        };
+
+        // for now, we will just choose the closest object (but there could be many more in the "danger zone")
+        GameObject closestHazard = null; 
+        float closestDistance = Mathf.Infinity;
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hit = hazardObjectColliders[i];
+            if (hit == null)
+            {
+                continue;
+            }
+
+            GameObject hazard = hit.gameObject;
+            float distance = Vector3.Distance(playerTransform.position, hazard.transform.position);
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestHazard = hazard;
+            }
+        }
+
+        if (closestHazard == null)
+        {
+            return;
+        };
+
+        bool cooldownReady = Time.time - lastHazardPromptTime >= hazardPromptCooldown;
+        bool isDifferentHazard = closestHazard != lastHazardPrompted;
+        // we do not want the same hazard to be repeated too much
+        // but new hazards will always be prompted immediately
+        if (!cooldownReady && !isDifferentHazard)
+        {
+            return;
+        };
+        // Debug.Log(lastHazardPromptTime);
+        lastHazardPromptTime = Time.time;
+        lastHazardPrompted = closestHazard;
+
+        string hazardName = closestHazard.name;
+        string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
+                        $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
+        // Debug.Log("Hazard Detection Response: " + prompt);
+
+        _ = realtimeClient.SendManualPrompt(prompt);
     }
 }
