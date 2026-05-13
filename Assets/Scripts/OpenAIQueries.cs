@@ -88,7 +88,7 @@ public class RealtimeGuideClient : MonoBehaviour
     public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
     private float _silenceTimer = 0f;
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
-    private float _volumeThreshold = 0.02f; // Minimum volume to be considered talking
+    private float _volumeThreshold = 0.05f; // Minimum volume to be considered talking, was 0.02f, caught computer fan
     private bool _hasSpoken = false; // Prevents auto-stopping before a user starts talking
 
     // Variables for other customizations
@@ -375,6 +375,7 @@ public class RealtimeGuideClient : MonoBehaviour
         // If volume spikes above our threshold, the user is talking
         if (maxVol > _volumeThreshold)
         {
+            Debug.Log("User is talking");
             _hasSpoken = true;
             _silenceTimer = 0f; // Reset the silence timer
         }
@@ -390,7 +391,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 _hasSpoken = false;
                 _silenceTimer = 0f;
 
-                //Debug.Log("Silence detected. Auto-stopping recording.");
+                Debug.Log("Silence detected. Auto-stopping recording.");
 
                 // Alert AIGuide that the user has stopped speaking
                 OnAutoStopRecording?.Invoke();

@@ -17,6 +17,10 @@ public class SharedMovement : MonoBehaviour
     private Vector3 playerGuideOffset;
     private bool enteredTrigger = false;
 
+    // Variables to track the player's velocity
+    private Vector3 lastPosition;
+    private Vector3 currentVelocity;
+
     // Variables to access XR Controllers
     private InputDevice rightXRController;
     private InputDevice leftXRController;
@@ -61,6 +65,20 @@ public class SharedMovement : MonoBehaviour
         string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
         if (!FindObjectOfType<ConfederateHandler>()) // Only enable SharedMovement if we aren't in the confederate client or tutorial
             ShareMovementOnGrab();
+
+        // Calculate the player's velocity so we can share info about their movement (for hazard detection)
+        if (playerRig != null)
+        {
+            // Velocity = change in position / time
+            currentVelocity = (playerRig.transform.position - lastPosition) / Time.deltaTime;
+            lastPosition = playerRig.transform.position;
+        }
+    }
+
+    // Accessor method so hazard detection scripts can use this
+    public Vector3 GetVelocity()
+    {
+        return currentVelocity;
     }
 
     private void ShareMovementOnGrab()

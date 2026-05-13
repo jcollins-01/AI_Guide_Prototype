@@ -124,12 +124,12 @@ public class TeleportationHandler : MonoBehaviour
 
         if (leftRayInteractor != null && leftRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
-            Debug.Log($"[Left Interactor] Hitting: {hit.collider.name}");
+            //Debug.Log($"[Left Interactor] Hitting: {hit.collider.name}");
         }
 
         if (rightRayInteractor != null && rightRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit2))
         {
-            Debug.Log($"[Right Interactor] Hitting: {hit2.collider.name}");
+            //Debug.Log($"[Right Interactor] Hitting: {hit2.collider.name}");
         }
 
         // If the action of teleportation has completed

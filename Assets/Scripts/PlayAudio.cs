@@ -230,12 +230,12 @@ public class PlayAudio : MonoBehaviour
                 // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
                 if (!m_SharedMovementScript.movingWithGuide)
                 {
-                    Debug.Log("Player is moving");
+                    //Debug.Log("Player is moving");
                     playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
                 }
                 else
                 {
-                    Debug.Log("Guide is moving");
+                    //Debug.Log("Guide is moving");
                     GetSurfaceUnderPlayerController(playerCharacterController);
                     playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
                 }

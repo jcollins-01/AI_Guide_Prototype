@@ -291,8 +291,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06fc0dcb0e01281468c85993f1721fd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  VRGuideActive: 0
-  VRScreenreaderActive: 1
+  VRGuideActive: 1
+  VRScreenreaderActive: 0
+  legacyHoldToSpeak: 0
+  continuousVoice: 0
+  personalVoicesOn: 0
 --- !u!114 &2960497261650544495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -547,6 +550,9 @@ MonoBehaviour:
   activationThreshold: 0.2
   leftReticle: {fileID: 2510217505743362433, guid: dd49e310985dd2341a40c046c2b5531d, type: 3}
   rightReticle: {fileID: 6162384652528471109, guid: 84b9257dcbc24cb4f9557902a56a6f04, type: 3}
+  teleportRayMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!143 &3201782514830784326
 CharacterController:
   m_ObjectHideFlags: 0
@@ -602,6 +608,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAudio: {fileID: 0}
   currentClip: {fileID: 0}
+  minCollisionMoveSpeed: 0.5
+  minImpactAlignment: 0.35
+  wallScrapeVolume: 0.18
+  directHitVolume: 0.35
+  woodWallVolume: 0.24
+  obstacleContactExitDelay: 0.15
+  minWalkMoveSpeed: 0.08
+  walkStopGracePeriod: 0.12
+  minGroundSurfaceNormalY: 0.55
 --- !u!1 &2623812241306598675
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,6 +1230,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAudio: {fileID: 0}
   currentClip: {fileID: 0}
+  minCollisionMoveSpeed: 0.5
+  minImpactAlignment: 0.35
+  wallScrapeVolume: 0.18
+  directHitVolume: 0.35
+  woodWallVolume: 0.24
+  obstacleContactExitDelay: 0.15
+  minWalkMoveSpeed: 0.08
+  walkStopGracePeriod: 0.12
+  minGroundSurfaceNormalY: 0.55
 --- !u!143 &51782160169678194
 CharacterController:
   m_ObjectHideFlags: 0

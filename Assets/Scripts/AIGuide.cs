@@ -605,7 +605,7 @@ public class AIGuide : MonoBehaviour
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
     }
 
-    private void CheckHazardDistances()
+    /*private void CheckHazardDistances()
     {
         if (!hazardDetectionEnabled) 
         {
@@ -670,6 +670,78 @@ public class AIGuide : MonoBehaviour
         lastHazardPrompted = closestHazard;
 
         string hazardName = closestHazard.name;
+        string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
+                        $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
+        // Debug.Log("Hazard Detection Response: " + prompt);
+
+        _ = realtimeClient.SendManualPrompt(prompt);
+    }*/
+
+    private void CheckHazardDistances()
+    {
+        if (!hazardDetectionEnabled || Time.time < nextHazardCheckTime) return;
+        nextHazardCheckTime = Time.time + hazardCheckInterval;
+
+        Transform playerTransform = m_SharedMovementScript.thePlayer.transform;
+        Vector3 velocity = m_SharedMovementScript.GetVelocity();
+
+        // CRAMPED SPACE FILTER: If moving slower than 0.3m/s, assume the user is navigating carefully or standing still
+        if (velocity.magnitude < 0.3f) return;
+
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            playerTransform.position,
+            dangerZoneDistance,
+            hazardObjectColliders,
+            hazardLayerMask
+        );
+
+        GameObject bestCandidate = null;
+        float highestUrgency = -1f;
+
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider hit = hazardObjectColliders[i];
+            if (hit == null) continue;
+
+            Vector3 closestPointOnHazard = hit.ClosestPoint(playerTransform.position);
+            Vector3 directionToHazard = (closestPointOnHazard - playerTransform.position).normalized;
+
+            // DIRECT PATH FILTER: Use Dot Product to see if the hazard is in front of the movement -- 1.0 = directly in path, 0.0 = to the side, -1.0 = behind
+            float pathAlignment = Vector3.Dot(velocity.normalized, directionToHazard);
+
+            // Only warn if the object is within a ~60 degree cone in front of movement (> 0.5)
+            if (pathAlignment < 0.5f) continue;
+
+            float distance = Vector3.Distance(playerTransform.position, closestPointOnHazard);
+
+            // CALCULATE URGENCY: Alignment / Distance, prioritize things directly in the path, even if something else is slightly closer to the side
+            float urgency = pathAlignment / (distance + 0.1f);
+
+            if (urgency > highestUrgency)
+            {
+                highestUrgency = urgency;
+                bestCandidate = hit.gameObject;
+            }
+        }
+
+        if (bestCandidate != null && ShouldPrompt(bestCandidate))
+        {
+            HandleHazardPrompt(bestCandidate);
+        }
+    }
+
+    private bool ShouldPrompt(GameObject hazard)
+    {
+        bool cooldownReady = Time.time - lastHazardPromptTime >= hazardPromptCooldown;
+        bool isDifferentHazard = hazard != lastHazardPrompted;
+
+        // In a cramped space, we increase the cooldown
+        return cooldownReady || isDifferentHazard;
+    }
+
+    private void HandleHazardPrompt(GameObject hazard)
+    {
+        string hazardName = hazard.name;
         string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
                         $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
         // Debug.Log("Hazard Detection Response: " + prompt);

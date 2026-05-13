@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.0839975, g: 0.14957952, b: 0.5743771, a: 1}
+  m_IndirectSpecularColor: {r: 0.08350247, g: 0.14933088, b: 0.57520914, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -223761,11 +223761,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRGuideActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3912404330517653208, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: VRScreenreaderActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5603520807464278789, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: playerAudio
@@ -223882,7 +223882,6 @@ MonoBehaviour:
   minorCheckRadius: 0.12
   useCharacterControllerRadius: 1
   characterControllerPadding: 0.05
-  maxSlope: 10
   delayTimeCustom: 0.1
 --- !u!1 &1636799934
 GameObject:
