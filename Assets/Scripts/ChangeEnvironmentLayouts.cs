@@ -33,9 +33,9 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
                 availableLayouts[0] = GameObject.Find("Kitchen"); // Final room
                 availableLayouts[1] = GameObject.Find("Kitchen 2");
                 availableLayouts[2] = GameObject.Find("Kitchen 3");
-                //availableLayouts[3] = GameObject.Find("Kitchen Prep Table"); // Final table
-                //availableLayouts[4] = GameObject.Find("Kitchen Prep Table 2");
-                //availableLayouts[5] = GameObject.Find("Kitchen Prep Table 3");
+                availableLayouts[3] = GameObject.Find("Kitchen Prep Table"); // Final table
+                availableLayouts[4] = GameObject.Find("Kitchen Prep Table 2");
+                availableLayouts[5] = GameObject.Find("Kitchen Prep Table 3");
                 break;
             case "Pharmacy":
                 availableLayouts[0] = GameObject.Find("Pharmacy"); // Final room
@@ -54,5 +54,8 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
         availableLayouts[0].SetActive(roomLayoutOne);
         availableLayouts[1].SetActive(roomLayoutTwo);
         availableLayouts[2].SetActive(roomLayoutThree);
+        availableLayouts[3].SetActive(tableLayoutOne);
+        availableLayouts[4].SetActive(tableLayoutTwo);
+        availableLayouts[5].SetActive(tableLayoutThree);
     }
 }
