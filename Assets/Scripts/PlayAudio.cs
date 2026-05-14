@@ -272,42 +272,35 @@ public class PlayAudio : MonoBehaviour
             {
                 if (isMoving)
                 {
-                    if (surfaceMaterial == "wood")
-                    {
-                        playerAudio.clip = woodEffect;
-                        //m_audioClipSync.SetClipName(woodEffect.name);
-                    }
-                    else if (surfaceMaterial == "water")
-                    {
-                        playerAudio.clip = waterEffect;
-                        //m_audioClipSync.SetClipName(waterEffect.name);
-                    }  
-                    else if (surfaceMaterial == "grass")
-                    {
-                        playerAudio.clip = grassEffect;
-                        //m_audioClipSync.SetClipName(grassEffect.name);
-                    }
-                    else if (surfaceMaterial == "floor")
-                    {
-                        playerAudio.clip = generalWalkEffect;
-                        //m_audioClipSync.SetClipName(generalWalkEffect.name);
-                    }
-                    else
-                    {
-                        playerAudio.clip = walkEffect;
-                        //m_audioClipSync.SetClipName(walkEffect.name);
-                    }
+                    AudioClip desiredClip;
 
-                    if (!playerAudio.isPlaying)
-                    {
-                        playerAudio.Play(); // maybe have to mute here for that local audio thing
-                        LogClip("Player walking", playerAudio.clip);
-                    }
+                if (surfaceMaterial == "wood")
+                {
+                    desiredClip = woodEffect;
+                }
+                else if (surfaceMaterial == "water")
+                {
+                    desiredClip = waterEffect;
+                }
+                else if (surfaceMaterial == "grass")
+                {
+                    desiredClip = grassEffect;
+                }
+                else if (surfaceMaterial == "floor")
+                {
+                    desiredClip = generalWalkEffect;
                 }
                 else
                 {
-                    //Debug.Log("[PlayAudio] Player not moving; walk clip unchanged.");
+                    desiredClip = walkEffect;
                 }
+
+                PlayOrSwitchWalkClip(desiredClip, "Player walking");
+                }
+            else
+            {
+                //Debug.Log("[PlayAudio] Player not moving; walk clip unchanged.");
+            }
             }
             else // We wait for the audio clip to finish before assigning a walk clip
             {
@@ -315,37 +308,30 @@ public class PlayAudio : MonoBehaviour
                 {
                     if (isMoving)
                     {
-                        if (surfaceMaterial == "wood")
-                        {
-                            playerAudio.clip = woodEffect;
-                            //m_audioClipSync.SetClipName(woodEffect.name);
-                        }  
-                        else if (surfaceMaterial == "water")
-                        {
-                            playerAudio.clip = waterEffect;
-                            //m_audioClipSync.SetClipName(waterEffect.name);
-                        }
-                        else if (surfaceMaterial == "grass")
-                        {
-                            playerAudio.clip = grassEffect;
-                            //m_audioClipSync.SetClipName(grassEffect.name);
-                        }
-                        else if (surfaceMaterial == "floor")
-                        {
-                            playerAudio.clip = generalWalkEffect;
-                            //m_audioClipSync.SetClipName(generalWalkEffect.name);
-                        }
-                        else
-                        {
-                            playerAudio.clip = walkEffect;
-                            //m_audioClipSync.SetClipName(walkEffect.name);
-                        }
+                        AudioClip desiredClip;
 
-                        if (!playerAudio.isPlaying)
-                        {
-                            playerAudio.Play();
-                            LogClip("Player walking (waited for clip end)", playerAudio.clip);
-                        }
+                    if (surfaceMaterial == "wood")
+                    {
+                        desiredClip = woodEffect;
+                    }
+                    else if (surfaceMaterial == "water")
+                    {
+                        desiredClip = waterEffect;
+                    }
+                    else if (surfaceMaterial == "grass")
+                    {
+                        desiredClip = grassEffect;
+                    }
+                    else if (surfaceMaterial == "floor")
+                    {
+                        desiredClip = generalWalkEffect;
+                    }
+                    else
+                    {
+                        desiredClip = walkEffect;
+                    }
+
+                    PlayOrSwitchWalkClip(desiredClip, "Player walking (waited for clip end)");
                     }
                     else
                     {
@@ -855,6 +841,28 @@ public class PlayAudio : MonoBehaviour
             }
         }
     }
+
+    private void PlayOrSwitchWalkClip(AudioClip desiredClip, string reason)
+{
+    if (playerAudio == null || desiredClip == null)
+        return;
+
+    // If we changed surfaces, force the new loop to start.
+    if (playerAudio.clip != desiredClip)
+    {
+        playerAudio.Stop();
+        playerAudio.clip = desiredClip;
+        playerAudio.Play();
+        LogClip(reason, desiredClip);
+    }
+    // If it is the same surface clip but it somehow stopped, restart it.
+    else if (!playerAudio.isPlaying)
+    {
+        playerAudio.Play();
+        LogClip(reason, desiredClip);
+    }
+}
+
     private bool IsWalkClip(AudioClip clip)
     {
         return clip == walkEffect ||
