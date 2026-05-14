@@ -1251,10 +1251,12 @@ public class OpenAIQueries : MonoBehaviour
     // Improved guide variables
     [HideInInspector]
     public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
-        "Follow the specified order for object details: First, define what an object is; second, provide its shape and size; third, provide its color; " +
+        "Follow the specified order for object details: First, define what an object is, including its name from the Navigation Registry if it is on the registry; second, provide its shape and size; third, provide its color; " +
         "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
         "Example Input: {What is that small thing on the table?} " +
-        "Example Output: {It’s a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}";
+        "Example Output: {It’s a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}" +
+        "Example Input: {What's the nearest building I see over there?} " +
+        "Example Output: The nearest building is a tall skyscraper called Local Hospital. It's a rectangular building around 30 meters tall and has eight floors, with blue windows, a white roof, and white walls. Its door is facing you, and it seems to be made of metal and glass.}";
 
     [HideInInspector]
     public string objectLocationGuideline = "Give the object’s precise location using clock system directions and the estimated distance-to-target. " +
