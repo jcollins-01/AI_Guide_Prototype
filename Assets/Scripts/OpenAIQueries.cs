@@ -232,28 +232,6 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(sessionUpdate);
     }
 
-    /*private async Task SendSessionUpdate(string instructions)
-    {
-        // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
-        object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
-
-        var sessionUpdate = new
-        {
-            type = "session.update",
-            session = new
-            {
-                modalities = new[] { "text", "audio" }, // Ask for both or just audio
-                instructions = instructions,
-                voice = "alloy", // Options: alloy, echo, shimmer
-                input_audio_format = "pcm16",
-                output_audio_format = "pcm16",
-                turn_detection = turnDetectionConfig
-            }
-        };
-
-        await SendJson(sessionUpdate);
-    }*/
-
     public void StartRecording()
     {
         if (!_isConnected) return;
@@ -1253,9 +1231,6 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
-    public string commandClassifications = "COMMAND RULES: 1. Teleport/Guide: If the player wants to move to an object in the Registry, reply: '[Object Name], teleport' or '[Object Name], guide'." +
-        "2. Modify: If they want to add sound to a Registry object, reply: '[Object Name], modify'. Place this structured reply at the end of whatever other text you generate. ";
-    [HideInInspector]
     public string guideRules = "GUIDANCE RULES: If a new object/avatar appears that is NOT in the Registry, describe it spatially (e.g., 'A new player just joined, standing to your left'). " +
         "For navigation, give clock-face directions (e.g., 'The door is at your 2 o'clock')." +
         "Give estimates of distance in feet (e.g., 'The trash can is 5 feet in front of you')." +
@@ -1424,97 +1399,6 @@ public class OpenAIQueries : MonoBehaviour
         
         // The role becomes the string value contained at the index we sent over from AIGuide
         role = roles[index];
-    }
-
-    // Checks if the result is guide or modify before we send a reply to PlayHT to be converted to audio
-    public string CheckForGuidanceOrModification(string result)
-    {
-        Debug.Log("Checking string " + result);
-        if (FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand) return result;
-
-        // Get all possible object names
-        string[] names = objectNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-        string[] keywords = { "guide", "teleport", "modify" };
-        string detectedObjectName = "";
-        string detectedKeyword = "";
-
-        // Iterate through every object and every keyword to find a combined pair
-        foreach (string name in names)
-        {
-            string trimmedName = name.Trim();
-
-            foreach (string kw in keywords)
-            {
-                // We search for patterns like "Tall Building, guide" or "Tall Building guide"
-                // This ensures they are conceptually linked in the sentence.
-                string patternWithComma = $"{trimmedName}, {kw}";
-                string patternNoComma = $"{trimmedName} {kw}";
-
-                if (result.IndexOf(patternWithComma, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    result.IndexOf(patternNoComma, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    detectedObjectName = trimmedName;
-                    detectedKeyword = kw;
-                    break;
-                }
-            }
-            if (!string.IsNullOrEmpty(detectedKeyword)) break;
-        }
-
-        // If we didn't find a known object name or keyword, just return the result as normal speech
-        //if (string.IsNullOrEmpty(detectedObjectName) || string.IsNullOrEmpty(detectedKeyword)) return result;
-        if (string.IsNullOrEmpty(detectedObjectName))
-        {
-            //Debug.Log($"Didn't find a known object {detectedObjectName}");
-            return result;
-        }
-
-        if (string.IsNullOrEmpty(detectedKeyword))
-        {
-            //Debug.Log($"Didn't find a known keyword {detectedKeyword}");
-            return result;
-        }
-
-        if (detectedKeyword == "guide" || detectedKeyword == "teleport")
-        {
-            FindObjectOfType<RealtimeGuideClient>()._isProcessingCommand = true;
-            Debug.Log($"Looking for a target {detectedObjectName} for guidance since we detected the keyword guide or teleport");
-            modeOfTransportation = detectedKeyword;
-            //targetForGuidance = GameObject.Find(detectedObjectName);
-            targetForGuidance = GetClosestObjectByName(detectedObjectName);
-
-            if (targetForGuidance != null)
-            {
-                //Debug.Log($"Found the game object {targetForGuidance.name}");
-                // Return a randomized confirmation message
-                string[] options = {
-                    $"Press the grip button to confirm, and I will take you to the {detectedObjectName}.",
-                    $"If you'd like to be guided to the {detectedObjectName}, just press the grip button.",
-                    $"Squeeze the grip button and I'll lead the way to the {detectedObjectName}.",
-                    $"I'm ready to guide you to the {detectedObjectName}. Just confirm with the grip button."
-                };
-                return options[UnityEngine.Random.Range(0, options.Length)];
-            }
-            else
-            {
-                //Debug.Log($"Couldn't find the game object {targetForGuidance.name}");
-            }
-        }
-        else if (detectedKeyword == "modify")
-        {
-            modeOfModification = "modify";
-            //targetForModification = GameObject.Find(detectedObjectName);
-            targetForModification = GetClosestObjectByName(detectedObjectName);
-
-            if (targetForModification != null)
-            {
-                return $"I have added an audio beacon to the {detectedObjectName}.";
-            }
-        }
-
-        // If we get here, it means it was just a normal conversation about an object
-        // but not an actual command, so just return the original text.
-        return result;
     }
 
     public GameObject GetClosestObjectByName(string name)
