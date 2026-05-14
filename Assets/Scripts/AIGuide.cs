@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -125,17 +126,49 @@ public class AIGuide : MonoBehaviour
 
         // Determine baseline or improved guide
         string prompt;
-        bool baseline = true;
+        bool baseline = false;
 
         if (baseline)
         {
+            Debug.Log("Using the baseline guide!");
             prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
                " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.commandClassifications + m_OpenAIQueriesScript.guideRules;
+               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
         }
         else
         {
-            prompt = "test";
+            Debug.Log("Using the improved intention guide!");
+            StringBuilder sbPrompt = new StringBuilder();
+
+            // Base Persona & Rules
+            sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
+            sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
+            
+            // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
+
+            // Conditional Behavioral Guidelines
+            sbPrompt.AppendLine("\n### CONDITIONAL GUIDELINES ###");
+            sbPrompt.AppendLine("Depending on what the user asks, apply the following rules. If the user has multiple intents, combine the rules naturally.");
+
+            sbPrompt.AppendLine("\nIF THE USER WANTS AN OBJECT DESCRIPTION:");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectDescriptionGuideline);
+
+            sbPrompt.AppendLine("\nIF THE USER IS LOCATING A SPECIFIC OBJECT:");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectLocationGuideline);
+
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.sceneUnderstandingGuideline);
+
+            sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
+
+            sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
+
+            sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
+            sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
+
+            prompt = sbPrompt.ToString();
         }
 
         return prompt;

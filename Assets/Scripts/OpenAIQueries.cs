@@ -177,12 +177,82 @@ public class RealtimeGuideClient : MonoBehaviour
                 voice = "alloy", // Options: alloy, echo, shimmer
                 input_audio_format = "pcm16",
                 output_audio_format = "pcm16",
-                turn_detection = turnDetectionConfig
+                turn_detection = turnDetectionConfig,
+                tools = new[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
+                {
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_guidance",
+                        description = "Call this when the user wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_teleportation",
+                        description = "Call this when the user wants you to teleport them directly to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_modification",
+                        description = "Call this when the user wants you to modify an object or add an audio beacon to it.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object to modify, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    }
+                }
             }
         };
 
         await SendJson(sessionUpdate);
     }
+
+    /*private async Task SendSessionUpdate(string instructions)
+    {
+        // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
+        object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
+
+        var sessionUpdate = new
+        {
+            type = "session.update",
+            session = new
+            {
+                modalities = new[] { "text", "audio" }, // Ask for both or just audio
+                instructions = instructions,
+                voice = "alloy", // Options: alloy, echo, shimmer
+                input_audio_format = "pcm16",
+                output_audio_format = "pcm16",
+                turn_detection = turnDetectionConfig
+            }
+        };
+
+        await SendJson(sessionUpdate);
+    }*/
 
     public void StartRecording()
     {
@@ -588,20 +658,94 @@ public class RealtimeGuideClient : MonoBehaviour
                         string remainingText = _textBuffer.ToString().Trim();
                         Debug.Log($"Full Response Captured: {remainingText}");
                         // Send the last generated text chunk to see if there was a target identified
-                        string customResponse = _openAIQueriesScript.CheckForGuidanceOrModification(remainingText);
+                        /*string customResponse = _openAIQueriesScript.CheckForGuidanceOrModification(remainingText);
 
                         // If it was actually changed into one of the random responses chosen by the CheckForGuidance... function
                         if (!string.IsNullOrEmpty(customResponse) && customResponse != remainingText)
                         {
                             // Start checking the audio source continuously to see if it's hit our estimated break point
                             StartCoroutine(MonitorAndCutoffAudio(customResponse));
-                        }
+                        }*/
                     }
                     else
                     {
                         Debug.LogError($"Response Finished with Error: {status}");
                         Debug.LogError($"Details: {responseObj["status_details"]}");
                     }
+                    break;
+
+                case "response.function_call_arguments.done":
+                    string callId = (string)jsonObj["call_id"];
+                    string functionName = (string)jsonObj["name"];
+                    string argumentsJson = (string)jsonObj["arguments"]; // This comes in as a stringified JSON object
+
+                    Debug.Log($"[Tools] AI called function: {functionName} with args: {argumentsJson}");
+
+                    // Parse the arguments
+                    JObject argsObj = JObject.Parse(argumentsJson);
+                    string targetName = (string)argsObj["target_object"];
+
+                    _isProcessingCommand = true; // Lock commands just like your old script did
+
+                    if (functionName == "trigger_guidance")
+                    {
+                        modeOfTransportation = "guide";
+                        Debug.Log("Going to pass on a command to guide the user to an object");
+                        targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
+
+                        if (targetForGuidance != null)
+                        {
+                            string[] options = {
+                                $"Of course. Press the grip button to confirm, and I will take you to the {targetName}.",
+                                $"Sure. Squeeze the grip button to confirm and I'll lead the way to the {targetName}."
+                            };
+                            string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
+                            //string audioResponse = $"Press the grip button to confirm, and I will take you to the {targetName}.";
+                            _ = SpeakCustomText(audioResponse); // Inject custom confirmation audio
+                        }
+                    }
+                    else if (functionName == "trigger_teleportation")
+                    {
+                        modeOfTransportation = "teleport";
+                        Debug.Log("Going to pass on a command to teleport the user to an object");
+                        targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
+
+                        if (targetForGuidance != null)
+                        {
+                            string[] options = {
+                                $"Sure. If you'd like me to teleport us to the {targetName}, just press the grip button.",
+                                $"Of course. I'm ready to teleport us to the {targetName}. Just confirm with the grip button."
+                            };
+                            string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
+                            //string audioResponse = $"Press the grip button to confirm, and I will teleport us to the {targetName}.";
+                            _ = SpeakCustomText(audioResponse);
+                        }
+                    }
+                    else if (functionName == "trigger_modification")
+                    {
+                        modeOfModification = "modify";
+                        Debug.Log("Going to pass on a command to modify an object");
+                        targetForModification = _openAIQueriesScript.GetClosestObjectByName(targetName);
+
+                        if (targetForModification != null)
+                        {
+                            string audioResponse = $"I have added an audio beacon to the {targetName}.";
+                            _ = SpeakCustomText(audioResponse);
+                        }
+                    }
+
+                    // Crucial: You must send a response back to the API acknowledging the tool was handled
+                    var functionResult = new
+                    {
+                        type = "conversation.item.create",
+                        item = new
+                        {
+                            type = "function_call_output",
+                            call_id = callId,
+                            output = "{\"success\": true}" // Tell the AI the action was completed in Unity
+                        }
+                    };
+                    _ = SendJson(functionResult);
                     break;
 
                 case "error":
@@ -1163,7 +1307,7 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
-        "Then, every 1 to 2 seconds, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
+        "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
         "Use the command “Stop” to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using “Stop,” re-explain the precise location of the object before beginning repeated relative guidance again." +
         "Inform the user when they have reached the target object." +
         "Example Output: {The paper cup is at 2 o’clock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 o’clock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";
@@ -1172,18 +1316,6 @@ public class OpenAIQueries : MonoBehaviour
     public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
         "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user’s question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
         "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset’s guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don’t move too much and run into something. Let’s try backing up so that you are farther away from that boundary. Did that help?}";
-
-    // The idea is that when the guide then responds these particular symbols, we can use that symbol to select which guidelines to pass on each request.
-    // But this would be WAY more expensive. Far more tokens each time, rather than one longer request at the start. Better to re-inject periodically, right?
-    public string determineIntention = "Determine what the user's intention is out of these use cases and respond as instructed. When [Object Name] is required, use only names from the Registry." +
-        "USE CASE 1: Getting an object description. RESPONSE: '^'" +
-        "USE CASE 2: Locating a specific object. RESPONSE: '&'" +
-        "USE CASE 3: Understanding a scene or learning the scene's contents. RESPONSE: '*'" +
-        "USE CASE 4: Navigating through a space. RESPONSE: '%'" +
-        "USE CASE 5: Reaching or grabbing for a specific object (fine motor skills). RESPONSE: '#'" +
-        "USE CASE 6: Getting technical support on controls or system feedback in VR. RESPONSE: '@'" +
-        "USE CASE 7: Teleporting or taking the user to a specific object. RESPONSE: '[Object Name], teleport' or '[Object Name], guide'." +
-        "USE CASE 8: Modifying a specific object with a sound effect. RESPONSE: '[Object Name], modify'";
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
@@ -1385,7 +1517,7 @@ public class OpenAIQueries : MonoBehaviour
         return result;
     }
 
-    private GameObject GetClosestObjectByName(string name)
+    public GameObject GetClosestObjectByName(string name)
     {
         // Find EVERY object in the scene (active only)
         GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
