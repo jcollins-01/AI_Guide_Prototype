@@ -15,6 +15,7 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
     public bool tableLayoutThree = false;
 
     private bool foundTables = false;
+    private bool foundRooms = false;
 
     // Hold the objects we manipulate as we change layouts
     private GameObject[] availableLayouts = new GameObject[6]; // 1-3 = room layouts, 4-6 = table layouts
@@ -43,9 +44,9 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
                 foundTables = true;
                 break;
             case "Pharmacy":
-                availableLayouts[3] = GameObject.Find("Pharmacy Prep Table"); // Final table
-                availableLayouts[4] = GameObject.Find("Pharmacy Prep Table 2");
-                availableLayouts[5] = GameObject.Find("Pharmacy Prep Table 3");
+                availableLayouts[3] = mainRoom.transform.Find("Pharmacy Prep Table").gameObject; // Final table
+                availableLayouts[4] = mainRoom.transform.Find("Pharmacy Prep Table 2").gameObject;
+                availableLayouts[5] = mainRoom.transform.Find("Pharmacy Prep Table 3").gameObject;
                 foundTables = true;
                 break;
         }
@@ -59,6 +60,7 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
         availableLayouts[0].SetActive(roomLayoutThree); // 0 is the main room, which we need to switch to third
         if (foundTables)
         {
+            Debug.Log("Ready to switch tables");
             availableLayouts[5].SetActive(tableLayoutOne);
             availableLayouts[4].SetActive(tableLayoutTwo);
             availableLayouts[3].SetActive(tableLayoutThree); // 3 is the main table, which we need to switch to third
