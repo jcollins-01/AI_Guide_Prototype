@@ -241,6 +241,7 @@ GameObject:
   - component: {fileID: 2960497261650544495}
   - component: {fileID: 2029537097534794439}
   - component: {fileID: 4215317199857201527}
+  - component: {fileID: 3413201469433430967}
   m_Layer: 0
   m_Name: RoomManager
   m_TagString: Untagged
@@ -346,6 +347,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
+--- !u!114 &3413201469433430967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515573276153513017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be585f239408bf44fa6bd76d1f057b44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roomLayoutOne: 0
+  roomLayoutTwo: 0
+  roomLayoutThree: 0
+  tableLayoutOne: 0
+  tableLayoutTwo: 0
+  tableLayoutThree: 0
 --- !u!1 &1664173335677098786
 GameObject:
   m_ObjectHideFlags: 0

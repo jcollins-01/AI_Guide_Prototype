@@ -14,6 +14,8 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
     public bool tableLayoutTwo = false;
     public bool tableLayoutThree = false;
 
+    private bool foundTables = false;
+
     // Hold the objects we manipulate as we change layouts
     private GameObject[] availableLayouts = new GameObject[6]; // 1-3 = room layouts, 4-6 = table layouts
 
@@ -26,24 +28,25 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
     private void CheckCurrentScene()
     {
         string currentSceneName = SceneManager.GetActiveScene().name;
+        GameObject mainRoom = GameObject.Find(currentSceneName);
+
+        availableLayouts[0] = mainRoom; // Final room
+        availableLayouts[1] = GameObject.Find(currentSceneName + " 2"); // E.g., Kitchen 2
+        availableLayouts[2] = GameObject.Find(currentSceneName + " 3");
 
         switch (currentSceneName)
         {
             case "Kitchen":
-                availableLayouts[0] = GameObject.Find("Kitchen"); // Final room
-                availableLayouts[1] = GameObject.Find("Kitchen 2");
-                availableLayouts[2] = GameObject.Find("Kitchen 3");
-                availableLayouts[3] = GameObject.Find("Kitchen Prep Table"); // Final table
-                availableLayouts[4] = GameObject.Find("Kitchen Prep Table 2");
-                availableLayouts[5] = GameObject.Find("Kitchen Prep Table 3");
+                availableLayouts[3] = mainRoom.transform.Find("Kitchen Prep Table").gameObject; // Final table
+                availableLayouts[4] = mainRoom.transform.Find("Kitchen Prep Table 2").gameObject;
+                availableLayouts[5] = mainRoom.transform.Find("Kitchen Prep Table 3").gameObject;
+                foundTables = true;
                 break;
             case "Pharmacy":
-                availableLayouts[0] = GameObject.Find("Pharmacy"); // Final room
-                availableLayouts[1] = GameObject.Find("Pharmacy 2");
-                availableLayouts[2] = GameObject.Find("Pharmacy 3");
                 availableLayouts[3] = GameObject.Find("Pharmacy Prep Table"); // Final table
                 availableLayouts[4] = GameObject.Find("Pharmacy Prep Table 2");
                 availableLayouts[5] = GameObject.Find("Pharmacy Prep Table 3");
+                foundTables = true;
                 break;
         }
     }
@@ -51,11 +54,14 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        availableLayouts[0].SetActive(roomLayoutOne);
+        availableLayouts[2].SetActive(roomLayoutOne); 
         availableLayouts[1].SetActive(roomLayoutTwo);
-        availableLayouts[2].SetActive(roomLayoutThree);
-        availableLayouts[3].SetActive(tableLayoutOne);
-        availableLayouts[4].SetActive(tableLayoutTwo);
-        availableLayouts[5].SetActive(tableLayoutThree);
+        availableLayouts[0].SetActive(roomLayoutThree); // 0 is the main room, which we need to switch to third
+        if (foundTables)
+        {
+            availableLayouts[5].SetActive(tableLayoutOne);
+            availableLayouts[4].SetActive(tableLayoutTwo);
+            availableLayouts[3].SetActive(tableLayoutThree); // 3 is the main table, which we need to switch to third
+        }
     }
 }
