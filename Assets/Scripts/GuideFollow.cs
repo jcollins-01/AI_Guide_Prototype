@@ -37,7 +37,9 @@ public class GuideFollow : MonoBehaviour
     private void Start()
     {
         // Find or add necessary components
-        agent = gameObject.AddComponent<NavMeshAgent>();
+        agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+            agent = gameObject.AddComponent<NavMeshAgent>();
 
         gameObject.AddComponent<GuideModels>();
 
@@ -136,6 +138,9 @@ public class GuideFollow : MonoBehaviour
 
     private void setTargetPositions()
     {
+        if (theGuide == null || thePlayer == null || m_AIGuideScript == null || agent == null)
+            return;
+
         // Set target position and rotation based on role
         Vector3 targetPosition = theGuide.transform.position;
         Quaternion targetRotation = theGuide.transform.rotation;
@@ -250,7 +255,7 @@ public class GuideFollow : MonoBehaviour
     private void requestOwnershipForGuide()
     {
         AIGuide guide = FindObjectOfType<AIGuide>();
-        if (guide != null)
+        if (guide != null && m_SharedMovementScript != null && m_SharedMovementScript.theGuide != null)
         {
             realtimeTransform = m_SharedMovementScript.theGuide.GetComponent<RealtimeTransform>();
             //realtimeTransform = GetComponent<RealtimeTransform>();
@@ -263,7 +268,10 @@ public class GuideFollow : MonoBehaviour
 
     float getAvatarHeight(GameObject avatar)
     {
-        SkinnedMeshRenderer[] renderers = theGuide.GetComponentsInChildren<SkinnedMeshRenderer>();
+        if (avatar == null)
+            return 0f;
+
+        SkinnedMeshRenderer[] renderers = avatar.GetComponentsInChildren<SkinnedMeshRenderer>();
         if (renderers.Length == 0)
         {
             Debug.LogWarning("No renderers found on the object.");

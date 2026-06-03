@@ -105,7 +105,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private const int BufferThreshold = 5; // Start playing once we have 5 chunks
 
     // Configuration
-    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"; // was gpt-4o-realtime-preview, was deprecated on May 7th - gpt-realtime-1.5
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime";
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
@@ -139,7 +139,6 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
-        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
 
         _cancellationTokenSource = new CancellationTokenSource();
 
@@ -167,65 +166,90 @@ public class RealtimeGuideClient : MonoBehaviour
         // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
         object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
 
-        var sessionUpdate = new
+        JObject input = new JObject
         {
-            type = "session.update",
-            session = new
+            ["format"] = new JObject
             {
-                modalities = new[] { "text", "audio" }, // Ask for both or just audio
-                instructions = instructions,
-                voice = "alloy", // Options: alloy, echo, shimmer
-                input_audio_format = "pcm16",
-                output_audio_format = "pcm16",
-                turn_detection = turnDetectionConfig,
-                tools = new[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
+                ["type"] = "audio/pcm",
+                ["rate"] = 24000
+            }
+        };
+
+        if (turnDetectionConfig != null)
+            input["turn_detection"] = JObject.FromObject(turnDetectionConfig);
+
+        JArray tools = new JArray
+        {
+            JObject.FromObject(new
+            {
+                type = "function",
+                name = "trigger_guidance",
+                description = "Call this when the user wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                parameters = new
                 {
-                    new
+                    type = "object",
+                    properties = new
                     {
-                        type = "function",
-                        name = "trigger_guidance",
-                        description = "Call this when the user wants you to take them to a specific object, or asks for sighted guide to a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
-                            },
-                            required = new[] { "target_object" }
-                        }
+                        target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
                     },
-                    new
-                    {
-                        type = "function",
-                        name = "trigger_teleportation",
-                        description = "Call this when the user wants you to teleport them directly to a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
-                        name = "trigger_modification",
-                        description = "Call this when the user wants you to modify an object or add an audio beacon to it.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The exact name of the object to modify, chosen from the Navigation Registry." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    }
+                    required = new[] { "target_object" }
                 }
+            }),
+            JObject.FromObject(new
+            {
+                type = "function",
+                name = "trigger_teleportation",
+                description = "Call this when the user wants you to teleport them directly to a specific object.",
+                parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                    },
+                    required = new[] { "target_object" }
+                }
+            }),
+            JObject.FromObject(new
+            {
+                type = "function",
+                name = "trigger_modification",
+                description = "Call this when the user wants you to modify an object or add an audio beacon to it.",
+                parameters = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        target_object = new { type = "string", description = "The exact name of the object to modify, chosen from the Navigation Registry." }
+                    },
+                    required = new[] { "target_object" }
+                }
+            })
+        };
+
+        JObject sessionUpdate = new JObject
+        {
+            ["type"] = "session.update",
+            ["session"] = new JObject
+            {
+                ["type"] = "realtime",
+                ["model"] = "gpt-realtime",
+                ["output_modalities"] = new JArray("audio"),
+                ["instructions"] = instructions,
+                ["audio"] = new JObject
+                {
+                    ["input"] = input,
+                    ["output"] = new JObject
+                    {
+                        ["format"] = new JObject
+                        {
+                            ["type"] = "audio/pcm",
+                            ["rate"] = 24000
+                        },
+                        ["voice"] = "alloy"
+                    }
+                },
+                ["tools"] = tools
             }
         };
 
@@ -324,8 +348,12 @@ public class RealtimeGuideClient : MonoBehaviour
         // Find guide audio source before handling anything with output audio
         if (!_guideAudioSourceFound)
         {
-            outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
-            _guideAudioSourceFound = true;
+            GameObject humanModel = GameObject.Find("Human Model");
+            if (humanModel != null)
+            {
+                outputSource = humanModel.GetComponent<AudioSource>();
+                _guideAudioSourceFound = outputSource != null;
+            }
         }
         else
         {
@@ -497,6 +525,9 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private void PlayAudioChunk(float[] data)
     {
+        if (outputSource == null)
+            return;
+
         // Debug.Log("Got a response chunk to play as audio");
         AudioClip clip = AudioClip.Create("ResponseChunk", data.Length, 1, SAMPLE_RATE, false);
         clip.SetData(data, 0);
@@ -515,9 +546,14 @@ public class RealtimeGuideClient : MonoBehaviour
                 do
                 {
                     result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), _cancellationTokenSource.Token);
+                    if (result.MessageType == WebSocketMessageType.Close || result.Count == 0)
+                        break;
                     ms.Write(buffer, 0, result.Count);
                 }
                 while (!result.EndOfMessage); // Continuously appends the new chnks of the result until we hit the EndOfMessage
+
+                if (result.MessageType == WebSocketMessageType.Close || ms.Length == 0)
+                    break;
 
                 string json = Encoding.UTF8.GetString(ms.ToArray());
                 // Realtime API has many events. We filter for the ones we need.
@@ -530,6 +566,9 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(json))
+                return;
+
             JObject jsonObj = JObject.Parse(json);
             string type = (string)jsonObj["type"];
 
@@ -560,6 +599,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
                 
                 case "response.audio.delta":
+                case "response.output_audio.delta":
                     // Native Audio stream from OpenAI (Fastest possible latency)
                     //Debug.Log("Got response audio");
                     if (personalVoicesMode) // Don't do anything with the native audio stream from OpenAI
@@ -575,15 +615,16 @@ public class RealtimeGuideClient : MonoBehaviour
                         _totalSamplesReceived += floatData.Length;
                         _audioPlaybackQueue.Enqueue(floatData); // Send the samples to be played by the audio source
 
-                        // Check if we should broadcast this to the network
-                        //if (ShouldShareResponse() && guideAudioSync != null)
-                            //guideAudioSync.BroadcastAudioChunk(floatData);
+                        // Share the same PCM chunks with the networked guide stream when this guide is public.
+                        if (ShouldShareResponse() && guideAudioSync != null)
+                            guideAudioSync.BroadcastAudioChunk(floatData);
 
                         OnAudioDeltaReceived?.Invoke(base64Audio);
                         break;
                     }
 
-                case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
+                case "response.audio_transcript.delta":
+                case "response.output_audio_transcript.delta": // GA Realtime event name
                     string transcriptDelta = (string)jsonObj["delta"];
                     _textBuffer.Append(transcriptDelta);
 
@@ -604,6 +645,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
 
                 case "response.text.delta":
+                case "response.output_text.delta":
                     // Use the text grabbed here to pass to ElevenLabs
                     //Debug.Log("Got response text to use in ElevenLabs or log");
                     if (personalVoicesMode) // Still capture the text, but additionally pass it to ElevenLabs
@@ -1254,26 +1296,26 @@ public class OpenAIQueries : MonoBehaviour
         "Follow the specified order for object details: First, define what an object is, including its name from the Navigation Registry if it is on the registry; second, provide its shape and size; third, provide its color; " +
         "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
         "Example Input: {What is that small thing on the table?} " +
-        "Example Output: {Itís a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}" +
+        "Example Output: {It‚Äôs a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}" +
         "Example Input: {What's the nearest building I see over there?} " +
         "Example Output: The nearest building is a tall skyscraper called Local Hospital. It's a rectangular building around 30 meters tall and has eight floors, with blue windows, a white roof, and white walls. Its door is facing you, and it seems to be made of metal and glass.}";
 
     [HideInInspector]
-    public string objectLocationGuideline = "Give the objectís precise location using clock system directions and the estimated distance-to-target. " +
+    public string objectLocationGuideline = "Give the object‚Äôs precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
-        "Example Output: {The mug is at your 1 oíclock, about 2 feet away.}";
+        "Example Output: {The mug is at your 1 o‚Äôclock, about 2 feet away.}";
 
     [HideInInspector]
     public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
-        "Then, mention major landmarks that are relevant to the userís current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
+        "Then, mention major landmarks that are relevant to the user‚Äôs current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters). " +
         "If the environment is familiar, prioritize information about the nearest objects or information points, again providing precise locations of these objects." +
-        "Example Output: {Youíre in a small rectangular kitchen. Thereís a counter in front of you, a sink to your left, and a doorway behind you. A box of fruit is on the floor at 12 oíclock, one foot away.}";
+        "Example Output: {You‚Äôre in a small rectangular kitchen. There‚Äôs a counter in front of you, a sink to your left, and a doorway behind you. A box of fruit is on the floor at 12 o‚Äôclock, one foot away.}";
 
     [HideInInspector]
     public string spaceNavigationGuideline = "When a user is actively navigating, prioritize information about object locations, dimensions, and identities over other details. " +
-        "Provide information on object appearance or state (i.e., whatís happening to it) only if requested or relevant for how a user needs to navigate around that object." +
-        "Example Output: {Youíre at a four-way intersection. The cafÈ is across the street at your 11 oíclock, twenty feet away. There is a green light at the crosswalk, showing you can walk across.}" +
+        "Provide information on object appearance or state (i.e., what‚Äôs happening to it) only if requested or relevant for how a user needs to navigate around that object." +
+        "Example Output: {You‚Äôre at a four-way intersection. The caf√© is across the street at your 11 o‚Äôclock, twenty feet away. There is a green light at the crosswalk, showing you can walk across.}" +
         "During navigation, inform users about which directions or open spaces are traversable, and about the presence of obstacles that would impede movement." +
         "Example Output: {There is clear walking space directly ahead for about 8 feet, with a counter on your left and a wall on your right.}" +
         "Use allocentric spatial references when helping the user plan out and follow routes through the scene. " +
@@ -1282,17 +1324,17 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: {North is in front of you; the lake is to the northeast.} {The city streets are laid out in a grid. After passing three streets, you can turn left to reach the museum.}";
 
     [HideInInspector]
-    public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the objectís precise location using clock system directions and the estimated distance-to-target. " +
+    public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object‚Äôs precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
-        "Use the command ìStopî to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using ìStop,î re-explain the precise location of the object before beginning repeated relative guidance again." +
+        "Use the command ‚ÄúStop‚Äù to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using ‚ÄúStop,‚Äù re-explain the precise location of the object before beginning repeated relative guidance again." +
         "Inform the user when they have reached the target object." +
-        "Example Output: {The paper cup is at 2 oíclock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 oíclock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";
+        "Example Output: {The paper cup is at 2 o‚Äôclock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 o‚Äôclock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";
 
     [HideInInspector]
     public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
-        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the userís question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
-        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headsetís guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you donít move too much and run into something. Letís try backing up so that you are farther away from that boundary. Did that help?}";
+        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user‚Äôs question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
+        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset‚Äôs guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don‚Äôt move too much and run into something. Let‚Äôs try backing up so that you are farther away from that boundary. Did that help?}";
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
@@ -1405,11 +1447,14 @@ public class OpenAIQueries : MonoBehaviour
 
     public GameObject GetClosestObjectByName(string name)
     {
+        if (m_SharedMovementScript == null || !m_SharedMovementScript.TryGetPlayer(out GameObject player))
+            return null;
+
         // Find EVERY object in the scene (active only)
         GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
         GameObject closest = null;
         float minDistance = Mathf.Infinity;
-        Vector3 playerPos = m_SharedMovementScript.thePlayer.transform.position;
+        Vector3 playerPos = player.transform.position;
 
         foreach (GameObject obj in allObjects)
         {

@@ -200,6 +200,9 @@ public class AIGuide : MonoBehaviour
         // If we're in a scene run from a guide client
         if (FindObjectOfType<GuideFollow>())
         {
+            if (m_SharedMovementScript == null || m_GuideFollowScript == null || m_OpenAIQueriesScript == null)
+                return;
+
             // Call the guide
             RealtimeGuide();
 
@@ -713,9 +716,10 @@ public class AIGuide : MonoBehaviour
     private void CheckHazardDistances()
     {
         if (!hazardDetectionEnabled || Time.time < nextHazardCheckTime) return;
+        if (m_SharedMovementScript == null || !m_SharedMovementScript.TryGetPlayer(out GameObject player)) return;
         nextHazardCheckTime = Time.time + hazardCheckInterval;
 
-        Transform playerTransform = m_SharedMovementScript.thePlayer.transform;
+        Transform playerTransform = player.transform;
         Vector3 velocity = m_SharedMovementScript.GetVelocity();
 
         // CRAMPED SPACE FILTER: If moving slower than 0.3m/s, assume the user is navigating carefully or standing still
@@ -774,11 +778,15 @@ public class AIGuide : MonoBehaviour
 
     private void HandleHazardPrompt(GameObject hazard)
     {
+        lastHazardPromptTime = Time.time;
+        lastHazardPrompted = hazard;
+
         string hazardName = hazard.name;
         string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
                         $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
         // Debug.Log("Hazard Detection Response: " + prompt);
 
-        _ = realtimeClient.SendManualPrompt(prompt);
+        if (realtimeClient != null && realtimeClient._isConnected)
+            _ = realtimeClient.SendManualPrompt(prompt);
     }
 }

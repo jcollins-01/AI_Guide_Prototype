@@ -52,7 +52,8 @@ public class SharedMovement : MonoBehaviour
         // Ignore collisions between Player, Guide, or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);
         CharacterController control = FindObjectOfType<CharacterController>();
-        control.detectCollisions = true;
+        if (control != null)
+            control.detectCollisions = true;
     }
 
     // Update is called once per frame
@@ -79,6 +80,26 @@ public class SharedMovement : MonoBehaviour
     public Vector3 GetVelocity()
     {
         return currentVelocity;
+    }
+
+    public bool TryGetPlayer(out GameObject player)
+    {
+        player = null;
+
+        try
+        {
+            player = thePlayer;
+        }
+        catch (UnassignedReferenceException)
+        {
+            return false;
+        }
+
+        if (player == null)
+            AssignPlayer();
+
+        player = thePlayer;
+        return player != null;
     }
 
     private void ShareMovementOnGrab()
@@ -165,8 +186,12 @@ public class SharedMovement : MonoBehaviour
     // Finds necessary components from Guide scripts + assigns Guide game object
     void AssignGuide()
     {
+        AIGuide guide = FindObjectOfType<AIGuide>();
+        if (guide == null)
+            return;
+
         // Assigns the guide as the Game Object with the AIGuide script
-        theGuide = FindObjectOfType<AIGuide>().transform.gameObject;
+        theGuide = guide.transform.gameObject;
 
         // Finds the VR Handling script on the Guide game object
         //m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
@@ -175,6 +200,8 @@ public class SharedMovement : MonoBehaviour
         // Grabs the necessary physics components for Shared Movement
         Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
         guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
+        if (guideRigidbody == null || guideCollider == null)
+            return;
 
         // Sets the values appropriately for each component to perform Shared Movement
         // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
@@ -207,9 +234,14 @@ public class SharedMovement : MonoBehaviour
                 thePlayer = currentPlayer;
         }
 
+        if (thePlayer == null)
+            return;
+
         // Grabs the necessary physics components for Shared Movement
         Rigidbody playerRigidbody = thePlayer.GetComponent<Rigidbody>();
         CapsuleCollider playerCollider = thePlayer.GetComponent<CapsuleCollider>();
+        if (playerRigidbody == null || playerCollider == null)
+            return;
 
         // Sets the values appropriately for each component to perform Shared Movement
         // thePlayer needs a rigidbody, no gravity, kinematic, non-trigger collider
@@ -250,6 +282,9 @@ public class SharedMovement : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
+        if (thePlayer == null)
+            return;
+
         // Debug.Log("Collision detected");
 
         // On collisions with objects, if the other object has a grab interactable component (is an interactable), keep collisions on

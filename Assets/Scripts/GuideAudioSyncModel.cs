@@ -1,7 +1,7 @@
 using Normal.Realtime;
 using Normal.Realtime.Serialization;
 
-[RealtimeModel]
+[RealtimeModel(createMetaModel: true)]
 public partial class GuideAudioSyncModel
 {
     // The ID of the audio stream on the network
