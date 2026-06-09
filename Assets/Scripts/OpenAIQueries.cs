@@ -105,7 +105,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private const int BufferThreshold = 5; // Start playing once we have 5 chunks
 
     // Configuration
-    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"; // was gpt-4o-realtime-preview, was deprecated on May 7th - gpt-realtime-1.5
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2"; // was gpt-4o-realtime-preview, was deprecated on May 7th - 
 
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
@@ -139,7 +139,7 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
-        _webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1");
+        //_webSocket.Options.SetRequestHeader("OpenAI-Beta", "realtime=v1"); // this was the beta call, now deprecated
 
         _cancellationTokenSource = new CancellationTokenSource();
 
@@ -172,12 +172,27 @@ public class RealtimeGuideClient : MonoBehaviour
             type = "session.update",
             session = new
             {
-                modalities = new[] { "text", "audio" }, // Ask for both or just audio
+                type = "realtime", // required by the general model, new from beta
+                output_modalities = new[] { "audio" }, // Ask for just audio, now assumes text is included
                 instructions = instructions,
-                voice = "alloy", // Options: alloy, echo, shimmer
+                audio = new
+                {
+                    input = new
+                    {
+                        // Format is now an object, not a string
+                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
+                        turn_detection = turnDetectionConfig
+                    },
+                    output = new
+                    {
+                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
+                        voice = "alloy" // Options: alloy, echo, shimmer
+                    }
+                },
+                /*voice = "alloy", // Options: alloy, echo, shimmer
                 input_audio_format = "pcm16",
                 output_audio_format = "pcm16",
-                turn_detection = turnDetectionConfig,
+                turn_detection = turnDetectionConfig,*/
                 tools = new[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
                 {
                     new
@@ -559,7 +574,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     _totalSamplesReceived = 0;
                     break;
                 
-                case "response.audio.delta":
+                case "response.output_audio.delta": // was response.audio.delta
                     // Native Audio stream from OpenAI (Fastest possible latency)
                     //Debug.Log("Got response audio");
                     if (personalVoicesMode) // Don't do anything with the native audio stream from OpenAI

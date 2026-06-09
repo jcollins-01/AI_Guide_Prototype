@@ -60,7 +60,7 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
         availableLayouts[0].SetActive(roomLayoutThree); // 0 is the main room, which we need to switch to third
         if (foundTables)
         {
-            Debug.Log("Ready to switch tables");
+            //Debug.Log("Ready to switch tables");
             availableLayouts[5].SetActive(tableLayoutOne);
             availableLayouts[4].SetActive(tableLayoutTwo);
             availableLayouts[3].SetActive(tableLayoutThree); // 3 is the main table, which we need to switch to third
