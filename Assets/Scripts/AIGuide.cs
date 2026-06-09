@@ -144,6 +144,8 @@ public class AIGuide : MonoBehaviour
             sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
             sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
             sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
+            // New guideline on trust/revealing uncertainty
+            sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
             
             // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
 

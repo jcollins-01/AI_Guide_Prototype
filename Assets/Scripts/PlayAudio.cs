@@ -42,6 +42,7 @@ public class PlayAudio : MonoBehaviour
     private SharedMovement m_SharedMovementScript;
     private GuideFollow m_GuideFollowScript;
     private AudioClipSync m_audioClipSync;
+    private SwitchTools m_SwitchToolsScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -95,6 +96,7 @@ public class PlayAudio : MonoBehaviour
         interactionManager = FindObjectOfType<XRInteractionManager>();
         teleport = FindObjectOfType<CustomTeleportationProvider>();
         move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
+        m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
 
         playerRig = GameObject.Find("XR Origin (Player Rig)");
         guideRig = GameObject.Find("XR Origin (Guide Rig)");
@@ -228,18 +230,24 @@ public class PlayAudio : MonoBehaviour
                 guideLastKnownPosition = guideCurrPosition;
 
                 // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
-                if (!m_SharedMovementScript.movingWithGuide)
+
+                if (m_SwitchToolsScript.VRGuideActive)
                 {
-                    //Debug.Log("Player is moving");
-                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                    if (!m_SharedMovementScript.movingWithGuide)
+                    {
+                        //Debug.Log("Player is moving");
+                        playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                    }
+                    else
+                    {
+                        //Debug.Log("Guide is moving");
+                        GetSurfaceUnderPlayerController(playerCharacterController);
+                        playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                    }
+                    playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
                 }
                 else
-                {
-                    //Debug.Log("Guide is moving");
-                    GetSurfaceUnderPlayerController(playerCharacterController);
                     playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
-                }
-                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -801,9 +809,12 @@ public class PlayAudio : MonoBehaviour
         if (playerAudio == null)
             return;
 
-        if (m_SharedMovementScript.movingWithGuide)
+        if (m_SwitchToolsScript.VRGuideActive)
         {
-            return;
+            if (m_SharedMovementScript.movingWithGuide)
+            {
+                return;
+            }
         }
 
         //Debug.Log("Collided with " + hit.transform.tag + " object.");

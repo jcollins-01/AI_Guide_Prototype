@@ -89,7 +89,7 @@ public class ShortTaskController : MonoBehaviour
         {
             bagReferenceCollider = unloadingBag.GetComponentInChildren<BoxCollider>();
         }
-        else
+        else if (m_SwitchToolsScript.VRScreenreaderActive)
         {
             // Grab the reference collider of the unloading bag, which will interfere with spawned ingredients falling inside it
             bagReferenceCollider = unloadingBag.transform.Find("Reader Reference(Clone)").GetComponentInChildren<BoxCollider>();
