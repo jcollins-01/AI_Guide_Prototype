@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.1957295, g: 0.23706141, b: 0.31068826, a: 1}
+  m_IndirectSpecularColor: {r: 0.19591501, g: 0.23728395, b: 0.31093928, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -18579,6 +18579,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.691671, y: 1.235902, z: 1.6821916}
   m_Center: {x: 0.0000032861935, y: 0.04527987, z: 0.82067657}
+--- !u!1 &704022668 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 515573276153513017, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 897907175}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &706202698
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22209,6 +22214,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 515573276153513017, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 897907181}
     - targetCorrespondingSourceObject: {fileID: 1664173335677098786, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       insertIndex: -1
       addedObject: {fileID: 897907180}
@@ -22223,7 +22231,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5877004808892114936, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
   m_PrefabInstance: {fileID: 897907175}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 704022668}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: -1424795628, guid: ebae63e7edba59945a994528ada1f7a2, type: 3}
@@ -22260,8 +22268,32 @@ MonoBehaviour:
   restrictedTag: Restricted
   checkRadius: 0.5
   minorCheckRadius: 0.12
-  maxSlope: 10
+  useCharacterControllerRadius: 1
+  characterControllerPadding: 0.05
+  maxSlope: 75
   delayTimeCustom: 0.1
+--- !u!114 &897907181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704022668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6064b8ea2b40edb49aed208920527403, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  humanGuideOn: 0
+  baselineAIGuideOn: 0
+  improvedAIGuideOn: 0
+  sharedMovement: {fileID: 0}
+  aiGuide: {fileID: 0}
+  humanGuidePrefab: {fileID: 0}
+  humanGuideSpawnPoint: {fileID: 0}
+  useImprovedPlaceholderPrompt: 0
+  improvedGuidePlaceholderPrompt: 'You are Giddy, an improved sighted guide for a
+    blind player. PLACEHOLDER: Replace this with intent-based guideline switching.'
 --- !u!1001 &903257827
 PrefabInstance:
   m_ObjectHideFlags: 0

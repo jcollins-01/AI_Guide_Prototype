@@ -162,6 +162,15 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
+    public async Task UpdateSystemInstructions(string instructions)
+    {
+        text = instructions;
+        if (!_isConnected)
+            return;
+
+        await SendSessionUpdate(instructions);
+    }
+
     private async Task SendSessionUpdate(string instructions)
     {
         // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
