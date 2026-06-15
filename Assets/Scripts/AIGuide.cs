@@ -144,31 +144,37 @@ public class AIGuide : MonoBehaviour
         else if (m_SwitchToolsScript.objectDescriptionGuide)
         {
             Debug.Log("Using the object description guide!");
-            prompt = $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
         }
         else if (m_SwitchToolsScript.objectLocationGuide)
         {
             Debug.Log("Using the object location guide!");
-            prompt = $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" + 
+                $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
         }
         else if (m_SwitchToolsScript.sceneUnderstandingGuide)
         {
             Debug.Log("Using the scene understanding guide!");
-            prompt = $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
         }
         else if (m_SwitchToolsScript.navigationGuide)
         {
             Debug.Log("Using the navigation guide!");
-            prompt = $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
         }
         else if (m_SwitchToolsScript.objectGrabbingGuide)
         {
             Debug.Log("Using the object grabbing guide!");
-            prompt = $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
         }
         else if (m_SwitchToolsScript.sightedGuidanceGuide)
         {
-            prompt = $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
         }
         else if (m_SwitchToolsScript.allCombinedGuide) // Deprecated for now - won't be using unless we learn more about how it determines intention
         {

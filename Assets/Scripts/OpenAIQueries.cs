@@ -1077,14 +1077,13 @@ public class OpenAIQueries : MonoBehaviour
 
     // Baseline guide variables
     [HideInInspector]
-    public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. +" +
-        "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally.";
+    public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. " +
+        "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
+        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
     public string guideRules = "GUIDANCE RULES: If a new object/avatar appears that is NOT in the Registry, describe it spatially (e.g., 'A new player just joined, standing to your left'). " +
-        "For navigation, give clock-face directions (e.g., 'The door is at your 2 o'clock')." +
-        "Give estimates of distance in feet (e.g., 'The trash can is 5 feet in front of you')." +
         "Never mention 'photos' or 'images.'" +
         "Limit: 150 words.";
     [HideInInspector]
