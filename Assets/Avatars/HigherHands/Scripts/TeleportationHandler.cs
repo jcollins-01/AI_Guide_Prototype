@@ -68,7 +68,7 @@ public class TeleportationHandler : MonoBehaviour
         characterControllerHeight = 1.6f;
 
         m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
-        if (m_VRScreenreaderScript && m_VRScreenreaderScript.gameObject.activeInHierarchy)
+        if (FindObjectOfType<SwitchTools>().VRScreenreaderActive)
             screenreaderActive = true;
     }
 

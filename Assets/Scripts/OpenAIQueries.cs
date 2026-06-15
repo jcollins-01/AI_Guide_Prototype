@@ -65,6 +65,8 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _isAiSpeaking = false;
     public bool _isProcessingCommand = false;
     private bool _foundFirstSentence = false;
+    private bool _isResponseActive = false;
+    private bool _isUserSpeaking = false;
 
     // For handling special case speech
     private string _firstFullSentence;
@@ -287,8 +289,170 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(sessionUpdate);
     }
 
-    // may have to have another version to trigger the guidance function // UpdateGuidancePrompt
     public async Task UpdateLivePrompt(string newInstructions)
+    {
+        if (!_isConnected) return;
+
+        bool shouldRegenerate = false;
+
+        // Push the new guide version instructions
+        var updateSession = new
+        {
+            type = "session.update",
+            session = new
+            {
+                type = "realtime", // required by the general model, new from beta
+                instructions = newInstructions
+            }
+        };
+        await SendJson(updateSession);
+
+        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation...");
+
+        // Cut off the AI immediately so the user doesn't hear the "wrong" response
+        //await SendJson(new { type = "response.cancel" });
+
+        // if the response was active and got cancelled, then we recreate a message
+
+        if (_isResponseActive)
+        {
+            await SendJson(new { type = "response.cancel" });
+            _isResponseActive = false; // Immediately unlock locally
+
+            if (_isAiSpeaking)
+            {
+                _isAiSpeaking = false;
+                ClearLocalAudioBuffer();
+            }
+
+            shouldRegenerate = true;
+        }
+
+        if (shouldRegenerate)
+        {
+            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
+            var reevaluateItem = new
+            {
+                type = "conversation.item.create",
+                item = new
+                {
+                    type = "message",
+                    role = "system",
+                    content = new[]
+                    {
+                new
+                {
+                    type = "input_text",
+                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
+                }
+            }
+                }
+            };
+            await SendJson(reevaluateItem);
+
+            // Trigger the new audio generation
+            await SendJson(new { type = "response.create" });
+        }
+    }
+
+    public async Task UpdateGuidancePrompt(string newInstructions)
+    {
+        if (!_isConnected) return;
+
+        bool shouldRegenerate = false;
+
+        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation for a guidance call...");
+
+        // Push the new guide version instructions
+        var updateSession = new
+        {
+            type = "session.update",
+            session = new
+            {
+                type = "realtime", // required by the general model, new from beta
+                instructions = newInstructions,
+                tools = new[]
+                {
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_guidance",
+                        description = "Call this when the player wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_teleportation",
+                        description = "Call this when the player wants you to teleport them directly to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    }
+                }
+            }
+        };
+        await SendJson(updateSession);
+
+        // Cut off the AI immediately so the user doesn't hear the "wrong" response
+        //await SendJson(new { type = "response.cancel" });
+        if (_isResponseActive)
+        {
+            await SendJson(new { type = "response.cancel" });
+            _isResponseActive = false; // Immediately unlock locally
+
+            if (_isAiSpeaking)
+            {
+                _isAiSpeaking = false;
+                ClearLocalAudioBuffer();
+            }
+
+            shouldRegenerate = true;
+        }
+
+        if (shouldRegenerate)
+        {
+            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
+            var reevaluateItem = new
+            {
+                type = "conversation.item.create",
+                item = new
+                {
+                    type = "message",
+                    role = "system",
+                    content = new[]
+                    {
+                new
+                {
+                    type = "input_text",
+                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
+                }
+            }
+                }
+            };
+            await SendJson(reevaluateItem);
+
+            // Trigger the new audio generation
+            await SendJson(new { type = "response.create" });
+        }
+    }
+
+    // may have to have another version to trigger the guidance function // UpdateGuidancePrompt
+    public async Task OldUpdateLivePrompt(string newInstructions)
     {
         if (!_isConnected) return;
 
@@ -306,7 +470,7 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(updateSession);
     }
 
-    public async Task UpdateGuidancePrompt(string newInstructions)
+    public async Task OldUpdateGuidancePrompt(string newInstructions)
     {
         if (!_isConnected) return;
 
@@ -414,7 +578,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     public async Task StopRecordingSilently()
     {
-        Debug.Log("Closing continuous session quietly.");
+        //Debug.Log("Closing continuous session quietly.");
 
         _isRecording = false;
         _isContinuousSessionActive = false;
@@ -548,7 +712,7 @@ public class RealtimeGuideClient : MonoBehaviour
         // If volume spikes above our threshold, the user is talking
         if (maxVol > _volumeThreshold)
         {
-            Debug.Log("User is talking");
+            //Debug.Log("User is talking");
             _hasSpoken = true;
             _silenceTimer = 0f; // Reset the silence timer
         }
@@ -564,7 +728,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 _hasSpoken = false;
                 _silenceTimer = 0f;
 
-                Debug.Log("Silence detected. Auto-stopping recording.");
+                //Debug.Log("Silence detected. Auto-stopping recording.");
 
                 // Alert AIGuide that the user has stopped speaking
                 OnAutoStopRecording?.Invoke();
@@ -644,6 +808,7 @@ public class RealtimeGuideClient : MonoBehaviour
             switch (type)
             {
                 case "input_audio_buffer.speech_started":
+                    _isUserSpeaking = true;
                     OnServerDetectedSpeechStart?.Invoke();
 
                     // If the AI is talking, instantly shut it up locally
@@ -656,13 +821,16 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
 
                 case "input_audio_buffer.speech_stopped":
+                    _isUserSpeaking = false;
                     OnServerDetectedSpeechStop?.Invoke(); // The Server VAD heard the user stop speaking and is generating a response
+                    _isResponseActive = true;
                     break;
 
                 case "response.created":
                     
                     _textBuffer.Clear();
                     _isAiSpeaking = true;
+                    _isResponseActive = true; // redundant safety catch
                     _foundFirstSentence = false;
                     _totalSamplesReceived = 0;
                     break;
@@ -727,7 +895,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string textDelta = (string)jsonObj["delta"];
                         _textBuffer.Append(textDelta);
-                        Debug.Log($"Text Chunk: {textDelta}");
+                        //Debug.Log($"Text Chunk: {textDelta}");
 
                         OnTextReceived?.Invoke(textDelta);
                         break;
@@ -735,6 +903,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
                 case "response.done":
                     _isAiSpeaking = false;
+                    _isResponseActive = false;
                     // Log the FULL details to see why it finished
                     var responseObj = jsonObj["response"];
                     string status = (string)responseObj["status"];
@@ -742,7 +911,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (status == "completed")
                     {
                         string remainingText = _textBuffer.ToString().Trim();
-                        Debug.Log($"Full Response Captured: {remainingText}");
+                        //Debug.Log($"Full Response Captured: {remainingText}");
                     }
                     else
                     {
@@ -767,7 +936,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (functionName == "trigger_guidance")
                     {
                         modeOfTransportation = "guide";
-                        Debug.Log("Going to pass on a command to guide the user to an object");
+                        //Debug.Log("Going to pass on a command to guide the user to an object");
                         targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
                         if (targetForGuidance != null)
@@ -780,10 +949,6 @@ public class RealtimeGuideClient : MonoBehaviour
                             //string audioResponse = $"Press the grip button to confirm, and I will take you to the {targetName}.";
                             _ = SpeakCustomText(audioResponse); // Inject custom confirmation audio
                             _openAIQueriesScript.targetForGuidance = targetForGuidance;
-                        }
-                        else
-                        {
-                            Debug.Log("The target for guidance thinks it's null");
                         }
                     }
                     else if (functionName == "trigger_teleportation")
@@ -807,7 +972,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     else if (functionName == "trigger_modification")
                     {
                         modeOfModification = "modify";
-                        Debug.Log("Going to pass on a command to modify an object");
+                        //Debug.Log("Going to pass on a command to modify an object");
                         targetForModification = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
                         if (targetForModification != null)
@@ -867,7 +1032,7 @@ public class RealtimeGuideClient : MonoBehaviour
             }
         };
 
-        Debug.Log($"[Realtime] Injecting session with the following visual content: {text}");
+        //Debug.Log($"[Realtime] Injecting session with the following visual content: {text}");
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 

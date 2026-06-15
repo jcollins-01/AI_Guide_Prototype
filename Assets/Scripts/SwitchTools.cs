@@ -15,17 +15,37 @@ public class SwitchTools : MonoBehaviour
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
 
-    [Header("Type of Guide")]
-    /*public bool baselineGuide = false;
-    public bool objectDescriptionGuide = false;
-    public bool objectLocationGuide = false;
-    public bool sceneUnderstandingGuide = false;
-    public bool navigationGuide = false;
-    public bool objectGrabbingGuide = false;
-    public bool sightedGuidanceGuide = false;
-    [HideInInspector] public bool allCombinedGuide = false; // deprecated for now - use later if we trust the AI to determine user intention*/
+    // Define all possible guide type
+    public enum GuideType
+    {
+        Baseline,
+        ObjectDescription,
+        ObjectLocation,
+        SceneUnderstanding,
+        Navigation,
+        ObjectGrabbing,
+        SightedGuidance,
+        AllCombined // Deprecated for now, but kept for future use
+    }
 
-    [SerializeField] private bool _baselineGuide;
+    [Header("Type of Guide")]
+    [SerializeField]
+    private GuideType _currentGuideType = GuideType.Baseline;
+
+    public GuideType activeGuideType
+    {
+        get => _currentGuideType;
+        set
+        {
+            if (_currentGuideType != value)
+            {
+                _currentGuideType = value;
+                OnGuideConfigurationChanged?.Invoke();
+            }
+        }
+    }
+
+    /*[SerializeField] private bool _baselineGuide;
     public bool baselineGuide
     {
         get => _baselineGuide;
@@ -34,7 +54,8 @@ public class SwitchTools : MonoBehaviour
             if (_baselineGuide != value)
             {
                 _baselineGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_baselineGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -48,7 +69,8 @@ public class SwitchTools : MonoBehaviour
             if (_objectDescriptionGuide != value)
             {
                 _objectDescriptionGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_objectDescriptionGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -62,7 +84,8 @@ public class SwitchTools : MonoBehaviour
             if (_objectLocationGuide != value)
             {
                 _objectLocationGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_objectLocationGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -76,7 +99,8 @@ public class SwitchTools : MonoBehaviour
             if (_sceneUnderstandingGuide != value)
             {
                 _sceneUnderstandingGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_sceneUnderstandingGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -90,7 +114,8 @@ public class SwitchTools : MonoBehaviour
             if (_navigationGuide != value)
             {
                 _navigationGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_navigationGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -104,7 +129,8 @@ public class SwitchTools : MonoBehaviour
             if (_objectGrabbingGuide != value)
             {
                 _objectGrabbingGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_objectGrabbingGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -118,7 +144,8 @@ public class SwitchTools : MonoBehaviour
             if (_sightedGuidanceGuide != value)
             {
                 _sightedGuidanceGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_sightedGuidanceGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
     }
@@ -132,10 +159,11 @@ public class SwitchTools : MonoBehaviour
             if (_allCombinedGuide != value)
             {
                 _allCombinedGuide = value;
-                OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
+                if (_allCombinedGuide == true)
+                    OnGuideConfigurationChanged?.Invoke(); // Notify listeners!
             }
         }
-    }
+    }*/
 
     [FormerlySerializedAs("pushToTalk")]
     [HideInInspector] public bool legacyHoldToSpeak = false;
@@ -203,12 +231,15 @@ public class SwitchTools : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    // Safely catch Inspector dropdown changes during play mode
+    private GuideType _lastValidatedGuideType;
+
     private void OnValidate()
     {
-        // Only trigger updates if the simulation is actively running
-        if (Application.isPlaying)
+        if (Application.isPlaying && _currentGuideType != _lastValidatedGuideType)
         {
-            Debug.Log("[SwitchTools] Inspector toggle detected.");
+            _lastValidatedGuideType = _currentGuideType;
+            Debug.Log($"[SwitchTools] Guide mode switched to: {_currentGuideType}");
             OnGuideConfigurationChanged?.Invoke();
         }
     }

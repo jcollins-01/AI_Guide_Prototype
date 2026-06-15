@@ -113,10 +113,23 @@ public class AIGuide : MonoBehaviour
         realtimeClient._continuousVoiceOn = m_SwitchToolsScript != null && m_SwitchToolsScript.continuousVoice;
         realtimeClient._defaultPushToTalkOn = m_SwitchToolsScript == null || m_SwitchToolsScript.UseDefaultPushToTalk;
 
-        if (m_SwitchToolsScript.baselineGuide || m_SwitchToolsScript.allCombinedGuide)
+        switch (m_SwitchToolsScript.activeGuideType)
+        {
+            case SwitchTools.GuideType.Baseline:
+                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
+                break;
+            case SwitchTools.GuideType.AllCombined:
+                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
+                break;
+            default:
+                realtimeClient.Connect(basePrompt, false);
+                break;
+        }
+
+        /*if (m_SwitchToolsScript.baselineGuide || m_SwitchToolsScript.allCombinedGuide)
             realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
         else
-            realtimeClient.Connect(basePrompt, false);
+            realtimeClient.Connect(basePrompt, false);*/
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
         m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
@@ -126,6 +139,96 @@ public class AIGuide : MonoBehaviour
 
     // For ensuring proper realtime data
     public string GetFormattedPrompt()
+    {
+        // Ensure data is fresh
+        m_OpenAIQueriesScript.LoadRoomDescriptions();
+        m_OpenAIQueriesScript.getGuideRole();
+
+        // Determine baseline or version of improved guide
+        string prompt = "";
+
+        switch (m_SwitchToolsScript.activeGuideType)
+        {
+            case SwitchTools.GuideType.Baseline:
+                Debug.Log("Using the baseline guide!");
+                prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
+                   " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
+                   m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
+                break;
+            case SwitchTools.GuideType.ObjectDescription:
+                Debug.Log("Using the object description guide!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
+                break;
+            case SwitchTools.GuideType.ObjectLocation:
+                Debug.Log("Using the object location guide!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
+                break;
+            case SwitchTools.GuideType.SceneUnderstanding:
+                Debug.Log("Using the scene understanding guide!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
+                break;
+            case SwitchTools.GuideType.Navigation:
+                Debug.Log("Using the navigation guide!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
+                break;
+            case SwitchTools.GuideType.ObjectGrabbing:
+                Debug.Log("Using the object grabbing guide!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                    $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
+                break;
+            case SwitchTools.GuideType.SightedGuidance:
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
+                break;
+            case SwitchTools.GuideType.AllCombined:
+                Debug.Log("Using the all-guideline intention guide!");
+                StringBuilder sbPrompt = new StringBuilder();
+
+                // Base Persona & Rules
+                sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
+                sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
+                // New guideline on trust/revealing uncertainty
+                sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
+
+                // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
+
+                // Conditional Behavioral Guidelines
+                sbPrompt.AppendLine("\n### CONDITIONAL GUIDELINES ###");
+                sbPrompt.AppendLine("Depending on what the user asks, apply the following rules. If the user has multiple intents, combine the rules naturally.");
+
+                sbPrompt.AppendLine("\nIF THE USER WANTS AN OBJECT DESCRIPTION:");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.objectDescriptionGuideline);
+
+                sbPrompt.AppendLine("\nIF THE USER IS LOCATING A SPECIFIC OBJECT:");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.objectLocationGuideline);
+
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.sceneUnderstandingGuideline);
+
+                sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
+
+                sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
+
+                sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
+
+                prompt = sbPrompt.ToString();
+                break;
+            default:
+                // Using the improved guide, but haven't set a specific intention yet
+                Debug.Log("Providing only basic information/introduction to the guide session!");
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}";
+                break;
+        }
+        return prompt;
+    }
+    /*public string GetFormattedPrompt()
     {
         // Ensure data is fresh
         m_OpenAIQueriesScript.LoadRoomDescriptions();
@@ -221,7 +324,7 @@ public class AIGuide : MonoBehaviour
         }
 
         return prompt;
-    }
+    }*/
 
     // Handles event of user done talking
     private void HandleAutoStop()
@@ -239,12 +342,17 @@ public class AIGuide : MonoBehaviour
         string freshPrompt = GetFormattedPrompt();
 
         // Determine which type of update this is (guidance updates use the tools structure) and push to OpenAI
-        if (m_SwitchToolsScript.sightedGuidanceGuide)
+        if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.SightedGuidance))
             await realtimeClient.UpdateGuidancePrompt(freshPrompt);
         else
             await realtimeClient.UpdateLivePrompt(freshPrompt);
 
-        Debug.Log("Guide version shifted successfully.");
+        /*if (m_SwitchToolsScript.sightedGuidanceGuide)
+            await realtimeClient.UpdateGuidancePrompt(freshPrompt);
+        else
+            await realtimeClient.UpdateLivePrompt(freshPrompt);*/
+
+        Debug.Log($"Guide version shifted successfully. Guide was told: {freshPrompt}");
     }
 
     private void PresetAvatarRoles()
