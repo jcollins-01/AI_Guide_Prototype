@@ -16,15 +16,17 @@ public class AIGuide : MonoBehaviour
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
     private RealtimeGuideClient realtimeClient;
+    private SwitchTools m_SwitchToolsScript;
 
     // Variables for monitoring
     private bool guideRoleAssigned = false;
     private bool guideRoleAssignedStart = false;
-    private bool isHighlighted = false;
+
     private GameObject lastHighlightedTarget;
-    private Material previousMaterial;
     private Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
+
     private bool isRecording = false;
+
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
 
@@ -70,6 +72,7 @@ public class AIGuide : MonoBehaviour
     {
         // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
+        m_SwitchToolsScript = FindObjectOfType<SwitchTools>(); // On Room Manager
 
         // Add necessary components to the attached GameObject
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
@@ -101,18 +104,22 @@ public class AIGuide : MonoBehaviour
     {
         // Set up realtime client
         realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
-        SwitchTools switchTools = FindObjectOfType<SwitchTools>();
 
         string basePrompt = GetFormattedPrompt();
 
         // Load config and connect to client
         realtimeClient.LoadConfig();
-        realtimeClient._legacyHoldToSpeakOn = switchTools != null && switchTools.legacyHoldToSpeak;
-        realtimeClient._continuousVoiceOn = switchTools != null && switchTools.continuousVoice;
-        realtimeClient._defaultPushToTalkOn = switchTools == null || switchTools.UseDefaultPushToTalk;
-        realtimeClient.Connect(basePrompt);
+        realtimeClient._legacyHoldToSpeakOn = m_SwitchToolsScript != null && m_SwitchToolsScript.legacyHoldToSpeak;
+        realtimeClient._continuousVoiceOn = m_SwitchToolsScript != null && m_SwitchToolsScript.continuousVoice;
+        realtimeClient._defaultPushToTalkOn = m_SwitchToolsScript == null || m_SwitchToolsScript.UseDefaultPushToTalk;
+
+        if (m_SwitchToolsScript.baselineGuide || m_SwitchToolsScript.allCombinedGuide)
+            realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
+        else
+            realtimeClient.Connect(basePrompt, false);
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
+        m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
         //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
         //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
     }
@@ -124,20 +131,48 @@ public class AIGuide : MonoBehaviour
         m_OpenAIQueriesScript.LoadRoomDescriptions();
         m_OpenAIQueriesScript.getGuideRole();
 
-        // Determine baseline or improved guide
+        // Determine baseline or version of improved guide
         string prompt;
-        bool baseline = true; // was false
 
-        if (baseline)
+        if (m_SwitchToolsScript.baselineGuide)
         {
             Debug.Log("Using the baseline guide!");
             prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
                " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
                m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
         }
-        else
+        else if (m_SwitchToolsScript.objectDescriptionGuide)
         {
-            Debug.Log("Using the improved intention guide!");
+            Debug.Log("Using the object description guide!");
+            prompt = $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
+        }
+        else if (m_SwitchToolsScript.objectLocationGuide)
+        {
+            Debug.Log("Using the object location guide!");
+            prompt = $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
+        }
+        else if (m_SwitchToolsScript.sceneUnderstandingGuide)
+        {
+            Debug.Log("Using the scene understanding guide!");
+            prompt = $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
+        }
+        else if (m_SwitchToolsScript.navigationGuide)
+        {
+            Debug.Log("Using the navigation guide!");
+            prompt = $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
+        }
+        else if (m_SwitchToolsScript.objectGrabbingGuide)
+        {
+            Debug.Log("Using the object grabbing guide!");
+            prompt = $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
+        }
+        else if (m_SwitchToolsScript.sightedGuidanceGuide)
+        {
+            prompt = $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
+        }
+        else if (m_SwitchToolsScript.allCombinedGuide) // Deprecated for now - won't be using unless we learn more about how it determines intention
+        {
+            Debug.Log("Using the all-guideline intention guide!");
             StringBuilder sbPrompt = new StringBuilder();
 
             // Base Persona & Rules
@@ -172,8 +207,38 @@ public class AIGuide : MonoBehaviour
 
             prompt = sbPrompt.ToString();
         }
+        else
+        {
+            // Using the improved guide, but haven't set a specific intention yet
+            Debug.Log("Providing only basic information/introduction to the guide session!");
+            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}";
+        }
 
         return prompt;
+    }
+
+    // Handles event of user done talking
+    private void HandleAutoStop()
+    {
+        playEffect("done_listening");
+        isRecording = false; // Unlock it so they can press the button again later
+    }
+
+    // Checks if a new guide type was assigned and switches prompts accordingly
+    public async void HandleGuideTypeChanged()
+    {
+        if (realtimeClient == null) return;
+
+        // Regenerate the fresh prompt string based on the newly toggled bools
+        string freshPrompt = GetFormattedPrompt();
+
+        // Determine which type of update this is (guidance updates use the tools structure) and push to OpenAI
+        if (m_SwitchToolsScript.sightedGuidanceGuide)
+            await realtimeClient.UpdateGuidancePrompt(freshPrompt);
+        else
+            await realtimeClient.UpdateLivePrompt(freshPrompt);
+
+        Debug.Log("Guide version shifted successfully.");
     }
 
     private void PresetAvatarRoles()
@@ -326,12 +391,6 @@ public class AIGuide : MonoBehaviour
         {
             wasMutingLastFrame = false; // Reset when the user lets go
         }
-    }
-
-    private void HandleAutoStop()
-    {
-        playEffect("done_listening");
-        isRecording = false; // Unlock it so they can press the button again later
     }
 
     // Coroutine for sending info to the realtime API to prevent freezing in VR

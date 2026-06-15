@@ -135,7 +135,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     }
 
-    public async Task Connect(string systemInstructions)
+    public async Task Connect(string systemInstructions, bool usingBaseline)
     {
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
@@ -154,7 +154,10 @@ public class RealtimeGuideClient : MonoBehaviour
             _ = ReceiveLoop();
 
             // Configure the session (Set the "System Prompt")
-            await SendSessionUpdate(systemInstructions);
+            if (usingBaseline)
+                await SendSessionUpdate(systemInstructions);
+            else
+                await FirstSessionUpdate(systemInstructions);
         }
         catch (Exception e)
         {
@@ -164,6 +167,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private async Task SendSessionUpdate(string instructions)
     {
+        Debug.Log("Sending all functions at once for first session (baseline or all combined intention guide)");
         // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
         object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
 
@@ -224,7 +228,8 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object" }
                         }
-                    },
+                    } // Deprecated modification + audio beacons for now
+                    /*,
                     new
                     {
                         type = "function",
@@ -239,12 +244,117 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object" }
                         }
+                    }*/
+                }
+            }
+        };
+
+        await SendJson(sessionUpdate);
+    }
+
+    // For the improved guide, when it only gives basic context to the guide so a human user can switch the context
+    private async Task FirstSessionUpdate(string instructions)
+    {
+        Debug.Log("Sending only basic guide context (manual intention guide)");
+        // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
+        object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
+
+        var sessionUpdate = new
+        {
+            type = "session.update",
+            session = new
+            {
+                type = "realtime", // required by the general model, new from beta
+                output_modalities = new[] { "audio" }, // Ask for just audio, now assumes text is included
+                instructions = instructions,
+                audio = new
+                {
+                    input = new
+                    {
+                        // Format is now an object, not a string
+                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
+                        turn_detection = turnDetectionConfig
+                    },
+                    output = new
+                    {
+                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
+                        voice = "alloy" // Options: alloy, echo, shimmer
                     }
                 }
             }
         };
 
         await SendJson(sessionUpdate);
+    }
+
+    // may have to have another version to trigger the guidance function // UpdateGuidancePrompt
+    public async Task UpdateLivePrompt(string newInstructions)
+    {
+        if (!_isConnected) return;
+
+        var updateSession = new
+        {
+            type = "session.update",
+            session = new
+            {
+                type = "realtime", // required by the general model, new from beta
+                instructions = newInstructions
+            }
+        };
+        Debug.Log("The instructions received were: " + newInstructions);
+        Debug.Log("[Realtime] Dynamically updating guide instructions on the server...");
+        await SendJson(updateSession);
+    }
+
+    public async Task UpdateGuidancePrompt(string newInstructions)
+    {
+        if (!_isConnected) return;
+
+        var updateSession = new
+        {
+            type = "session.update",
+            session = new
+            {
+                type = "realtime", // required by the general model, new from beta
+                instructions = newInstructions,
+                tools = new[] 
+                {
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_guidance",
+                        description = "Call this when the player wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_teleportation",
+                        description = "Call this when the player wants you to teleport them directly to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    }
+                }
+            }
+        };
+        Debug.Log("The instructions received were: " + newInstructions);
+        Debug.Log("[Realtime] Dynamically updating session to do guidance actions...");
+        await SendJson(updateSession);
     }
 
     public void StartRecording()
@@ -465,23 +575,6 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
-    private void MicCheck(float[] samples)
-    {
-        // Checks when mic is silent/active
-        float maxVol = 0f;
-        foreach (var s in samples) if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
-
-        if (maxVol < 0.001f)
-        {
-            // If this keeps spamming, your mic is dead/muted!
-            Debug.LogWarning("Mic is capturing silence! Check OS Permissions or Device Name.");
-        }
-        else
-        {
-            Debug.Log("Mic active: " + maxVol);
-        }
-    }
-
     // Handle the incoming RPC data on Remote Clients
     public void ReceiveRemoteAudio(string base64Audio)
     {
@@ -650,15 +743,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string remainingText = _textBuffer.ToString().Trim();
                         Debug.Log($"Full Response Captured: {remainingText}");
-                        // Send the last generated text chunk to see if there was a target identified
-                        /*string customResponse = _openAIQueriesScript.CheckForGuidanceOrModification(remainingText);
-
-                        // If it was actually changed into one of the random responses chosen by the CheckForGuidance... function
-                        if (!string.IsNullOrEmpty(customResponse) && customResponse != remainingText)
-                        {
-                            // Start checking the audio source continuously to see if it's hit our estimated break point
-                            StartCoroutine(MonitorAndCutoffAudio(customResponse));
-                        }*/
                     }
                     else
                     {
@@ -759,45 +843,6 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
-    private IEnumerator MonitorAndCutoffAudio(string customResponse)
-    {
-        //Debug.Log($"Waiting for outputSource at {outputSource.timeSamples} to reach {_samplesAtFirstSentence} samples...");
-
-        // Variables to calculate our own sample rate/cumulative timing of the audio source
-        // (since it plays in chunks, it resets its own sample timing to 0 with each chunk, so we need to add samples ourselves to time the cutoff properly)
-        float sampleRate = 24000f;
-        float targetTimeSeconds = _samplesAtFirstSentence / sampleRate;
-        float timePlayed = 0f;
-
-        // Wait until our active playback timer reaches the target time
-        while (timePlayed < targetTimeSeconds)
-        {
-            // Only advance the timer if the audio source is currently making sound - prevents network stutters/buffering from ruining the timing
-            if (outputSource.isPlaying)
-                timePlayed += Time.deltaTime;
-            else if (!_isAiSpeaking && _audioPlaybackQueue.IsEmpty)
-                break; // If the AI is done, the queue is empty, and it's not playing, break out so we don't get stuck in an infinite loop.
-            yield return null; 
-        }
-
-        // Once the threshold is crossed, execute the cutoff logic
-        //Debug.Log($"Threshold reached! Audio played for {timePlayed:F2} seconds. Stopping audio.");
-        outputSource.Stop();
-
-        // Clear the remaining buffered audio out of the queue
-        while (_audioPlaybackQueue.TryDequeue(out _)) { }
-
-        if (personalVoicesMode)
-        {
-            // Call ElevenLabs to speak the text instead
-        }
-        else
-        {
-            Debug.Log("Injecting custom audio.");
-            _ = SpeakCustomText(customResponse);
-        }
-    }
-
     private async Task SendJson(object data)
     {
         if (_webSocket.State != WebSocketState.Open) return;
@@ -822,6 +867,7 @@ public class RealtimeGuideClient : MonoBehaviour
             }
         };
 
+        Debug.Log($"[Realtime] Injecting session with the following visual content: {text}");
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
