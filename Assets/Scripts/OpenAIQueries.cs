@@ -695,6 +695,11 @@ public class RealtimeGuideClient : MonoBehaviour
                             string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
                             //string audioResponse = $"Press the grip button to confirm, and I will take you to the {targetName}.";
                             _ = SpeakCustomText(audioResponse); // Inject custom confirmation audio
+                            _openAIQueriesScript.targetForGuidance = targetForGuidance;
+                        }
+                        else
+                        {
+                            Debug.Log("The target for guidance thinks it's null");
                         }
                     }
                     else if (functionName == "trigger_teleportation")
@@ -712,6 +717,7 @@ public class RealtimeGuideClient : MonoBehaviour
                             string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
                             //string audioResponse = $"Press the grip button to confirm, and I will teleport us to the {targetName}.";
                             _ = SpeakCustomText(audioResponse);
+                            _openAIQueriesScript.targetForGuidance = targetForGuidance;
                         }
                     }
                     else if (functionName == "trigger_modification")
@@ -724,6 +730,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         {
                             string audioResponse = $"I have added an audio beacon to the {targetName}.";
                             _ = SpeakCustomText(audioResponse);
+                            _openAIQueriesScript.targetForModification = targetForModification;
                         }
                     }
 
@@ -910,8 +917,14 @@ public class RealtimeGuideClient : MonoBehaviour
         //Debug.Log("Reached speak custom text");
         if (!_isConnected) return;
 
-        // Cancel existing audio and clear the queue
-        await SendJson(new { type = "response.cancel" });
+        // Cancel existing audio and clear the queue -- only cancel the audio is the server is streaking a response
+        // in the new API, this throws a hard error that breaks the system if the response is already done streaming
+        /*if (_isAiSpeaking)
+        {
+            await SendJson(new { type = "response.cancel" });
+            _isAiSpeaking = false; // reset it locally so it's accurate
+        }*/
+        
         ClearLocalAudioBuffer();
 
         //Debug.Log($"Injecting custom TTS: {customText}");
@@ -926,7 +939,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 role = "system",
                 content = new[]
                 {
-                new { type = "input_text", text = text = $"The user has triggered a command. Your absolute priority is to say exactly this phrase and nothing else: \"{customText}\"" }
+                new { type = "input_text", text = $"The user has triggered a command. Your absolute priority is to say exactly this phrase and nothing else: \"{customText}\"" }
             }
             }
         };
@@ -935,6 +948,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
         // Ask the API to generate the audio for that item
         await SendJson(new { type = "response.create" });
+        Debug.Log("Sent the new response");
     }
 
     public async Task StopAiSpeech()
@@ -994,230 +1008,6 @@ public class RealtimeGuideClient : MonoBehaviour
             Debug.LogError("Config file not found in Resources folder: " + configFileName);
         }
     }
-
-    // ElevenLabs sample code
-    /*
-     * // Coroutine to send a chunk of text to PlayHT for real-time audio conversion
-    private IEnumerator StreamTextToPlayHT(string textChunk)
-    {
-        Debug.Log("Started coroutine for audio");
-
-        // Customize the voice as per the role
-        // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
-        // Human - River "SAz9YHcvj6GT2YYXdXww"
-        // Robot - Will "bIHbv24MWmeRgasZH58o"
-        // Cane - Callum "N2lVS1w4EtoT3dr4eOWO" / Adam "pNInz6obpgDQGcFmaJgB"
-        // Dog -  Jessica "cgSgspJ2msm6clMCkdW9" / Harry "SOYHLrjzK2X1ezoPC6cr"
-        // Bird - George "JBFqnCBsd6RMkjVDRZzb" / Lily "pFZP5JQG7iQjIQuC4Bku"
-        // Invisible - Matilda "XrExE9yKIg1WjnnlVkGX"
-
-        string voiceId = "SAz9YHcvj6GT2YYXdXww"; // Human default
-
-        // Default payload for voices that don't require special prompting / human voice
-        var payloadObj = new
-        {
-            text = textChunk,
-            model_id = elevenLabsModelId,
-            voice_settings = new
-            {
-                stability = 0.5f,
-                similarity_boost = 0.7f,
-                style = 0.02f,
-                use_speaker_boost = true
-            }
-        };
-
-        if (m_AIGuideScript.role == 2)
-        {
-            voiceId = "bIHbv24MWmeRgasZH58o";
-
-            payloadObj = new
-            {
-                text = textChunk,
-                model_id = elevenLabsModelId,
-                voice_settings = new
-                {
-                    stability = 1.0f, // Max stability makes voice monotone and predictable (less breathy)
-                    similarity_boost = 0.0f, // Min similarity makes voice less like a specific person, more general
-                    style = 0.0f, // Disable all emotional "flair"
-                    use_speaker_boost = false
-                }
-            };
-        }
-        else if (m_AIGuideScript.role == 3)
-        {
-            voiceId = "N2lVS1w4EtoT3dr4eOWO";
-
-            payloadObj = new
-            {
-                text = textChunk,
-                model_id = elevenLabsModelId,
-                voice_settings = new
-                {
-                    stability = 0.5f,
-                    similarity_boost = 0.75f,
-                    style = 0.3f, // Increased style to help the AI follow the "serious" flair we added
-                    use_speaker_boost = true
-                }
-            };
-        }
-        else if (m_AIGuideScript.role == 4)
-        {
-            voiceId = "cgSgspJ2msm6clMCkdW9";
-
-            payloadObj = new
-            {
-                text = textChunk,
-                model_id = elevenLabsModelId,
-                voice_settings = new
-                {
-                    stability = 0.4f, // Lower the stability to make it more emotive / breathier
-                    similarity_boost = 0.75f,
-                    style = 0.3f, // Increased style to help the AI follow the "eager" flair we added
-                    use_speaker_boost = true
-                }
-            };
-        }
-        else if (m_AIGuideScript.role == 5)
-        {
-            voiceId = "JBFqnCBsd6RMkjVDRZzb";
-
-            payloadObj = new
-            {
-                text = textChunk,
-                model_id = elevenLabsModelId,
-                voice_settings = new
-                {
-                    stability = 0.4f, // Lower the stability to make it more emotive / breathier
-                    similarity_boost = 0.75f,
-                    style = 0.5f, // Increased style to help the AI follow the "dramatic" flair we added
-                    use_speaker_boost = true
-                }
-            };
-        }
-        else if (m_AIGuideScript.role == 6)
-        {
-            voiceId = "XrExE9yKIg1WjnnlVkGX";
-
-            payloadObj = new
-            {
-                text = textChunk,
-                model_id = elevenLabsModelId,
-                voice_settings = new
-                {
-                    stability = 0.3f, // Lower the stability to make it more emotive / breathier
-                    similarity_boost = 0.75f,
-                    style = 0.5f, // Increased style to help the AI follow the "whisper" flair we added
-                    use_speaker_boost = true
-                }
-            };
-        }
-
-        // Combine the variables into the url for posting
-        string finalUrl = $"https://api.elevenlabs.io/v1/text-to-speech/{voiceId}/stream?optimize_streaming_latency=3";
-
-        // Convert object to JSON string
-        string jsonBody = JsonConvert.SerializeObject(payloadObj);
-
-        Debug.Log($"Using API Key: {elevenLabsApiKey}");
-
-        using (UnityWebRequest elevenLabsRequest = UnityWebRequestMultimedia.GetAudioClip(finalUrl, AudioType.MPEG))
-        {
-            elevenLabsRequest.method = UnityWebRequest.kHttpVerbPOST;
-
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
-            elevenLabsRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            elevenLabsRequest.downloadHandler = new DownloadHandlerAudioClip(finalUrl, AudioType.MPEG);
-
-            elevenLabsRequest.SetRequestHeader("Content-Type", "application/json");
-            elevenLabsRequest.SetRequestHeader("xi-api-key", elevenLabsApiKey); // Use 'xi-api-key', NOT 'Authorization'
-            elevenLabsRequest.SetRequestHeader("Accept", "audio/mpeg");
-
-            // Send the request
-            yield return elevenLabsRequest.SendWebRequest();
-
-            if (elevenLabsRequest.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error calling ElevenLabs: " + elevenLabsRequest.error);
-                //Debug.LogError("Response Text: " + elevenLabsRequest.downloadHandler.text);
-
-                Debug.LogError("Error Code: " + elevenLabsRequest.responseCode);
-                if (elevenLabsRequest.downloadHandler.data != null)
-                {
-                    string errorJson = Encoding.UTF8.GetString(elevenLabsRequest.downloadHandler.data);
-                    Debug.LogError("ElevenLabs Detailed Error: " + errorJson);
-                }
-            }
-            else
-            {
-                // Debug.Log("ElevenLabs audio chunk conversion successful!");
-                // DownloadHandlerAudioClip automatically converts the MP3 data into a Unity AudioClip
-                AudioClip clip = DownloadHandlerAudioClip.GetContent(elevenLabsRequest);
-
-                if (clip != null)
-                {
-                    // Assuming PlayAudioSequentially now accepts AudioClip:
-                    yield return StartCoroutine(PlayAudioSequentially(clip));
-                }
-            }
-        }
-    }
-
-    // Coroutine to play audio chunks sequentially without overlapping
-    private IEnumerator PlayAudioSequentially(AudioClip clip) // was byte[] mp3Data
-    {
-        // Wait until the previous audio chunk is finished
-        while (isPlayingAudio)
-            yield return null;  // Wait until the current audio has stopped
-
-        // Mark as playing
-        isPlayingAudio = true;
-
-        if (clip == null)
-        {
-            Debug.LogError("PlayAudioSequentially received a null AudioClip!");
-            isPlayingAudio = false;
-            yield break;
-        }
-
-        // Set up the audio source
-        audioSource.clip = clip;
-        audioSource.loop = false;
-        float startTime = Time.time;
-        float clipLength = audioSource.clip.length;
-
-        // Check if this is the first audio playback for timing
-        if (!capturedFirstAudioTime)
-        {
-            timeToFirstAudio = Time.realtimeSinceStartup - latencyStartTime;
-            Debug.Log($"[Timing] Time to First Audio (User Hears Voice): {timeToFirstAudio:F2} seconds");
-            capturedFirstAudioTime = true;
-        }
-
-        audioSource.Play();
-        Debug.Log($"Playing audio chunk. Length: {clipLength:F2}s");
-
-        // Wait until the audio has finished playing before allowing the next chunk
-        while (audioSource.isPlaying)
-        {
-            float elapsedTime = Time.time - startTime;
-
-            // Manual stop safety check
-            if (elapsedTime >= clipLength)
-            {
-                audioSource.Stop();
-                Debug.Log("Audio manually stopped based on clip length.");
-                break;
-            }
-            yield return null;
-        }
-
-        Debug.Log("Audio chunk finished playing.");
-
-        // Reset state for the next item in the queue
-        isPlayingAudio = false;
-    }
-    */
 }
 
 public class OpenAIQueries : MonoBehaviour

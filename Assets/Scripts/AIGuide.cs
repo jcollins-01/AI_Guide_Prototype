@@ -126,7 +126,7 @@ public class AIGuide : MonoBehaviour
 
         // Determine baseline or improved guide
         string prompt;
-        bool baseline = false;
+        bool baseline = true; // was false
 
         if (baseline)
         {
