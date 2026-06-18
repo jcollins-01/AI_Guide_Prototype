@@ -62,7 +62,7 @@ public class RealtimeGuideClient : MonoBehaviour
     // Tracking bools for general processes
     public bool _isConnected = false;
     private bool _guideAudioSourceFound = false;
-    private bool _isAiSpeaking = false;
+    public bool _isAiSpeaking = false;
     public bool _isProcessingCommand = false;
     private bool _foundFirstSentence = false;
     private bool _isResponseActive = false;

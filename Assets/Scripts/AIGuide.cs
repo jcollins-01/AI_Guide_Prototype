@@ -50,6 +50,10 @@ public class AIGuide : MonoBehaviour
     private float idleTimeout = 60f; 
     private bool hasPromptedForHelp = false;
 
+    // Variables for continuous description during routes
+    private bool isDescribingRoute = false;
+    private Coroutine routeDescriptionCoroutine;
+
     // Variables for wizard components
     public string result;
     public int role = 1; // 1: human, 2: robot, 3: cane, 4: guide dog, 5: bird, 6: invisible
@@ -799,9 +803,17 @@ public class AIGuide : MonoBehaviour
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
 
+                    // Ensure targetActive is true so we don't start it the same frame we reach the goal
+                    if (m_AutomatedGuideScript.targetActive)
+                    {
+                        StartRouteDescriptions(currentTarget.name);
+                    }
+
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
+                        StopRouteDescriptions(); // stop the guide from talking
+
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
@@ -832,6 +844,8 @@ public class AIGuide : MonoBehaviour
         {
             if (m_SharedMovementScript != null)
             {
+                StopRouteDescriptions(); // keep the guide from talking if there are no targets
+
                 m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                 m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                 m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
@@ -964,5 +978,46 @@ public class AIGuide : MonoBehaviour
     {
         lastPlayerInteractionTime = Time.time;
         hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
+    }
+
+    private void StartRouteDescriptions(string targetName)
+    {
+        if (!isDescribingRoute)
+        {
+            isDescribingRoute = true;
+            routeDescriptionCoroutine = StartCoroutine(RouteDescriptionLoop(targetName));
+        }
+    }
+
+    private void StopRouteDescriptions()
+    {
+        if (isDescribingRoute)
+        {
+            isDescribingRoute = false;
+            if (routeDescriptionCoroutine != null)
+            {
+                StopCoroutine(routeDescriptionCoroutine);
+                routeDescriptionCoroutine = null;
+            }
+        }
+    }
+
+    private IEnumerator RouteDescriptionLoop(string targetName)
+    {
+        // Wait a second before starting so the guide doesn't speak over the initial "Let's go" sound/prompt
+        yield return new WaitForSeconds(1.5f);
+
+        while (isDescribingRoute)
+        {
+            // Construct the prompt. We assume your realtimeClient automatically appends 
+            // the latest screenshot/visual context to manual prompts.
+            string prompt = $"We are currently navigating towards the {targetName}. " +
+                            $"Look at your latest visual context. Briefly and conversationally describe an interesting object or obstacle the user is walking past right now. Do not repeat yourself.";
+
+            _ = realtimeClient.SendManualPrompt(prompt);
+
+            // Wait before triggering the next observation
+            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
+        }
     }
 }
