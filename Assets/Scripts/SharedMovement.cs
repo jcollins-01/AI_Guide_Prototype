@@ -11,7 +11,7 @@ public class SharedMovement : MonoBehaviour
     private VRHandling m_VRHandlingScript;
     public GameObject thePlayer;
     public GameObject theGuide;
-    private XROrigin playerRig;
+    public XROrigin playerRig;
 
     // Variables to keep track of positioning between guide and player
     private Vector3 playerGuideOffset;

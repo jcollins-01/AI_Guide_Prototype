@@ -41,6 +41,14 @@ public class AIGuide : MonoBehaviour
     private float nextHazardCheckTime = 0f;
     private float lastHazardPromptTime = -999f;
     private GameObject lastHazardPrompted;
+    private Vector3 previousPlayerPosition;
+    private Vector3 trueWorldVelocity;
+    public Transform headsetTransform;
+
+    // Variables for prompting the user if they need assistance
+    private float lastPlayerInteractionTime;
+    private float idleTimeout = 60f; 
+    private bool hasPromptedForHelp = false;
 
     // Variables for wizard components
     public string result;
@@ -135,6 +143,9 @@ public class AIGuide : MonoBehaviour
         m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
         //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
         //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
+
+        // Reset player interaction time with the client
+        lastPlayerInteractionTime = Time.time;
     }
 
     // For ensuring proper realtime data
@@ -384,6 +395,12 @@ public class AIGuide : MonoBehaviour
             // Call the guide
             RealtimeGuide();
 
+            // See if the player has been silent for a while
+            CheckForIdlePlayer();
+
+            // Check the player's velocity so we can determine hazards
+            checkPlayerVelocity();
+
             // Check for objects too close to the player
             CheckHazardDistances();
 
@@ -401,6 +418,32 @@ public class AIGuide : MonoBehaviour
 
             // Check if both confederates are present and send guide roles each time they are (in case of confederates leaving and coming back)
             BothConfederatesPresent();
+        }
+    }
+
+    private void CheckForIdlePlayer()
+    {
+        // If the AI hasn't prompted yet, and 60 seconds have passed since the last interaction
+        if (!hasPromptedForHelp && (Time.time - lastPlayerInteractionTime) >= idleTimeout)
+        {
+            TriggerHelpPrompt();
+        }
+    }
+
+    private void checkPlayerVelocity()
+    {
+        // Assign the headset transform
+        if (headsetTransform == null)
+            headsetTransform = m_SharedMovementScript.playerRig.Camera.transform;
+        else
+        {
+            // Calculate true world-space velocity based on position delta
+            // We ignore the Y axis to strictly track ground-plane movement
+            Vector3 currentPos = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
+            Vector3 prevPos = new Vector3(previousPlayerPosition.x, 0, previousPlayerPosition.z);
+
+            trueWorldVelocity = (currentPos - prevPos) / Time.deltaTime;
+            previousPlayerPosition = headsetTransform.position;
         }
     }
 
@@ -813,91 +856,16 @@ public class AIGuide : MonoBehaviour
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
     }
 
-    /*private void CheckHazardDistances()
-    {
-        if (!hazardDetectionEnabled) 
-        {
-            return;
-        };
-
-        if (Time.time < nextHazardCheckTime)
-        {
-            return;
-        };
-        nextHazardCheckTime = Time.time + hazardCheckInterval;
-
-        Transform playerTransform = m_SharedMovementScript.thePlayer.transform;
-        int hitCount = Physics.OverlapSphereNonAlloc(
-            playerTransform.position,
-            dangerZoneDistance,
-            hazardObjectColliders,
-            hazardLayerMask
-        );
-
-        if (hitCount <= 0)
-        {
-            return;
-        };
-
-        // for now, we will just choose the closest object (but there could be many more in the "danger zone")
-        GameObject closestHazard = null; 
-        float closestDistance = Mathf.Infinity;
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider hit = hazardObjectColliders[i];
-            if (hit == null)
-            {
-                continue;
-            }
-
-            GameObject hazard = hit.gameObject;
-            float distance = Vector3.Distance(playerTransform.position, hazard.transform.position);
-
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestHazard = hazard;
-            }
-        }
-
-        if (closestHazard == null)
-        {
-            return;
-        };
-
-        bool cooldownReady = Time.time - lastHazardPromptTime >= hazardPromptCooldown;
-        bool isDifferentHazard = closestHazard != lastHazardPrompted;
-        // we do not want the same hazard to be repeated too much
-        // but new hazards will always be prompted immediately
-        if (!cooldownReady && !isDifferentHazard)
-        {
-            return;
-        };
-        // Debug.Log(lastHazardPromptTime);
-        lastHazardPromptTime = Time.time;
-        lastHazardPrompted = closestHazard;
-
-        string hazardName = closestHazard.name;
-        string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
-                        $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
-        // Debug.Log("Hazard Detection Response: " + prompt);
-
-        _ = realtimeClient.SendManualPrompt(prompt);
-    }*/
-
     private void CheckHazardDistances()
     {
         if (!hazardDetectionEnabled || Time.time < nextHazardCheckTime) return;
         nextHazardCheckTime = Time.time + hazardCheckInterval;
 
-        Transform playerTransform = m_SharedMovementScript.thePlayer.transform;
-        Vector3 velocity = m_SharedMovementScript.GetVelocity();
-
-        // CRAMPED SPACE FILTER: If moving slower than 0.3m/s, assume the user is navigating carefully or standing still
-        if (velocity.magnitude < 0.3f) return;
+        // CRAMPED SPACE FILTER: Use the new true velocity
+        if (trueWorldVelocity.magnitude < 0.3f) return;
 
         int hitCount = Physics.OverlapSphereNonAlloc(
-            playerTransform.position,
+            headsetTransform.position,
             dangerZoneDistance,
             hazardObjectColliders,
             hazardLayerMask
@@ -905,25 +873,36 @@ public class AIGuide : MonoBehaviour
 
         GameObject bestCandidate = null;
         float highestUrgency = -1f;
+        Vector3 normalizedVelocity = trueWorldVelocity.normalized;
+
+        float playerRadius = 0.45f;
 
         for (int i = 0; i < hitCount; i++)
         {
             Collider hit = hazardObjectColliders[i];
             if (hit == null) continue;
 
-            Vector3 closestPointOnHazard = hit.ClosestPoint(playerTransform.position);
-            Vector3 directionToHazard = (closestPointOnHazard - playerTransform.position).normalized;
+            // Flatten positions to the XZ plane to avoid false positives from ceiling/floor height differences
+            Vector3 hazardPoint = hit.ClosestPoint(headsetTransform.position);
+            Vector3 flatHazardPoint = new Vector3(hazardPoint.x, 0, hazardPoint.z);
+            Vector3 flatPlayerPoint = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
 
-            // DIRECT PATH FILTER: Use Dot Product to see if the hazard is in front of the movement -- 1.0 = directly in path, 0.0 = to the side, -1.0 = behind
-            float pathAlignment = Vector3.Dot(velocity.normalized, directionToHazard);
+            Vector3 vectorToHazard = flatHazardPoint - flatPlayerPoint;
 
-            // Only warn if the object is within a ~60 degree cone in front of movement (> 0.5)
-            if (pathAlignment < 0.5f) continue;
+            // 1. DIRECTION FILTER: Ensure the object is in the direction of movement
+            float forwardAlignment = Vector3.Dot(normalizedVelocity, vectorToHazard.normalized);
+            if (forwardAlignment < 0.1f) continue;
 
-            float distance = Vector3.Distance(playerTransform.position, closestPointOnHazard);
+            // 2. TRAJECTORY FILTER: Cylinder check
+            Vector3 projectedPath = Vector3.Project(vectorToHazard, normalizedVelocity);
+            float perpendicularDistance = Vector3.Distance(vectorToHazard, projectedPath);
 
-            // CALCULATE URGENCY: Alignment / Distance, prioritize things directly in the path, even if something else is slightly closer to the side
-            float urgency = pathAlignment / (distance + 0.1f);
+            if (perpendicularDistance > (playerRadius + 0.1f)) continue;
+
+            float distance = Vector3.Distance(flatPlayerPoint, flatHazardPoint);
+
+            // CALCULATE URGENCY
+            float urgency = forwardAlignment / (distance + 0.1f);
 
             if (urgency > highestUrgency)
             {
@@ -950,10 +929,40 @@ public class AIGuide : MonoBehaviour
     private void HandleHazardPrompt(GameObject hazard)
     {
         string hazardName = hazard.name;
-        string prompt = $"Hazard detected: {hazardName}. " + $"The player is too close to this object. " +
-                        $"Warn the player briefly and clearly. " + $"Mention the object by name. Do not wait for the player to speak.";
+        string prompt = $"The player is approaching {hazardName}. " +
+                        "Let them know briefly and clearly. DO NOT add any extra fluff. For example: " +
+                        "Oh, you're about to walk into a tree. Be careful." +
+                        "If you keep going forward, you'll walk straight into the tall building." +
+                        "I think you're getting too close to a bush. You might want to step to the side to move around it." +
+                        "You're coming up on the tall building now. " +
+                        "Use the conversation history to see how you've warned the player before and change up your language.";
         // Debug.Log("Hazard Detection Response: " + prompt);
 
         _ = realtimeClient.SendManualPrompt(prompt);
+    }
+
+    // May need to think about selectively sending hazards // making a harsher cooldown timer between when it can warn
+
+    private void TriggerHelpPrompt()
+    {
+        // Immediately set to true to prevent firing multiple times
+        hasPromptedForHelp = true;
+
+        // Frame the prompt for the LLM so it knows the context of why it is speaking
+        string prompt = "The player has been silent for a minute. " +
+                        "Proactively, briefly, and naturally ask them if they need any help, guidance, or directions. For example: " +
+                        "Hey, I noticed you've been quiet for a while. Do you need any help?" +
+                        "Is there anything I can help you with?" +
+                        "Remember, I can provide directions or guidance if you need it. Just let me know.";
+
+        // Send to your existing client
+        _ = realtimeClient.SendManualPrompt(prompt);
+    }
+
+    // Resets the interaction timer between player and guide (idle player timer)
+    public void RecordPlayerInteraction()
+    {
+        lastPlayerInteractionTime = Time.time;
+        hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
     }
 }

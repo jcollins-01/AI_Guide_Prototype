@@ -824,6 +824,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     _isUserSpeaking = false;
                     OnServerDetectedSpeechStop?.Invoke(); // The Server VAD heard the user stop speaking and is generating a response
                     _isResponseActive = true;
+                    // Reset timer on the last time the user prompted the guide
                     break;
 
                 case "response.created":
@@ -911,6 +912,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (status == "completed")
                     {
                         string remainingText = _textBuffer.ToString().Trim();
+                        aiGuideScript.RecordPlayerInteraction();
                         //Debug.Log($"Full Response Captured: {remainingText}");
                     }
                     else
@@ -983,7 +985,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         }
                     }
 
-                    // Crucial: You must send a response back to the API acknowledging the tool was handled
+                    // Crucial: send a response back to the API acknowledging the tool was handled
                     var functionResult = new
                     {
                         type = "conversation.item.create",
