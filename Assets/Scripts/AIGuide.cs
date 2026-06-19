@@ -138,11 +138,6 @@ public class AIGuide : MonoBehaviour
                 break;
         }
 
-        /*if (m_SwitchToolsScript.baselineGuide || m_SwitchToolsScript.allCombinedGuide)
-            realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
-        else
-            realtimeClient.Connect(basePrompt, false);*/
-
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
         m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
         //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
@@ -399,14 +394,18 @@ public class AIGuide : MonoBehaviour
             // Call the guide
             RealtimeGuide();
 
-            // See if the player has been silent for a while
-            CheckForIdlePlayer();
+            // Only perform the following for improved guides - not the baseline
+            if (!m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
+            {
+                // See if the player has been silent for a while
+                CheckForIdlePlayer();
 
-            // Check the player's velocity so we can determine hazards
-            checkPlayerVelocity();
+                // Check the player's velocity so we can determine hazards
+                checkPlayerVelocity();
 
-            // Check for objects too close to the player
-            CheckHazardDistances();
+                // Check for objects too close to the player
+                CheckHazardDistances();
+            }
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -798,7 +797,7 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    //Debug.Log("The mode of transit is guide");
+                    Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(currentTarget); // was openAiQueries.targetForGuidance
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
@@ -829,7 +828,7 @@ public class AIGuide : MonoBehaviour
                 }
                 else
                 {
-                    //Debug.Log("The mode of transit is teleport");
+                    Debug.Log("The mode of transit is teleport");
                     m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)

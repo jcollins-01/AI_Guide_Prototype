@@ -46,6 +46,7 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void GuideToPosition(GameObject targetObject)
     {
+        Debug.Log("Reached guide to position");
         m_targetObject = targetObject;
         Transform target = targetObject.transform;
         Transform selfTransform = agent.transform;
@@ -80,6 +81,7 @@ public class AutomaticGuide : MonoBehaviour
     // Version used for automated guide when calling guidance function with an assigned target object
     public void TeleportToPosition(GameObject targetObject)
     {
+        Debug.Log("Reached telepirt to position");
         m_targetObject = targetObject;
         Transform target = targetObject.transform;
         Transform selfTransform = agent.transform;

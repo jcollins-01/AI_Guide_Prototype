@@ -109,14 +109,6 @@ public class RealtimeGuideClient : MonoBehaviour
     // Configuration
     private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2"; // was gpt-4o-realtime-preview, was deprecated on May 7th - 
 
-    // OpenAI audio, text message, result variables
-    [HideInInspector] public string text;
-    [HideInInspector] public GameObject targetForGuidance;
-    [HideInInspector] public string modeOfTransportation;
-    [HideInInspector] public GameObject targetForModification;
-    [HideInInspector] public string modeOfModification;
-    [HideInInspector] public GameObject targetForDescription;
-
     private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs/logging
 
     private void Start()
@@ -937,11 +929,11 @@ public class RealtimeGuideClient : MonoBehaviour
 
                     if (functionName == "trigger_guidance")
                     {
-                        modeOfTransportation = "guide";
+                        _openAIQueriesScript.modeOfTransportation = "guide";
                         //Debug.Log("Going to pass on a command to guide the user to an object");
-                        targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
-                        if (targetForGuidance != null)
+                        if (_openAIQueriesScript.targetForGuidance != null)
                         {
                             string[] options = {
                                 $"Of course. Press the grip button to confirm, and I will take you to the {targetName}.",
@@ -950,16 +942,15 @@ public class RealtimeGuideClient : MonoBehaviour
                             string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
                             //string audioResponse = $"Press the grip button to confirm, and I will take you to the {targetName}.";
                             _ = SpeakCustomText(audioResponse); // Inject custom confirmation audio
-                            _openAIQueriesScript.targetForGuidance = targetForGuidance;
                         }
                     }
                     else if (functionName == "trigger_teleportation")
                     {
-                        modeOfTransportation = "teleport";
+                        _openAIQueriesScript.modeOfTransportation = "teleport";
                         Debug.Log("Going to pass on a command to teleport the user to an object");
-                        targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
-                        if (targetForGuidance != null)
+                        if (_openAIQueriesScript.targetForGuidance != null)
                         {
                             string[] options = {
                                 $"Sure. If you'd like me to teleport us to the {targetName}, just press the grip button.",
@@ -968,20 +959,18 @@ public class RealtimeGuideClient : MonoBehaviour
                             string audioResponse = options[UnityEngine.Random.Range(0, options.Length)];
                             //string audioResponse = $"Press the grip button to confirm, and I will teleport us to the {targetName}.";
                             _ = SpeakCustomText(audioResponse);
-                            _openAIQueriesScript.targetForGuidance = targetForGuidance;
                         }
                     }
                     else if (functionName == "trigger_modification")
                     {
-                        modeOfModification = "modify";
+                        _openAIQueriesScript.modeOfModification = "modify";
                         //Debug.Log("Going to pass on a command to modify an object");
-                        targetForModification = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        _openAIQueriesScript.targetForModification = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
-                        if (targetForModification != null)
+                        if (_openAIQueriesScript.targetForModification != null)
                         {
                             string audioResponse = $"I have added an audio beacon to the {targetName}.";
                             _ = SpeakCustomText(audioResponse);
-                            _openAIQueriesScript.targetForModification = targetForModification;
                         }
                     }
 
