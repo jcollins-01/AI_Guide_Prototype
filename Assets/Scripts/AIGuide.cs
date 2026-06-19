@@ -53,6 +53,7 @@ public class AIGuide : MonoBehaviour
     // Variables for continuous description during routes
     private bool isDescribingRoute = false;
     private Coroutine routeDescriptionCoroutine;
+    private string destination;
 
     // Variables for wizard components
     public string result;
@@ -404,7 +405,8 @@ public class AIGuide : MonoBehaviour
                 checkPlayerVelocity();
 
                 // Check for objects too close to the player
-                CheckHazardDistances();
+                if (!isDescribingRoute) // prevent the hazard alerts from interrupting the guidance descriptions
+                    CheckHazardDistances();
             }
 
             // Determine if guidance is required based on GPT-4 response
@@ -797,7 +799,7 @@ public class AIGuide : MonoBehaviour
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")
                 {
-                    Debug.Log("The mode of transit is guide");
+                    //Debug.Log("The mode of transit is guide");
                     m_AutomatedGuideScript.GuideToPosition(currentTarget); // was openAiQueries.targetForGuidance
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
@@ -828,7 +830,7 @@ public class AIGuide : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("The mode of transit is teleport");
+                    //Debug.Log("The mode of transit is teleport");
                     m_AutomatedGuideScript.TeleportToPosition(m_OpenAIQueriesScript.targetForGuidance);
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
@@ -985,6 +987,7 @@ public class AIGuide : MonoBehaviour
         {
             isDescribingRoute = true;
             routeDescriptionCoroutine = StartCoroutine(RouteDescriptionLoop(targetName));
+            destination = targetName;
         }
     }
 
@@ -998,6 +1001,20 @@ public class AIGuide : MonoBehaviour
                 StopCoroutine(routeDescriptionCoroutine);
                 routeDescriptionCoroutine = null;
             }
+
+            // Clear the backlog queue and active audio so it doesn't read the outdated, back-up prompts
+            if (realtimeClient != null)
+            {
+                realtimeClient.StopAiSpeech();
+
+                // Send a final description of what the user arrived at
+                string prompt = $"We arrived at our destination: {destination}." +
+                                $"Look at your latest visual context. Briefly describe what the user is looking at, focused on the destination, and inform them that they arrived.";
+
+                _ = realtimeClient.SendManualPrompt(prompt);
+
+                destination = ""; // Reset destination until the next target
+            }
         }
     }
 
@@ -1006,17 +1023,32 @@ public class AIGuide : MonoBehaviour
         // Wait a second before starting so the guide doesn't speak over the initial "Let's go" sound/prompt
         yield return new WaitForSeconds(1.5f);
 
+        // Set a minimum silence duration between descriptions
+        float minimumSilenceInterval = 5.0f; // testing natural conversation intervals while walking
+
         while (isDescribingRoute)
         {
-            // Construct the prompt. We assume your realtimeClient automatically appends 
-            // the latest screenshot/visual context to manual prompts.
             string prompt = $"We are currently navigating towards the {targetName}. " +
-                            $"Look at your latest visual context. Briefly and conversationally describe an interesting object or obstacle the user is walking past right now. Do not repeat yourself.";
+                            $"Look at your latest visual context. Briefly describe ONE interesting, NEW object the user is walking past right now. Do not repeat yourself. " +
+                            $"If there is an avatar dressed in gray clothing with black hair, don't mention it. " +
+                            //$"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
+                            $"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
+                            "We're walking down a street lined with cartoonish trees." +
+                            "We're passing a short, colorful building with a flat roof." +
+                            "We're nearing a line of puffy green trees." +
+                            "There's a patch of colorful flowers to your left.";
 
             _ = realtimeClient.SendManualPrompt(prompt);
 
-            // Wait before triggering the next observation
+            // Wait 1-2 seconds to allow the network request to go out
+            yield return new WaitForSeconds(1.5f);
+
+            // Now wait for the AI to actually finish talking
             yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
+
+            // Force the AI to be quiet for X seconds before looking for the next object -
+            // prevents the AI from spamming descriptions of the same area
+            yield return new WaitForSeconds(minimumSilenceInterval);
         }
     }
 }
