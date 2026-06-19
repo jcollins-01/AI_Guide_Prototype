@@ -1029,13 +1029,14 @@ public class AIGuide : MonoBehaviour
         while (isDescribingRoute)
         {
             string prompt = $"We are currently navigating towards the {targetName}. " +
-                            $"Look at your latest visual context. Briefly describe ONE interesting, NEW object the user is walking past right now. Do not repeat yourself. " +
+                            $"Look at your latest visual context. Briefly describe ONE important, NEW object the user is walking past right now. " +
+                            $"The object you choose should be relevant to what a blind person being guided would want to hear about as they're being helped around. " +
                             $"If there is an avatar dressed in gray clothing with black hair, don't mention it. " +
                             //$"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
-                            $"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
+                            $"You should only give one simple sentence, but change up your sentence structure regularly. For example: " +
                             "We're walking down a street lined with cartoonish trees." +
                             "We're passing a short, colorful building with a flat roof." +
-                            "We're nearing a line of puffy green trees." +
+                            "We're going in between a line of puffy green trees." +
                             "There's a patch of colorful flowers to your left.";
 
             _ = realtimeClient.SendManualPrompt(prompt);
