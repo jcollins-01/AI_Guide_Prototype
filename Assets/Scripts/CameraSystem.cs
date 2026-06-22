@@ -35,11 +35,6 @@ public class CameraSystem : MonoBehaviour
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
         createBirdEyeCamera();
-        createHandCam();
-        createBodyCam();
-
-        // Grabs the user's headset transform from AI guide script to guide hand + body cam positioning
-        head = viewpointCamera.transform;
     }
 
     private void Update()
@@ -93,62 +88,12 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.fieldOfView = fieldOfView;
     }
 
-    private void createHandCam()
-    {
-        GameObject newCamera = new GameObject("Hand Camera");
-        handCam = newCamera.AddComponent<Camera>();
-        //handCam.transform.SetParent(head); // Parent to headset so it moves with the player
-
-        // Camera needs to have specified height and angle to be pointed at user's hands at all times
-        SetupCamera(handCam); // Point 30 degrees down and forward (not 90 straight down)
-
-        // Don't enable at the start - only activate during StartGrabbing and deactivate on StopGrabbing
-        handCam.enabled = false;
-    }
-
-    private void createBodyCam()
-    {
-        GameObject newCamera = new GameObject("Body Camera");
-        bodyCam = newCamera.AddComponent<Camera>();
-        //bodyCam.transform.SetParent(head);
-
-        // Camera needs to have specified height and angle to be showing user's whole body from the side at all times/profile view to assist in grabbing
-        SetupCamera(bodyCam); // Point 10 degrees down and towards the player
-
-        // Don't enable at the start - only activate during StartGrabbing and deactivate on StopGrabbing
-        bodyCam.enabled = false;
-    }
-
-    private void SetupCamera(Camera cam)
-    {
-        // DO NOT PARENT IT TO THE HEAD
-        // Leave it completely unparented in the hierarchy so the XR rig can't mess with it
-        cam.transform.SetParent(null);
-
-        // Set Near Clip Plane very low so it doesn't clip hands
-        cam.nearClipPlane = 0.05f;
-        cam.fieldOfView = 90f;
-    }
-
     public void CaptureScreenshot()
     {
         converted = false;
         StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera));
         StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera));
     }
-
-    public Coroutine CaptureHandScreenshots()
-    {
-        return StartCoroutine(CaptureHandAndBody());
-    }
-
-    private IEnumerator CaptureHandAndBody()
-    {
-        converted = false;
-        yield return StartCoroutine(CaptureScreenshotCoroutine(handCam));
-        yield return StartCoroutine(CaptureScreenshotCoroutine(bodyCam));
-    }
-
     private IEnumerator CaptureScreenshotCoroutine(Camera camera)
     {
         yield return new WaitForEndOfFrame();
@@ -163,10 +108,6 @@ public class CameraSystem : MonoBehaviour
         texture.Apply();
 
         byte[] bytes = texture.EncodeToJPG(75);
-        // Don't need to save the images to the application for debugging anymore
-        //string path = Path.Combine(Application.persistentDataPath, "VR_Capture.png");
-        //File.WriteAllBytes(path, bytes);
-        //Debug.Log("Screenshot saved to: " + path);
 
         camera.targetTexture = null;
         RenderTexture.active = null;
@@ -184,24 +125,12 @@ public class CameraSystem : MonoBehaviour
             //Debug.Log("Converting birds eye screenshot to base 64");
             birdsEyeImageBase64 = GetBase64FromBytes(bytes);
         }
-        else if (camera == handCam)
-        {
-            Debug.Log("Converting hand screenshot to base 64");
-            handImageBase64 = GetBase64FromBytes(bytes);
-        }
-        else if (camera == bodyCam)
-        {
-            Debug.Log("Converting body screenshot to base 64");
-            bodyImageBase64 = GetBase64FromBytes(bytes);
-        }
 
         converted = true;
     }
 
     [HideInInspector] public string viewpointImageBase64;
     [HideInInspector] public string birdsEyeImageBase64;
-    [HideInInspector] public string handImageBase64;
-    [HideInInspector] public string bodyImageBase64;
 
     private string GetBase64FromBytes(byte[] imageBytes)
     {

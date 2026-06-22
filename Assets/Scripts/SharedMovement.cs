@@ -152,7 +152,7 @@ public class SharedMovement : MonoBehaviour
     void AssignRoles()
     {
         // If the player joins the scene before the guide, make sure to check for guide components until all are assigned
-        if (theGuide == null && !FindObjectOfType<VRScreenreader>()) // Only check for guide if screenreader is not present
+        if (theGuide == null) // Only check for guide if screenreader is not present
             AssignGuide();
 
         // The player should be null since they need to be instantiated in the multiplayer scene at runtime

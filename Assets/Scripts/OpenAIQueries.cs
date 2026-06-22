@@ -10,41 +10,17 @@ using System.Net.WebSockets;
 using UnityEngine;
 using System.Threading;
 using System.Collections.Concurrent;
-using UnityEngine.Networking;
-using System.Collections;
 using OpenAI;
-using OpenAI.Chat;
 
 public class ConfigData
 {
     public string APIKey;
-    public string PlayHTAPIKey;
-    public string PlayHTUserID;
-    public string ElevenLabsAPIKey;
-}
-
-public class InteractionLog
-{
-    public string timestamp;
-    public string queryNumber;
-    public string userQuery;
-    public string guideResponse;
-    public string guideRole;
-    public string chosenObjectTarget;
-    public string chosenAction;
-
-    // Metrics
-    public float latencyToFirstToken;
-    public float latencyToFirstAudio;
-    public float totalGenerationTime;
 }
 
 public class RealtimeGuideClient : MonoBehaviour
 {
     // Access the OpenAIQueries class so we can change variables as needed
     private OpenAIQueries _openAIQueriesScript;
-    private GuideAudioSync guideAudioSync;
-    private AIGuide aiGuideScript;
 
     public AudioSource outputSource;
 
@@ -107,22 +83,18 @@ public class RealtimeGuideClient : MonoBehaviour
     private const int BufferThreshold = 5; // Start playing once we have 5 chunks
 
     // Configuration
-    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2"; // was gpt-4o-realtime-preview, was deprecated on May 7th - 
+    private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2"; 
 
-    private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs/logging
+    private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks
 
     private void Start()
     {
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
-        aiGuideScript = GetComponent<AIGuide>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
 
         // Open a client for getting descriptions of images
         client = new OpenAIClient(_apiKey);
-
-        // Determine which version of audio generation is to be used
-        personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
 
         _micDevice = Microphone.devices[0];
 
@@ -148,10 +120,7 @@ public class RealtimeGuideClient : MonoBehaviour
             _ = ReceiveLoop();
 
             // Configure the session (Set the "System Prompt")
-            if (usingBaseline)
-                await SendSessionUpdate(systemInstructions);
-            else
-                await FirstSessionUpdate(systemInstructions);
+            await SendSessionUpdate(systemInstructions);
         }
         catch (Exception e)
         {
@@ -187,10 +156,6 @@ public class RealtimeGuideClient : MonoBehaviour
                         voice = "alloy" // Options: alloy, echo, shimmer
                     }
                 },
-                /*voice = "alloy", // Options: alloy, echo, shimmer
-                input_audio_format = "pcm16",
-                output_audio_format = "pcm16",
-                turn_detection = turnDetectionConfig,*/
                 tools = new[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
                 {
                     new
@@ -226,38 +191,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "function",
-                        name = "start_grab_assist",
-                        description = "Call this when the user is trying to grab a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The object the user is trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
-                        name = "stop_grab_assist",
-                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The object the user stopped trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    }
-                    // Deprecated modification + audio beacons for now
-                    /*,
-                    new
-                    {
-                        type = "function",
                         name = "trigger_modification",
                         description = "Call this when the user wants you to modify an object or add an audio beacon to it.",
                         parameters = new
@@ -269,305 +202,12 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object" }
                         }
-                    }*/
-                }
-            }
-        };
-
-        await SendJson(sessionUpdate);
-    }
-
-    // For the improved guide, when it only gives basic context to the guide so a human user can switch the context
-    private async Task FirstSessionUpdate(string instructions)
-    {
-        Debug.Log("Sending only basic guide context (manual intention guide)");
-        // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
-        object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
-
-        var sessionUpdate = new
-        {
-            type = "session.update",
-            session = new
-            {
-                type = "realtime", // required by the general model, new from beta
-                output_modalities = new[] { "audio" }, // Ask for just audio, now assumes text is included
-                instructions = instructions,
-                audio = new
-                {
-                    input = new
-                    {
-                        // Format is now an object, not a string
-                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
-                        turn_detection = turnDetectionConfig
-                    },
-                    output = new
-                    {
-                        format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
-                        voice = "alloy" // Options: alloy, echo, shimmer
                     }
                 }
             }
         };
 
         await SendJson(sessionUpdate);
-    }
-
-    public async Task UpdateLivePrompt(string newInstructions)
-    {
-        if (!_isConnected) return;
-
-        bool shouldRegenerate = false;
-
-        // Push the new guide version instructions
-        var updateSession = new
-        {
-            type = "session.update",
-            session = new
-            {
-                type = "realtime", // required by the general model, new from beta
-                instructions = newInstructions
-            }
-        };
-        await SendJson(updateSession);
-
-        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation...");
-
-        // Cut off the AI immediately so the user doesn't hear the "wrong" response
-        //await SendJson(new { type = "response.cancel" });
-
-        // if the response was active and got cancelled, then we recreate a message
-
-        if (_isResponseActive)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isResponseActive = false; // Immediately unlock locally
-
-            if (_isAiSpeaking)
-            {
-                _isAiSpeaking = false;
-                ClearLocalAudioBuffer();
-            }
-
-            shouldRegenerate = true;
-        }
-
-        if (shouldRegenerate)
-        {
-            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
-            var reevaluateItem = new
-            {
-                type = "conversation.item.create",
-                item = new
-                {
-                    type = "message",
-                    role = "system",
-                    content = new[]
-                    {
-                new
-                {
-                    type = "input_text",
-                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
-                }
-            }
-                }
-            };
-            await SendJson(reevaluateItem);
-
-            // Trigger the new audio generation
-            await SendJson(new { type = "response.create" });
-        }
-    }
-
-    public async Task UpdateGuidancePrompt(string newInstructions)
-    {
-        if (!_isConnected) return;
-
-        bool shouldRegenerate = false;
-
-        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation for a guidance call...");
-
-        // Push the new guide version instructions
-        var updateSession = new
-        {
-            type = "session.update",
-            session = new
-            {
-                type = "realtime", // required by the general model, new from beta
-                instructions = newInstructions,
-                tools = new[]
-                {
-                    new
-                    {
-                        type = "function",
-                        name = "trigger_guidance",
-                        description = "Call this when the player wants you to take them to a specific object, or asks for sighted guide to a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
-                        name = "trigger_teleportation",
-                        description = "Call this when the player wants you to teleport them directly to a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    }
-                }
-            }
-        };
-        await SendJson(updateSession);
-
-        // Cut off the AI immediately so the user doesn't hear the "wrong" response
-        //await SendJson(new { type = "response.cancel" });
-        if (_isResponseActive)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isResponseActive = false; // Immediately unlock locally
-
-            if (_isAiSpeaking)
-            {
-                _isAiSpeaking = false;
-                ClearLocalAudioBuffer();
-            }
-
-            shouldRegenerate = true;
-        }
-
-        if (shouldRegenerate)
-        {
-            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
-            var reevaluateItem = new
-            {
-                type = "conversation.item.create",
-                item = new
-                {
-                    type = "message",
-                    role = "system",
-                    content = new[]
-                    {
-                new
-                {
-                    type = "input_text",
-                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
-                }
-            }
-                }
-            };
-            await SendJson(reevaluateItem);
-
-            // Trigger the new audio generation
-            await SendJson(new { type = "response.create" });
-        }
-    }
-
-    public async Task UpdateGrabbingPrompt(string newInstructions)
-    {
-        if (!_isConnected) return;
-
-        bool shouldRegenerate = false;
-
-        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation for a guidance call...");
-
-        // Push the new guide version instructions
-        var updateSession = new
-        {
-            type = "session.update",
-            session = new
-            {
-                type = "realtime", // required by the general model, new from beta
-                instructions = newInstructions,
-                tools = new[]
-                {
-                    new
-                    {
-                        type = "function",
-                        name = "start_grab_assist",
-                        description = "Call this when the user is trying to grab a specific object.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The object the user is trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
-                        name = "stop_grab_assist",
-                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The name of the object they stopped trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    }
-                }
-            }
-        };
-        await SendJson(updateSession);
-
-        // Cut off the AI immediately so the user doesn't hear the "wrong" response
-        //await SendJson(new { type = "response.cancel" });
-        if (_isResponseActive)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isResponseActive = false; // Immediately unlock locally
-
-            if (_isAiSpeaking)
-            {
-                _isAiSpeaking = false;
-                ClearLocalAudioBuffer();
-            }
-
-            shouldRegenerate = true;
-        }
-
-        if (shouldRegenerate)
-        {
-            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
-            var reevaluateItem = new
-            {
-                type = "conversation.item.create",
-                item = new
-                {
-                    type = "message",
-                    role = "system",
-                    content = new[]
-                    {
-                new
-                {
-                    type = "input_text",
-                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
-                }
-            }
-                }
-            };
-            await SendJson(reevaluateItem);
-
-            // Trigger the new audio generation
-            await SendJson(new { type = "response.create" });
-        }
     }
 
     public void StartRecording()
@@ -650,9 +290,6 @@ public class RealtimeGuideClient : MonoBehaviour
 
     void Update()
     {
-        // Find the guide audio sync component to share over network
-        getAudioSync();
-        
         // Call continuous microphone streaming logic
         HandleMicStreaming();
 
@@ -727,11 +364,8 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             _totalSamplesSent += samples.Length;
 
-            // MicCheck(samples);
-
             // Voice activity detection is only used for the default push-to-talk flow.
-            if (_defaultPushToTalkOn && !_continuousVoiceOn && !_legacyHoldToSpeakOn)
-                ProcessVoiceActivity(samples);
+            ProcessVoiceActivity(samples);
 
             // Noise gate to ensure we aren't treating backround noise/AI voice as user voice
             float maxVol = 0f;
@@ -801,19 +435,6 @@ public class RealtimeGuideClient : MonoBehaviour
         // If we were empty, start buffering before we play
         if (_jitterBuffer.Count >= BufferThreshold)
             _isBuffering = false;
-    }
-
-    // Define the logic for sharing voice over network
-    private bool ShouldShareResponse()
-    {
-        if (aiGuideScript == null) return true; // Default to share if no script found
-
-        // If role is 6, it's private (Local only). Otherwise, share.
-        if (aiGuideScript.role == 6)
-        {
-            return false;
-        }
-        return true;
     }
 
     private void PlayAudioChunk(float[] data)
@@ -932,24 +553,12 @@ public class RealtimeGuideClient : MonoBehaviour
                 case "response.text.delta":
                     // Use the text grabbed here to pass to ElevenLabs
                     //Debug.Log("Got response text to use in ElevenLabs or log");
-                    if (personalVoicesMode) // Still capture the text, but additionally pass it to ElevenLabs
-                    {
-                        string textDelta = (string)jsonObj["delta"];
-                        _textBuffer.Append(textDelta);
-                        // Call ElevenLabs to speak the text instead
+                    string textDelta = (string)jsonObj["delta"];
+                    _textBuffer.Append(textDelta);
+                    //Debug.Log($"Text Chunk: {textDelta}");
 
-                        OnTextReceived?.Invoke(textDelta);
-                        break;
-                    }
-                    else // Only capture the text
-                    {
-                        string textDelta = (string)jsonObj["delta"];
-                        _textBuffer.Append(textDelta);
-                        //Debug.Log($"Text Chunk: {textDelta}");
-
-                        OnTextReceived?.Invoke(textDelta);
-                        break;
-                    } 
+                    OnTextReceived?.Invoke(textDelta);
+                    break;
 
                 case "response.done":
                     _isAiSpeaking = false;
@@ -961,7 +570,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (status == "completed")
                     {
                         string remainingText = _textBuffer.ToString().Trim();
-                        aiGuideScript.RecordPlayerInteraction();
                         //Debug.Log($"Full Response Captured: {remainingText}");
                     }
                     else
@@ -1028,20 +636,8 @@ public class RealtimeGuideClient : MonoBehaviour
                             _ = SpeakCustomText(audioResponse);
                         }
                     }
-                    else if (functionName == "start_grab_assist")
-                    {
-                        Debug.Log("Started grabbing help for objects");
 
-                        aiGuideScript.StartGrabbing(targetName);
-                    }
-                    else if (functionName == "stop_grab_assist")
-                    {
-                        Debug.Log("Stopped grabbing help for objects");
-
-                        aiGuideScript.StopGrabbing();
-                    }
-
-                    // Crucial: send a response back to the API acknowledging the tool was handled
+                    // send a response back to the API acknowledging the tool was handled
                     var functionResult = new
                     {
                         type = "conversation.item.create",
@@ -1072,57 +668,6 @@ public class RealtimeGuideClient : MonoBehaviour
         string json = JsonConvert.SerializeObject(data);
         byte[] bytes = Encoding.UTF8.GetBytes(json);
         await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-    }
-
-    public void SendTextContext(string text)
-    {
-        var eventData = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "user",
-                content = new[]
-                {
-                new { type = "input_text", text = text }
-            }
-            }
-        };
-
-        //Debug.Log($"[Realtime] Injecting session with the following visual content: {text}");
-        SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
-    }
-
-    public async Task SendManualPrompt(string prompt)
-    {
-        var eventData = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "user",
-                content = new[]
-                {
-                    new { type = "input_text", text = prompt }
-                }
-            }
-        };
-
-        await SendJson(eventData);
-        await SendJson(new { type = "response.create" });
-    }
-
-    public async Task CancelPrompt()
-    {
-        if (_isResponseActive)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isResponseActive = false; // Immediately unlock locally
-            ClearLocalAudioBuffer();
-            _isAiSpeaking = false;
-        }
     }
 
     // Sending images directly to realtime
@@ -1160,36 +705,6 @@ public class RealtimeGuideClient : MonoBehaviour
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
-    public async Task SendImageAssistedPrompt(string prompt, string handsBase64, string bodyBase64)
-    {
-        var eventData = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "user",
-                content = new object[]
-                {
-                    new { type = "input_text", text = prompt },
-                    new
-                    {
-                        type = "input_image",
-                        image_url = handsBase64
-                    },
-                    new
-                    {
-                        type = "input_image",
-                        image_url = bodyBase64
-                    }
-                }
-            }
-        };
-
-        await SendJson(eventData);
-        await SendJson(new { type = "response.create" });
-    }
-
     // CONVERTERS
     private byte[] ConvertFloatsToPCM16(float[] samples)
     {
@@ -1225,14 +740,6 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         //Debug.Log("Reached speak custom text");
         if (!_isConnected) return;
-
-        // Cancel existing audio and clear the queue -- only cancel the audio is the server is streaking a response
-        // in the new API, this throws a hard error that breaks the system if the response is already done streaming
-        /*if (_isAiSpeaking)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isAiSpeaking = false; // reset it locally so it's accurate
-        }*/
         
         ClearLocalAudioBuffer();
 
@@ -1285,8 +792,6 @@ public class RealtimeGuideClient : MonoBehaviour
             outputSource.Stop();
 
         _audioPlaybackQueue.Clear();
-
-        //Debug.Log("Local audio buffer cleared to make way for custom TTS.");
     }
 
     // Call this when the user starts their voice input (button down)
@@ -1294,12 +799,6 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         _isProcessingCommand = false;
         //Debug.Log("Lock Reset: Ready for new user commands.");
-    }
-
-    private void getAudioSync()
-    {
-        if (guideAudioSync == null)
-            guideAudioSync = FindObjectOfType<GuideAudioSync>();
     }
 
     public void LoadConfig()
@@ -1365,76 +864,12 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string trustGuideline = "As you guide the player, inform them of your own uncertainty and mistakes so they can gauge whether to trust your advice.";
 
-    [HideInInspector]
-    public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
-        "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts). " +
-        "Third, provide its manipulability (how the player can tactilely interact with it) and texture. Fourth, provide its color." +
-        "3. If the user requests a detailed decsription, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";
-    /*public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
-        "Follow the specified order for object details: First, define what an object is, including its name from the Navigation Registry if it is on the registry; second, provide its shape and size; third, provide its color; " +
-        "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
-        "Example Input: {What is that small thing on the table?} " +
-        "Example Output: {It’s a cylindrical mug about the size of your hand, painted brown. It has a crescent-shaped handle at its midpoint, on one side of the mug. It seems to be ceramic.}" +
-        "Example Input: {What's the nearest building I see over there?} " +
-        "Example Output: The nearest building is a tall skyscraper called Local Hospital. It's a rectangular building around 30 meters tall and has eight floors, with blue windows, a white roof, and white walls. Its door is facing you, and it seems to be made of metal and glass.}";*/
-
-    [HideInInspector]
-    public string objectLocationGuideline = "1. When a player is over one meter away from an object, convey its location via clock-face directions and the estimated distance-to-target in a standard unit of measurement." +
-        "2. When a player is within one meter of an object, convey its location with continuous, micro-steps on how the player should move (e.g., Turn left, one step forward)" +
-        "3. When you give feedback on an object's location the first time, identify the object you are providing feedback on so the player can ensure it's the correct one.";
-    /*public string objectLocationGuideline = "Give the object’s precise location using clock system directions and the estimated distance-to-target. " +
-        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
-        "Example Output: {The mug is at your 1 o’clock, about 2 feet away.}";*/
-
-    [HideInInspector]
-    public string sceneUnderstandingGuideline = "1. Give a scene description focused on details most relevant to a player's current context and goals. Provide more information upon request." +
-        "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in a standard unit of measurement." +
-        "3. Build your descriptions around scene content that a player has already mentioned.";
-    /*public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
-        "Then, mention major landmarks that are relevant to the user’s current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
-        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters). " +
-        "If the environment is familiar, prioritize information about the nearest objects or information points, again providing precise locations of these objects." +
-        "Example Output: {You’re in a small rectangular kitchen. There’s a counter in front of you, a sink to your left, and a doorway behind you. A box of fruit is on the floor at 12 o’clock, one foot away.}";*/
-
-    [HideInInspector]
-    public string spaceNavigationGuideline = "1. If a player wants help planning a route to walk, use allocentric spatial references to describe the space." +
-        "2. If a player wants quick navigation assistance, use turn-by-turn phrasing (e.g., move forward ten feet, then turn left) to provide quick steps of what is next." +
-        "3. If a player wants detailed navigation assistance, provide the following information: First, any nearby landmarks. Second, the next steps of their route." +
-        "Third, a summary of their position in the overall layout of the scene (e.g., You are currently around the middle of the city market district, heading towards the north.).";
-    /*public string spaceNavigationGuideline = "When a user is actively navigating, prioritize information about object locations, dimensions, and identities over other details. " +
-        "Provide information on object appearance or state (i.e., what’s happening to it) only if requested or relevant for how a user needs to navigate around that object." +
-        "Example Output: {You’re at a four-way intersection. The café is across the street at your 11 o’clock, twenty feet away. There is a green light at the crosswalk, showing you can walk across.}" +
-        "During navigation, inform users about which directions or open spaces are traversable, and about the presence of obstacles that would impede movement." +
-        "Example Output: {There is clear walking space directly ahead for about 8 feet, with a counter on your left and a wall on your right.}" +
-        "Use allocentric spatial references when helping the user plan out and follow routes through the scene. " +
-        "You may use the relation of landmarks or information points in the scene to each other, cardinal directions, or patterns you notice in the scene, such as streets laid out in a grid or particular shape, to help guide the user. " +
-        "Use these types of references in combination or separately, based on how the user prefers to be guided." +
-        "Example Output: {North is in front of you; the lake is to the northeast.} {The city streets are laid out in a grid. After passing three streets, you can turn left to reach the museum.}";*/
-
-    [HideInInspector]
-    public string grabbingObjectGuideline = "1. Provide grasping information in the following order: First, which hand the player needs to move. " +
-        "Second, the direction to move it in (using the vectors left, right, up, down, forward, and backward). Third, the distance to move it in a standard unit of measurement. " +
-        "Fourth, the orientation of their hand when reaching in order to grab the object." +
-        "2. Provide guidance for grasping with the right hand unless the player specifies using another.";
-    /*public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
-        "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
-        "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
-        "Use the command “Stop” to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using “Stop,” re-explain the precise location of the object before beginning repeated relative guidance again." +
-        "Inform the user when they have reached the target object." +
-        "Example Output: {The paper cup is at 2 o’clock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 o’clock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";*/
-
-    [HideInInspector]
-    public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
-        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user’s question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
-        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset’s guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don’t move too much and run into something. Let’s try backing up so that you are farther away from that boundary. Did that help?}";
-
     // OpenAI audio, text message, result variables
     [HideInInspector] public string text;
     [HideInInspector] public GameObject targetForGuidance;
     [HideInInspector] public string modeOfTransportation;
     [HideInInspector] public GameObject targetForModification;
     [HideInInspector] public string modeOfModification;
-    [HideInInspector] public GameObject targetForDescription;
 
     public string query;
     public string role;

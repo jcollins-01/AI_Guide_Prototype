@@ -16,7 +16,6 @@ public class AIGuide : MonoBehaviour
     public GuideFollow m_GuideFollowScript;
     private AutomaticModification m_AutomaticModificationScript;
     private RealtimeGuideClient realtimeClient;
-    private SwitchTools m_SwitchToolsScript;
     private CameraSystem camSystem;
 
     // Variables for monitoring
@@ -29,41 +28,6 @@ public class AIGuide : MonoBehaviour
     private bool isRecording = false;
 
     private bool wasMutingLastFrame = false;
-    private bool wasVRButtonDownLastFrame = false;
-
-    // Variables for hazard detection
-    private float dangerZoneDistance = 1.5f;
-    private float hazardCheckInterval = 0.25f; // hazard detection frequency (see CheckHazardDistances())
-    private float hazardPromptCooldown = 6.0f; // response frequency from guide
-    private LayerMask hazardLayerMask;
-    private int maxHazardsDetected = 10;
-    private Collider[] hazardObjectColliders;
-    private float nextHazardCheckTime = 0f;
-    private Vector3 previousPlayerPosition;
-    private Vector3 trueWorldVelocity;
-    public Transform headsetTransform;
-
-    private Dictionary<int, float> promptedHazardsHistory = new Dictionary<int, float>();
-    private float lastHazardPromptTime = -999f;
-    private GameObject lastHazardPrompted;
-    private float globalHazardCooldown = 4.0f; 
-    private float perObjectCooldown = 20.0f;
-    private float maxTTCOfInterest = 2.0f;
-
-    // Variables for prompting the user if they need assistance
-    private float lastPlayerInteractionTime;
-    private float idleTimeout = 60f; 
-    private bool hasPromptedForHelp = false;
-
-    // Variables for continuous description during routes
-    private bool isDescribingRoute = false;
-    private Coroutine routeDescriptionCoroutine;
-    private string destination;
-
-    // Variables for continuous hand movement instructions during grabbing
-    private string targetToGrab;
-    private bool isGrabbing = false;
-    private Coroutine grabLoopCoroutine;
 
     // Variables for wizard components
     public string result;
@@ -83,19 +47,13 @@ public class AIGuide : MonoBehaviour
 
         SetupRealtimeClient();
 
-        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
-
         Debug.Log("AIGuide is active!");
-
-        hazardLayerMask = LayerMask.GetMask("Key Items");
-        hazardObjectColliders = new Collider[maxHazardsDetected];
     }
 
     private void AddGuideComponents()
     {
         // Find necessary components to the attached GameObject
         m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
-        m_SwitchToolsScript = FindObjectOfType<SwitchTools>(); // On Room Manager
 
         // Add necessary components to the attached GameObject
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
@@ -132,30 +90,11 @@ public class AIGuide : MonoBehaviour
 
         // Load config and connect to client
         realtimeClient.LoadConfig();
-        realtimeClient._legacyHoldToSpeakOn = m_SwitchToolsScript != null && m_SwitchToolsScript.legacyHoldToSpeak;
-        realtimeClient._continuousVoiceOn = m_SwitchToolsScript != null && m_SwitchToolsScript.continuousVoice;
-        realtimeClient._defaultPushToTalkOn = m_SwitchToolsScript == null || m_SwitchToolsScript.UseDefaultPushToTalk;
+        realtimeClient._defaultPushToTalkOn = true;
 
-        switch (m_SwitchToolsScript.activeGuideType)
-        {
-            case SwitchTools.GuideType.Baseline:
-                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
-                break;
-            case SwitchTools.GuideType.AllCombined:
-                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
-                break;
-            default:
-                realtimeClient.Connect(basePrompt, false);
-                break;
-        }
+        realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
-        m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
-        //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
-        //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
-
-        // Reset player interaction time with the client
-        lastPlayerInteractionTime = Time.time;
     }
 
     // For ensuring proper realtime data
@@ -168,225 +107,19 @@ public class AIGuide : MonoBehaviour
         // Determine baseline or version of improved guide
         string prompt = "";
 
-        switch (m_SwitchToolsScript.activeGuideType)
-        {
-            case SwitchTools.GuideType.Baseline:
-                Debug.Log("Using the baseline guide!");
-                prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
-                   " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-                   m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
-                break;
-            case SwitchTools.GuideType.ObjectDescription:
-                Debug.Log("Using the object description guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
-                break;
-            case SwitchTools.GuideType.ObjectLocation:
-                Debug.Log("Using the object location guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
-                break;
-            case SwitchTools.GuideType.SceneUnderstanding:
-                Debug.Log("Using the scene understanding guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
-                break;
-            case SwitchTools.GuideType.Navigation:
-                Debug.Log("Using the navigation guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
-                break;
-            case SwitchTools.GuideType.ObjectGrabbing:
-                Debug.Log("Using the object grabbing guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you to help them grab an object."; // {m_OpenAIQueriesScript.grabbingObjectGuideline}";
-                break;
-            case SwitchTools.GuideType.SightedGuidance:
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
-                break;
-            case SwitchTools.GuideType.AllCombined:
-                Debug.Log("Using the all-guideline intention guide!");
-                StringBuilder sbPrompt = new StringBuilder();
+        Debug.Log("Using the baseline guide!");
+        prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
+           " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
+           m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
 
-                // Base Persona & Rules
-                sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
-                sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
-                // New guideline on trust/revealing uncertainty
-                sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
-
-                // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
-
-                // Conditional Behavioral Guidelines
-                sbPrompt.AppendLine("\n### CONDITIONAL GUIDELINES ###");
-                sbPrompt.AppendLine("Depending on what the user asks, apply the following rules. If the user has multiple intents, combine the rules naturally.");
-
-                sbPrompt.AppendLine("\nIF THE USER WANTS AN OBJECT DESCRIPTION:");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.objectDescriptionGuideline);
-
-                sbPrompt.AppendLine("\nIF THE USER IS LOCATING A SPECIFIC OBJECT:");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.objectLocationGuideline);
-
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.sceneUnderstandingGuideline);
-
-                sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
-
-                //sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
-                //sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
-
-                sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
-
-                prompt = sbPrompt.ToString();
-                break;
-            default:
-                // Using the improved guide, but haven't set a specific intention yet
-                Debug.Log("Providing only basic information/introduction to the guide session!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}";
-                break;
-        }
         return prompt;
     }
-    /*public string GetFormattedPrompt()
-    {
-        // Ensure data is fresh
-        m_OpenAIQueriesScript.LoadRoomDescriptions();
-        m_OpenAIQueriesScript.getGuideRole();
-
-        // Determine baseline or version of improved guide
-        string prompt;
-
-        if (m_SwitchToolsScript.baselineGuide)
-        {
-            Debug.Log("Using the baseline guide!");
-            prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
-               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
-        }
-        else if (m_SwitchToolsScript.objectDescriptionGuide)
-        {
-            Debug.Log("Using the object description guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
-        }
-        else if (m_SwitchToolsScript.objectLocationGuide)
-        {
-            Debug.Log("Using the object location guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" + 
-                $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
-        }
-        else if (m_SwitchToolsScript.sceneUnderstandingGuide)
-        {
-            Debug.Log("Using the scene understanding guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
-        }
-        else if (m_SwitchToolsScript.navigationGuide)
-        {
-            Debug.Log("Using the navigation guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
-        }
-        else if (m_SwitchToolsScript.objectGrabbingGuide)
-        {
-            Debug.Log("Using the object grabbing guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
-        }
-        else if (m_SwitchToolsScript.sightedGuidanceGuide)
-        {
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
-        }
-        else if (m_SwitchToolsScript.allCombinedGuide) // Deprecated for now - won't be using unless we learn more about how it determines intention
-        {
-            Debug.Log("Using the all-guideline intention guide!");
-            StringBuilder sbPrompt = new StringBuilder();
-
-            // Base Persona & Rules
-            sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
-            sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
-            // New guideline on trust/revealing uncertainty
-            sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
-            
-            // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
-
-            // Conditional Behavioral Guidelines
-            sbPrompt.AppendLine("\n### CONDITIONAL GUIDELINES ###");
-            sbPrompt.AppendLine("Depending on what the user asks, apply the following rules. If the user has multiple intents, combine the rules naturally.");
-
-            sbPrompt.AppendLine("\nIF THE USER WANTS AN OBJECT DESCRIPTION:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectDescriptionGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER IS LOCATING A SPECIFIC OBJECT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectLocationGuideline);
-
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.sceneUnderstandingGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
-
-            prompt = sbPrompt.ToString();
-        }
-        else
-        {
-            // Using the improved guide, but haven't set a specific intention yet
-            Debug.Log("Providing only basic information/introduction to the guide session!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}";
-        }
-
-        return prompt;
-    }*/
 
     // Handles event of user done talking
     private void HandleAutoStop()
     {
         playEffect("done_listening");
         isRecording = false; // Unlock it so they can press the button again later
-    }
-
-    // Checks if a new guide type was assigned and switches prompts accordingly
-    public async void HandleGuideTypeChanged()
-    {
-        if (realtimeClient == null) return;
-
-        // Regenerate the fresh prompt string based on the newly toggled bools
-        string freshPrompt = GetFormattedPrompt();
-
-        // Determine which type of update this is (guidance updates use the tools structure) and push to OpenAI
-        if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.SightedGuidance))
-            await realtimeClient.UpdateGuidancePrompt(freshPrompt);
-        else if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.ObjectGrabbing))
-            await realtimeClient.UpdateGrabbingPrompt(freshPrompt);
-        else
-            await realtimeClient.UpdateLivePrompt(freshPrompt);
-
-        Debug.Log($"Guide version shifted successfully. Guide was told: {freshPrompt}");
-    }
-
-    private void PresetAvatarRoles()
-    {
-        // Set avatars to correct roles in separate scenes for the guide
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("Tutorial"))
-            role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked"))
-            role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked"))
-            role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked"))
-            role = 4; // robot
-        else
-            role = 1; // human is default guide for all other rooms
     }
 
     // Update is called once per frame
@@ -402,28 +135,11 @@ public class AIGuide : MonoBehaviour
             // Call the guide
             RealtimeGuide();
 
-            // Only perform the following for improved guides - not the baseline
-            if (!m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
-            {
-                // See if the player has been silent for a while
-                CheckForIdlePlayer();
-
-                // Check the player's velocity so we can determine hazards
-                checkPlayerVelocity();
-
-                // Check for objects too close to the player
-                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
-                    CheckHazardDistances();
-            }
-
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
 
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
-
-            // Determine if description is required based on GPT-4 response
-            checkDescriptionRequests();
 
             // If any confederate is present at the start of the scene, assign the guide
             AssignSingleConfederate();
@@ -433,110 +149,19 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    private void CheckForIdlePlayer()
-    {
-        // If the AI hasn't prompted yet, and 60 seconds have passed since the last interaction
-        if (!hasPromptedForHelp && (Time.time - lastPlayerInteractionTime) >= idleTimeout)
-        {
-            TriggerHelpPrompt();
-        }
-    }
-
-    private void checkPlayerVelocity()
-    {
-        // Assign the headset transform
-        if (headsetTransform == null)
-            headsetTransform = m_SharedMovementScript.playerRig.Camera.transform;
-        else
-        {
-            // Calculate true world-space velocity based on position delta - ignore the Y axis to strictly track ground-plane movement
-            Vector3 currentPos = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
-            Vector3 prevPos = new Vector3(previousPlayerPosition.x, 0, previousPlayerPosition.z);
-
-            trueWorldVelocity = (currentPos - prevPos) / Time.deltaTime;
-            previousPlayerPosition = headsetTransform.position;
-        }
-    }
-
     private void RealtimeGuide()
     {
         bool vrButtonDown = m_VRHandlingScript.isButtonPressed;
         bool spaceDown = Input.GetKeyDown(KeyCode.Space);
-        // For continuous voice mode
-        bool spaceUp = Input.GetKeyUp(KeyCode.Space);
         // Create a strict "Down This Frame" trigger for VR to prevent toggle spamming
-        bool isDownThisFrame = (vrButtonDown && !wasVRButtonDownLastFrame) || spaceDown;
-        wasVRButtonDownLastFrame = vrButtonDown; // Store for next frame
 
-        if (realtimeClient._defaultPushToTalkOn)
+        // Default push-to-talk mode: press once, then auto-stop after silence
+        // Start recording on press, but ONLY if we aren't already recording
+        if ((spaceDown || vrButtonDown) && !isRecording)
         {
-            // Default push-to-talk mode: press once, then auto-stop after silence.
-
-            // Start recording on press, but ONLY if we aren't already recording
-            if ((spaceDown || vrButtonDown) && !isRecording)
-            {
-                playEffect("listening");
-                isRecording = true;
-                StartCoroutine(CaptureAndSendContext());
-            }
-            // We DO NOT have a stop condition here. 
-            // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
-        }
-        else if (realtimeClient._continuousVoiceOn)
-        {
-            if (isDownThisFrame)
-            {
-                if (!realtimeClient._isContinuousSessionActive)
-                {
-                    // Toggle ON
-                    playEffect("listening");
-                    realtimeClient._isContinuousSessionActive = true;
-                    realtimeClient.StartRecording(); // Opens mic permanently
-                    Debug.Log("Continuous Voice Mode: ON");
-                }
-                else
-                {
-                    // Toggle OFF
-                    playEffect("done_listening");
-                    realtimeClient._isContinuousSessionActive = false;
-                    _ = realtimeClient.StopRecordingSilently(); // Closes mic
-                    Debug.Log("Continuous Voice Mode: OFF");
-                }
-            }
-        }
-        else
-        {
-            // Legacy hold-to-speak mode.
-
-            bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
-            bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                playEffect("listening");
-                StartCoroutine(CaptureAndSendContext());
-            }
-
-            if (Input.GetKeyUp(KeyCode.Space))
-            {
-                playEffect("done_listening");
-                _ = realtimeClient.StopRecordingAndCommit();
-            }
-
-            // Separate set with flag vars for VR
-            if (isDown && !isRecording)
-            {
-                playEffect("listening");
-                isRecording = true; // Lock it immediately
-                StartCoroutine(CaptureAndSendContext());
-            }
-
-            if (isUp && isRecording)
-            {
-                playEffect("done_listening");
-                isRecording = false; // Unlock
-                _ = realtimeClient.StopRecordingAndCommit();
-            }
+            playEffect("listening");
+            isRecording = true;
+            StartCoroutine(CaptureAndSendContext());
         }
 
         // Logic to mute the guide
@@ -643,12 +268,6 @@ public class AIGuide : MonoBehaviour
         guideRoleAssignedStart = true; // Stops assigning guide role for a single confed client
     }
 
-    private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)
-    {
-        yield return new WaitForSeconds(clip.length);
-        source.mute = true;
-    }
-
     private void playEffect(string clipName)
     {
         switch(clipName)
@@ -687,20 +306,6 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    // This is never actually used to highlight objects of targeted description - leave it for now, since a user probably wants to see the normal appearance of what's being described
-    private void checkDescriptionRequests()
-    {
-        //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
-        // Checking if a target GameObject was selected to be descsribed
-        if (m_OpenAIQueriesScript.targetForDescription != null)
-        {
-            // Call to highlight the game object being described while the guide is talking
-            Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
-
-            m_OpenAIQueriesScript.targetForDescription = null;
-        }
-    }
-
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
@@ -735,7 +340,7 @@ public class AIGuide : MonoBehaviour
         {
             // Call to create an audio beacon, then immediately set the target to null so it doesn't continuously call for beacon creation
             // Also calls to highlight the object while the temporary audio beacon exists
-            Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
+            //Debug.Log("Has a target to modify: " + m_OpenAIQueriesScript.targetForModification);
 
             GameObject currentTarget = m_OpenAIQueriesScript.targetForModification;
 
@@ -783,17 +388,9 @@ public class AIGuide : MonoBehaviour
                     // Calculate the distance between thePlayer and the current GameObject to monitor for player getting disconnected
                     float distance = Vector3.Distance(transform.position, m_SharedMovementScript.thePlayer.transform.position);
 
-                    // Ensure targetActive is true so we don't start it the same frame we reach the goal
-                    if (m_AutomatedGuideScript.targetActive)
-                    {
-                        StartRouteDescriptions(currentTarget.name);
-                    }
-
                     // If they reach the target, make it stop grabbing and stop moving
                     if (!m_AutomatedGuideScript.targetActive)
                     {
-                        StopRouteDescriptions(); // stop the guide from talking
-
                         m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                         m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                         playEffect("subway_chime");
@@ -824,8 +421,6 @@ public class AIGuide : MonoBehaviour
         {
             if (m_SharedMovementScript != null)
             {
-                StopRouteDescriptions(); // keep the guide from talking if there are no targets
-
                 m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
                 m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
                 m_SharedMovementScript.OnTriggerExit(m_SharedMovementScript.guideCollider); // Triggers the exit event so the system sets the guide's grabbing trigger to false
@@ -854,298 +449,4 @@ public class AIGuide : MonoBehaviour
                 camSystem = m_SharedMovementScript.camera;
         }
     }
-
-    private void CheckHazardDistances()
-    {
-        if (Time.time < nextHazardCheckTime) return;
-        nextHazardCheckTime = Time.time + hazardCheckInterval;
-
-        // If the AI guide is currently speaking, completely drop this hazard calculation to prevent building up a queue of historical hazards
-        if (realtimeClient._isAiSpeaking) return;
-
-        // Use the true velocity to minimize what we talk about in a cramped space
-        if (trueWorldVelocity.magnitude < 0.3f) return;
-
-        int hitCount = Physics.OverlapSphereNonAlloc(
-            headsetTransform.position,
-            dangerZoneDistance,
-            hazardObjectColliders,
-            hazardLayerMask
-        );
-
-        GameObject bestCandidate = null;
-        float highestUrgency = -1f;
-        Vector3 normalizedVelocity = trueWorldVelocity.normalized;
-        float playerRadius = 0.45f;
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider hit = hazardObjectColliders[i];
-            if (hit == null) continue;
-
-            // Approximate floor level assuming the headset is ~1.5m above the ground
-            float estimatedFloorY = headsetTransform.position.y - 1.5f;
-
-            // If the bottom-most point of the object is higher than 30cm off the floor, skip it - it's probably on top of something else
-            if (hit.bounds.min.y > estimatedFloorY + 0.3f) continue;
-
-            // Flatten positions to the XZ plane to avoid false positives from height deltas
-            Vector3 hazardPoint = hit.ClosestPoint(headsetTransform.position);
-            Vector3 flatHazardPoint = new Vector3(hazardPoint.x, 0, hazardPoint.z);
-            Vector3 flatPlayerPoint = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
-
-            Vector3 vectorToHazard = flatHazardPoint - flatPlayerPoint;
-
-            // Project the headset's forward direction flat onto the ground plane
-            Vector3 flatHeadsetForward = new Vector3(headsetTransform.forward.x, 0, headsetTransform.forward.z).normalized;
-            // Check if the hazard is generally in front of the player's face/body
-            float gazeAlignment = Vector3.Dot(flatHeadsetForward, vectorToHazard.normalized);
-            // A value of 0.2f creates roughly a 150-degree cone of awareness in front of the player - anything behind their shoulders is ignored
-            if (gazeAlignment < 0.2f) continue;
-
-            // Ensure the object is generally in front of movement
-            float forwardAlignment = Vector3.Dot(normalizedVelocity, vectorToHazard.normalized);
-            if (forwardAlignment < 0.1f) continue;
-
-            // Cylinder lateral bounds check to make sure we're heading towards it fairly directly (different from cone which grabs peripheral objects, too)
-            Vector3 projectedPath = Vector3.Project(vectorToHazard, normalizedVelocity);
-            float perpendicularDistance = Vector3.Distance(vectorToHazard, projectedPath);
-            if (perpendicularDistance > (playerRadius + 0.1f)) continue;
-
-            float distance = Vector3.Distance(flatPlayerPoint, flatHazardPoint);
-
-            // TTC - time to collision system for better hazard detection
-            // Calculate the rate of closure explicitly along the vector to the hazard
-            float approachVelocity = Vector3.Dot(trueWorldVelocity, vectorToHazard.normalized);
-
-            // If the approach velocity is near zero or negative, the player is moving parallel or away
-            if (approachVelocity <= 0.05f) continue;
-
-            // TTC equation: Time = Distance / Velocity
-            float timeToCollision = distance / approachVelocity;
-
-            // Ignore hazards that aren't an imminent threat based on current speed
-            if (timeToCollision > maxTTCOfInterest) continue;
-
-            // Calculate urgency inversely proportional to TTC (lower TTC = much higher urgency)
-            float urgency = 1f / (timeToCollision + 0.01f);
-
-            if (urgency > highestUrgency)
-            {
-                highestUrgency = urgency;
-                bestCandidate = hit.gameObject;
-            }
-        }
-
-        if (bestCandidate != null && ShouldPrompt(bestCandidate))
-        {
-            HandleHazardPrompt(bestCandidate);
-        }
-    }
-
-    private bool ShouldPrompt(GameObject hazard)
-    {
-        float currentTime = Time.time;
-
-        // Global cooldown check (enforce conversational spacing and don't prompt for every hazard every second)
-        if (currentTime - lastHazardPromptTime < globalHazardCooldown) return false;
-
-        // Per-object temporary suppression (once we warn about an object, don't warn about it again for a while)
-        int hazardID = hazard.GetInstanceID();
-        if (promptedHazardsHistory.TryGetValue(hazardID, out float lastObjectPromptTime))
-        {
-            if (currentTime - lastObjectPromptTime < perObjectCooldown)
-            {
-                return false; // Suppress alert - we warned them about this specific object too recently
-            }
-        }
-
-        return true;
-    }
-
-    private void HandleHazardPrompt(GameObject hazard)
-    {
-        // Update timing states immediately to lock out back-to-back hazard alerts
-        int hazardID = hazard.GetInstanceID();
-        promptedHazardsHistory[hazardID] = Time.time;
-        lastHazardPromptTime = Time.time;
-        lastHazardPrompted = hazard;
-
-        string hazardName = hazard.name;
-        string prompt = $"The player is approaching {hazardName}. " +
-                        "Let them know briefly and clearly. DO NOT add any extra fluff. For example: " +
-                        "Oh, you're about to walk into a tree. Be careful." +
-                        "If you keep going forward, you'll walk straight into the tall building." +
-                        "I think you're getting too close to a bush. You might want to step to the side to move around it." +
-                        "You're coming up on the tall building now. " +
-                        "Use the conversation history to see how you've warned the player before and change up your language.";
-        // Debug.Log("Hazard Detection Response: " + prompt);
-
-        _ = realtimeClient.SendManualPrompt(prompt);
-    }
-
-    // May need to think about selectively sending hazards // making a harsher cooldown timer between when it can warn
-
-    private void TriggerHelpPrompt()
-    {
-        // Immediately set to true to prevent firing multiple times
-        hasPromptedForHelp = true;
-
-        // Frame the prompt for the LLM so it knows the context of why it is speaking
-        string prompt = "The player has been silent for a minute. " +
-                        "Proactively, briefly, and naturally ask them if they need any help, guidance, or directions. For example: " +
-                        "Hey, I noticed you've been quiet for a while. Do you need any help?" +
-                        "Is there anything I can help you with?" +
-                        "Remember, I can provide directions or guidance if you need it. Just let me know.";
-
-        // Send to your existing client
-        _ = realtimeClient.SendManualPrompt(prompt);
-    }
-
-    // Resets the interaction timer between player and guide (idle player timer)
-    public void RecordPlayerInteraction()
-    {
-        lastPlayerInteractionTime = Time.time;
-        hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
-    }
-
-    private void StartRouteDescriptions(string targetName)
-    {
-        if (!isDescribingRoute)
-        {
-            isDescribingRoute = true;
-            routeDescriptionCoroutine = StartCoroutine(RouteDescriptionLoop(targetName));
-            destination = targetName;
-        }
-    }
-
-    private void StopRouteDescriptions()
-    {
-        if (isDescribingRoute)
-        {
-            isDescribingRoute = false;
-            if (routeDescriptionCoroutine != null)
-            {
-                StopCoroutine(routeDescriptionCoroutine);
-                routeDescriptionCoroutine = null;
-            }
-
-            // Clear the backlog queue and active audio so it doesn't read the outdated, back-up prompts
-            if (realtimeClient != null)
-            {
-                realtimeClient.StopAiSpeech();
-
-                // Send a final description of what the user arrived at
-                string prompt = $"We arrived at our destination: {destination}." +
-                                $"Look at your latest visual context. Briefly describe what the user is looking at, focused on the destination, and inform them that they arrived.";
-
-                _ = realtimeClient.SendManualPrompt(prompt);
-
-                destination = ""; // Reset destination until the next target
-            }
-        }
-    }
-
-    private IEnumerator RouteDescriptionLoop(string targetName)
-    {
-        // Wait a second before starting so the guide doesn't speak over the initial "Let's go" sound/prompt
-        yield return new WaitForSeconds(1.5f);
-
-        // Set a minimum silence duration between descriptions
-        float minimumSilenceInterval = 5.0f; // testing natural conversation intervals while walking
-
-        while (isDescribingRoute)
-        {
-            // Grab new screenshots and send them
-            StartCoroutine(CaptureImageContext()); // this function also calls SendVisualContext
-
-            string prompt = $"We are currently navigating towards the {targetName}. " +
-                            $"Look at your latest visual context. Briefly describe ONE important, NEW object the user is walking past. " +
-                            $"The object you choose should be relevant to what a blind person being guided would want to hear about as they're being helped around. " +
-                            //$"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
-                            $"You should only give one simple sentence, but change up your sentence structure regularly. For example: " +
-                            "We're walking down a street lined with cartoonish trees." +
-                            "We're passing a short, colorful building with a flat roof." +
-                            "We're going in between a line of puffy green trees." +
-                            "There's a patch of colorful flowers to your left.";
-
-            _ = realtimeClient.SendManualPrompt(prompt);
-
-            // Wait 1-2 seconds to allow the network request to go out
-            yield return new WaitForSeconds(1.5f);
-
-            // Now wait for the AI to actually finish talking
-            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
-
-            // Force the AI to be quiet for X seconds before looking for the next object -
-            // prevents the AI from spamming descriptions of the same area
-            yield return new WaitForSeconds(minimumSilenceInterval);
-        }
-    }
-
-    // For the grabbing descriptions, if the user is using the grabbing guide, call it
-    // otherwise, maybe have a bool in the openAIqueries that gets set when the function determines it wants to be grabbing
-    public void StartGrabbing(string targetName)
-    {
-        targetToGrab = targetName;
-        isGrabbing = true;
-
-        // Enable needed cameras
-        camSystem.handCam.enabled = true;
-        camSystem.bodyCam.enabled = true;
-
-        grabLoopCoroutine = StartCoroutine(GrabInstructionLoop());
-    }
-
-    public void StopGrabbing()
-    {
-        isGrabbing = false;
-        // Disable cameras
-        camSystem.handCam.enabled = false;
-        camSystem.bodyCam.enabled = false;
-
-        if (grabLoopCoroutine != null) StopCoroutine(grabLoopCoroutine);
-    }
-
-    private IEnumerator GrabInstructionLoop()
-    {
-        // Start a timer to stop this coroutine automatically after the user tries grabbing an object for too long
-        float startTime = Time.time;
-        float maxDuration = 30f; // Seconds before the loop forces a stop
-        yield return new WaitForSeconds(0.5f);
-
-        while (isGrabbing && (Time.time - startTime) < maxDuration)
-        {
-            // Capture the screenshot of the hand - wait for things to be captured before continuing
-            yield return camSystem.CaptureHandScreenshots();
-            string handFrame = camSystem.handImageBase64;
-            string bodyFrame = camSystem.bodyImageBase64;
-
-            // Build the repeated grabbing instruction from the object grabbing guidelines
-            string prompt = $"You are assisting the player to grab a {targetToGrab}. " +
-                            $"You will be passed two images: one of the player's hands (which are floating blue hands) so you can see what objects they are near, " +
-                            $"and one of a side profile of the player's body, to build more context on what objects they are near " +
-                            $"or allow you to give instructions if the object is at their feet." +
-                            $"{m_OpenAIQueriesScript.grabbingObjectGuideline}.";
-
-            _ = realtimeClient.SendImageAssistedPrompt(prompt, handFrame, bodyFrame);
-
-            // Wait for the AI to speak before taking the next frame - prevents building up a backlog
-            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
-            yield return new WaitForSeconds(0.5f); // Natural gap between instructions
-        }
-
-        if ((Time.time - startTime) >= maxDuration)
-        {
-            Debug.Log("Grab Assist timed out.");
-
-            // Message the user about pre-emptive stop
-            _ = realtimeClient.CancelPrompt();
-            _ = realtimeClient.SendManualPrompt($"The player has been trying to grab {targetToGrab} for a you are pausing the assistance. " +
-                                                $"Politely inform the player of this, then ask the player to let you know if they still want to " +
-                                                $"keep trying to grab it.");
-            StopGrabbing();
-        }
-    }
-
 }

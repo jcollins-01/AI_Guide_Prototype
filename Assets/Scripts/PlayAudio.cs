@@ -42,7 +42,6 @@ public class PlayAudio : MonoBehaviour
     private SharedMovement m_SharedMovementScript;
     private GuideFollow m_GuideFollowScript;
     private AudioClipSync m_audioClipSync;
-    private SwitchTools m_SwitchToolsScript;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
@@ -96,7 +95,6 @@ public class PlayAudio : MonoBehaviour
         interactionManager = FindObjectOfType<XRInteractionManager>();
         teleport = FindObjectOfType<CustomTeleportationProvider>();
         move = FindObjectOfType<ActionBasedContinuousMoveProvider>();
-        m_SwitchToolsScript = FindFirstObjectByType<SwitchTools>();
 
         playerRig = GameObject.Find("XR Origin (Player Rig)");
         guideRig = GameObject.Find("XR Origin (Guide Rig)");
@@ -231,23 +229,18 @@ public class PlayAudio : MonoBehaviour
 
                 // Debug.Log("Moving with guide?: " + m_SharedMovementScript.movingWithGuide);
 
-                if (m_SwitchToolsScript.VRGuideActive)
+                if (!m_SharedMovementScript.movingWithGuide)
                 {
-                    if (!m_SharedMovementScript.movingWithGuide)
-                    {
-                        //Debug.Log("Player is moving");
-                        playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
-                    }
-                    else
-                    {
-                        //Debug.Log("Guide is moving");
-                        GetSurfaceUnderPlayerController(playerCharacterController);
-                        playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
-                    }
-                    playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
+                    //Debug.Log("Player is moving");
+                    playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
                 }
                 else
+                {
+                    //Debug.Log("Guide is moving");
+                    GetSurfaceUnderPlayerController(playerCharacterController);
                     playAudioForMovingPlayer(playerCurrPosition, playerPreviousPosition);
+                }
+                playAudioForMovingGuide(guideCurrPosition, guidePreviousPosition);
             }
             else if (playerAudio == null && !missingAudioSourceLogged)
             {
@@ -809,12 +802,9 @@ public class PlayAudio : MonoBehaviour
         if (playerAudio == null)
             return;
 
-        if (m_SwitchToolsScript.VRGuideActive)
+        if (m_SharedMovementScript.movingWithGuide)
         {
-            if (m_SharedMovementScript.movingWithGuide)
-            {
-                return;
-            }
+            return;
         }
 
         //Debug.Log("Collided with " + hit.transform.tag + " object.");
@@ -931,7 +921,7 @@ public class PlayAudio : MonoBehaviour
         {
             theGuide = m_SharedMovementScript.theGuide;
             thePlayer = m_SharedMovementScript.thePlayer;
-            if (theGuide != null && thePlayer != null && !FindObjectOfType<VRScreenreader>())
+            if (theGuide != null && thePlayer != null)
             {
                 // Assign playerAudio component after we have access to thePlayer
                 if (playerAudio == null)
@@ -940,7 +930,7 @@ public class PlayAudio : MonoBehaviour
                 sharedMovementFound = true;
                 //Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, theGuide={theGuide.name}, screenreader=false");
             }
-            else if (thePlayer != null && FindObjectOfType<VRScreenreader>()) // Look for only player if we're in screenreader mode
+            else if (thePlayer != null) // Look for only player if we're in screenreader mode
             {
                 // Assign playerAudio component after we have access to thePlayer
                 if (playerAudio == null)
@@ -1065,39 +1055,6 @@ public class PlayAudio : MonoBehaviour
 
         foreach (int contactId in expiredContactIds)
             activeObstacleContacts.Remove(contactId);
-    }
-
-    private bool IsObstacleContactActive(int collisionGroupId)
-    {
-        if (activeObstacleContacts.TryGetValue(collisionGroupId, out float lastSeenTime))
-            return Time.time - lastSeenTime < obstacleContactExitDelay;
-
-        return false;
-    }
-
-    private int GetCollisionGroupId(ControllerColliderHit hit)
-    {
-        Transform strictLayerAncestor = FindStrictLayerAncestor(hit.transform);
-        if (strictLayerAncestor != null)
-            return strictLayerAncestor.GetInstanceID();
-
-        return hit.transform.root.GetInstanceID();
-    }
-
-    private Transform FindStrictLayerAncestor(Transform start)
-    {
-        Transform current = start;
-        Transform lastStrictMatch = null;
-
-        while (current != null)
-        {
-            if (current.gameObject.layer == DefaultLayer || current.gameObject.layer == KeyItemsLayer)
-                lastStrictMatch = current;
-
-            current = current.parent;
-        }
-
-        return lastStrictMatch;
     }
 
     private float GetCollisionVolume(ControllerColliderHit hit, AudioClip collisionClip, float impactAlignment, bool isWallLikeContact)

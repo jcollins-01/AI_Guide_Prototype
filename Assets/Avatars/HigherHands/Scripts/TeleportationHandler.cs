@@ -31,12 +31,6 @@ public class TeleportationHandler : MonoBehaviour
     private float characterControllerCenterY;
     private float characterControllerHeight;
 
-    // Variables to hold scripts we need access to
-    private VRScreenreader m_VRScreenreaderScript;
-
-    // Bools to control for screenreader/guide switch
-    private bool screenreaderActive = false;
-
     // Global flag that allows other systems (e.g., navigation tasks)
     // to temporarily disable teleport input and rays.
     public static bool teleportationBlocked = false;
@@ -66,10 +60,6 @@ public class TeleportationHandler : MonoBehaviour
         characterController = this.gameObject.GetComponent<CharacterController>();
         characterControllerCenterY = 0.88f;
         characterControllerHeight = 1.6f;
-
-        m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
-        if (FindObjectOfType<SwitchTools>().VRScreenreaderActive)
-            screenreaderActive = true;
     }
 
     // Update is called once per frame
@@ -98,23 +88,10 @@ public class TeleportationHandler : MonoBehaviour
         bool leftIsPressed = CheckIfButtonDown(leftTarget);
         leftRay.enabled = leftIsPressed;
         leftReticle.SetActive(leftIsPressed);
-        if (screenreaderActive && leftIsPressed)
-            CheckForReticleHit(leftTarget, leftRay);
 
         bool rightIsPressed = CheckIfButtonDown(rightTarget);
         rightRay.enabled = rightIsPressed;
         rightReticle.SetActive(rightIsPressed);
-        if (screenreaderActive && rightIsPressed)
-        {
-            CheckForReticleHit(rightTarget, rightRay);
-        }
-
-        if (!leftIsPressed && !rightIsPressed)
-        {
-            // If both teleportation triggers are not being held down, reset the lastHitObject
-            if (m_VRScreenreaderScript != null)
-                m_VRScreenreaderScript.lastHitObject = null;
-        }
 
         if (leftRayInteractor != null)
             leftRayInteractor.raycastMask = leftIsPressed ? teleportRayMask : leftNormalMask;
@@ -138,11 +115,6 @@ public class TeleportationHandler : MonoBehaviour
             Debug.Log("Teleport motion completed");
             characterController.center = new Vector3(0f, characterControllerCenterY, 0f);
             characterController.height = characterControllerHeight;
-            if (m_VRScreenreaderScript != null)
-            {
-                if (m_VRScreenreaderScript.sharedMovementFound)
-                    m_VRScreenreaderScript.PlayReferenceAudioPostTeleport();
-            }
         }
     }
 
@@ -172,8 +144,6 @@ public class TeleportationHandler : MonoBehaviour
         {
             Debug.Log("Teleport reticle hit an object");
             // Hitting a teleportable object, so activate screenreader and share position of reticle
-            if (screenreaderActive)
-                m_VRScreenreaderScript.TeleportCheckReferenceAndPlayAudio(reticlePosition); // plays bounds audio before teleport completes
         }
         //else
             //Debug.Log("No objects detected at reticle position.");
