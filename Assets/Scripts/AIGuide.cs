@@ -73,7 +73,7 @@ public class AIGuide : MonoBehaviour
 
         SetupRealtimeClient();
 
-        InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
+        //InvokeRepeating("UpdateVisualContext", 2.0f, 7.0f);
 
         Debug.Log("AIGuide is active!");
 
@@ -405,7 +405,7 @@ public class AIGuide : MonoBehaviour
                 checkPlayerVelocity();
 
                 // Check for objects too close to the player
-                if (!isDescribingRoute) // prevent the hazard alerts from interrupting the guidance descriptions
+                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null) // prevent the hazard alerts from interrupting the guidance descriptions
                     CheckHazardDistances();
             }
 
@@ -561,7 +561,7 @@ public class AIGuide : MonoBehaviour
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
         realtimeClient._isProcessingCommand = false;
-        //StartCoroutine(CaptureImageContext());
+        StartCoroutine(CaptureImageContext());
         yield return null;
     }
 
@@ -589,10 +589,10 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.converted)
         {
-            //Debug.Log("Images converted. Sending to Vision API...");
+            Debug.Log("Images converted. Sending to Vision API...");
 
             // Call our helper function to get image descriptions from GPT-4
-            Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
+            /*Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
 
             while (!visionTask.IsCompleted)
             {
@@ -604,7 +604,8 @@ public class AIGuide : MonoBehaviour
             string fullContext = $"[Visual Context] {visionDesc}";
 
             //Debug.Log("Injecting Combined Context: " + fullContext);
-            realtimeClient.SendTextContext(fullContext);
+            realtimeClient.SendTextContext(fullContext);*/
+            realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
         }
         else
         {
@@ -1052,4 +1053,6 @@ public class AIGuide : MonoBehaviour
             yield return new WaitForSeconds(minimumSilenceInterval);
         }
     }
+
+    // THERE'S A POSSIBILITY THAT WE CAN SEND IMAGES DIRECTLY TO THE REALTIME API NOW!!! INVESTIGATE THIS WHEN WE LOOK AT THE DIFFERENT ARCHITECTURE NEXT WEEK!
 }

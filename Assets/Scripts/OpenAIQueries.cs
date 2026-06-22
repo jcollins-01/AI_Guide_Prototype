@@ -930,7 +930,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (functionName == "trigger_guidance")
                     {
                         _openAIQueriesScript.modeOfTransportation = "guide";
-                        //Debug.Log("Going to pass on a command to guide the user to an object");
                         _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
                         if (_openAIQueriesScript.targetForGuidance != null)
@@ -947,7 +946,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     else if (functionName == "trigger_teleportation")
                     {
                         _openAIQueriesScript.modeOfTransportation = "teleport";
-                        Debug.Log("Going to pass on a command to teleport the user to an object");
                         _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
                         if (_openAIQueriesScript.targetForGuidance != null)
@@ -1045,6 +1043,41 @@ public class RealtimeGuideClient : MonoBehaviour
 
         await SendJson(eventData);
         await SendJson(new { type = "response.create" });
+    }
+
+    // Sending images directly to realtime
+    public void SendVisualContext(string viewpointBase64, string birdsEyeBase64)
+    {
+        var eventData = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new object[]
+                {
+                    new
+                    {
+                        type = "input_text",
+                        text = "[Visual Context] You are looking at two views of the player's VR scene. Image 1 is the player's view, Image 2 is a bird's eye of the scene."
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = viewpointBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = birdsEyeBase64
+                    }
+                }
+            }
+        };
+
+        Debug.Log($"[Realtime] Injecting session with visual content");
+        SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
     // Gets a text description of the images taken to pass to Realtime API
