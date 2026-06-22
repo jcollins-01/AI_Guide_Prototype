@@ -50,18 +50,16 @@ public class CollisionHaptics : MonoBehaviour
         
         if (other.gameObject.layer == keyItemsLayerMask)
         {
-            Debug.Log($"Should have collided with object {other.gameObject.name}");
+            //Debug.Log($"Should have collided with object {other.gameObject.name}");
             objectsCurrentlyTouching++;
 
             // If this is the FIRST object we are touching, trigger the sequence
             if (objectsCurrentlyTouching == 1 && controllersGrabbed)
             {
-                // Play the harsh initial haptic
-                activeController.SendHapticImpulse(0u, initialAmplitude, initialDuration);
+                if (hapticLoopCoroutine != null) 
+                    StopCoroutine(hapticLoopCoroutine);
 
-                // Start the dimmer, continuous loop
-                if (hapticLoopCoroutine != null) StopCoroutine(hapticLoopCoroutine);
-                hapticLoopCoroutine = StartCoroutine(ContinuousHapticLoop());
+                hapticLoopCoroutine = StartCoroutine(HapticSequence());
             }
         }
     }
@@ -70,7 +68,7 @@ public class CollisionHaptics : MonoBehaviour
     {
         if (other.gameObject.layer == keyItemsLayerMask)
         {
-            Debug.Log($"exited object {other.gameObject.name}");
+            //Debug.Log($"exited object {other.gameObject.name}");
             objectsCurrentlyTouching--;
 
             // Prevent negative counts just in case of physics glitches
@@ -84,25 +82,34 @@ public class CollisionHaptics : MonoBehaviour
                     StopCoroutine(hapticLoopCoroutine);
                     hapticLoopCoroutine = null;
                 }
+
+                // Force the motor to shut off immediately to prevent hanging vibrations
+                if (controllersGrabbed)
+                {
+                    activeController.StopHaptics();
+                }
             }
         }
     }
 
-    private IEnumerator ContinuousHapticLoop()
+    private IEnumerator HapticSequence()
     {
-        // Wait out the initial harsh pulse so they don't overlap and cancel out
+        // Play the harsh initial haptic
+        activeController.SendHapticImpulse(0u, initialAmplitude, initialDuration);
+
+        // Wait for the initial pulse to finish
         yield return new WaitForSeconds(initialDuration);
 
+        // Loop the dimmer, continuous haptic
         while (true)
         {
             if (controllersGrabbed)
             {
-                // Send a smaller, continuous pulse
-                activeController.SendHapticImpulse(0u, continuousAmplitude, continuousTickRate);
+                // Make the duration slightly longer than the wait time
+                // This forces the new motor command to overwrite the old one BEFORE it finishes, creating an uninterrupted hum
+                activeController.SendHapticImpulse(0u, continuousAmplitude, continuousTickRate + 0.05f);
             }
 
-            // Wait exactly the length of the pulse before sending the next one
-            // This creates a smooth, continuous vibration
             yield return new WaitForSeconds(continuousTickRate);
         }
     }
@@ -119,20 +126,17 @@ public class CollisionHaptics : MonoBehaviour
                 // Assign the active controller based on the Inspector selection
                 if (handSide == HandSide.Right)
                 {
-                    
                     activeController = m_VRHandlingScript.rightXRController;
-                    if (activeController != null)
-                        Debug.Log("Active on right controller");
+                    //if (activeController != null)
+                        //Debug.Log("Active on right controller");
                 }
                     
                 else
                 {
-                    
                     activeController = m_VRHandlingScript.leftXRController;
-                    if (activeController != null)
-                        Debug.Log("Active on left controller");
+                    //if (activeController != null)
+                        //Debug.Log("Active on left controller");
                 }
-                    
 
                 controllersGrabbed = true;
             }
