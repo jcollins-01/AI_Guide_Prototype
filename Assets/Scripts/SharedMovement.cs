@@ -12,6 +12,7 @@ public class SharedMovement : MonoBehaviour
     public GameObject thePlayer;
     public GameObject theGuide;
     public XROrigin playerRig;
+    public CameraSystem camera;
 
     // Variables to keep track of positioning between guide and player
     private Vector3 playerGuideOffset;
@@ -47,7 +48,7 @@ public class SharedMovement : MonoBehaviour
         }
 
         // Creates the CameraSystem for the guide to keep track of Player's Movement
-        gameObject.AddComponent<CameraSystem>();
+        camera = gameObject.AddComponent<CameraSystem>();
 
         // Ignore collisions between Player, Guide, or Confederate and XR Rig
         Physics.IgnoreLayerCollision(3, 6, true);

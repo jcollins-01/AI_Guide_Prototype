@@ -1060,7 +1060,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "input_text",
-                        text = "[Visual Context] You are looking at two views of the player's VR scene. Image 1 is the player's view, Image 2 is a bird's eye of the scene."
+                        text = "[Visual Context] You are looking at two views of the player's VR scene. Image 1 is the player's view, Image 2 is a bird's eye of the scene. If you ever see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide."
                     },
                     new
                     {

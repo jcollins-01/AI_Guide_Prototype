@@ -17,6 +17,7 @@ public class AIGuide : MonoBehaviour
     private AutomaticModification m_AutomaticModificationScript;
     private RealtimeGuideClient realtimeClient;
     private SwitchTools m_SwitchToolsScript;
+    private CameraSystem camSystem;
 
     // Variables for monitoring
     private bool guideRoleAssigned = false;
@@ -386,7 +387,7 @@ public class AIGuide : MonoBehaviour
     void Update()
     {
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
-        // Needed for access to the player's interactions with the guide + sharing guide audio over network
+        // Needed for access to the player's interactions with the guide + sharing guide audio over network + adding/accessing camera system
         getSharedMovement();
 
         // If we're in a scene run from a guide client
@@ -576,7 +577,6 @@ public class AIGuide : MonoBehaviour
     private IEnumerator CaptureImageContext()
     {
         // Trigger the screenshot
-        CameraSystem camSystem = FindObjectOfType<CameraSystem>();
         camSystem.converted = false;
         camSystem.CaptureScreenshot();
 
@@ -590,26 +590,7 @@ public class AIGuide : MonoBehaviour
         if (camSystem.converted)
         {
             Debug.Log("Images converted. Sending to Vision API...");
-
-            // Call our helper function to get image descriptions from GPT-4
-            /*Task<string> visionTask = realtimeClient.GetImageDescriptionAsync(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
-
-            while (!visionTask.IsCompleted)
-            {
-                yield return null; // Let Unity render the next frame
-            }
-
-            string visionDesc = visionTask.Status == TaskStatus.RanToCompletion ? visionTask.Result : "Error reading images .";
-
-            string fullContext = $"[Visual Context] {visionDesc}";
-
-            //Debug.Log("Injecting Combined Context: " + fullContext);
-            realtimeClient.SendTextContext(fullContext);*/
             realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
-        }
-        else
-        {
-            Debug.LogWarning("Image upload timed out");
         }
     }
 
@@ -869,7 +850,12 @@ public class AIGuide : MonoBehaviour
     private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
+        {
             m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+            // Can grab the camSystem once the shared movement script has been added + has added its own camera
+            if (camSystem == null && m_SharedMovementScript.camera != null)
+                camSystem = m_SharedMovementScript.camera;
+        }
     }
 
     private void CheckHazardDistances()
@@ -1029,10 +1015,12 @@ public class AIGuide : MonoBehaviour
 
         while (isDescribingRoute)
         {
+            // Grab new screenshots and send them
+            StartCoroutine(CaptureImageContext()); // this function also calls SendVisualContext
+
             string prompt = $"We are currently navigating towards the {targetName}. " +
-                            $"Look at your latest visual context. Briefly describe ONE important, NEW object the user is walking past right now. " +
+                            $"Look at your latest visual context. Briefly describe ONE important, NEW object the user is walking past. " +
                             $"The object you choose should be relevant to what a blind person being guided would want to hear about as they're being helped around. " +
-                            $"If there is an avatar dressed in gray clothing with black hair, don't mention it. " +
                             //$"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
                             $"You should only give one simple sentence, but change up your sentence structure regularly. For example: " +
                             "We're walking down a street lined with cartoonish trees." +
@@ -1053,6 +1041,4 @@ public class AIGuide : MonoBehaviour
             yield return new WaitForSeconds(minimumSilenceInterval);
         }
     }
-
-    // THERE'S A POSSIBILITY THAT WE CAN SEND IMAGES DIRECTLY TO THE REALTIME API NOW!!! INVESTIGATE THIS WHEN WE LOOK AT THE DIFFERENT ARCHITECTURE NEXT WEEK!
 }
