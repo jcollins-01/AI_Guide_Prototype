@@ -222,7 +222,38 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object" }
                         }
-                    } // Deprecated modification + audio beacons for now
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "start_grab_assist",
+                        description = "Call this when the user is trying to grab a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The object the user is trying to reach." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "stop_grab_assist",
+                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The object the user stopped trying to reach." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    }
+                    // Deprecated modification + audio beacons for now
                     /*,
                     new
                     {
@@ -443,29 +474,15 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
-    // may have to have another version to trigger the guidance function // UpdateGuidancePrompt
-    public async Task OldUpdateLivePrompt(string newInstructions)
+    public async Task UpdateGrabbingPrompt(string newInstructions)
     {
         if (!_isConnected) return;
 
-        var updateSession = new
-        {
-            type = "session.update",
-            session = new
-            {
-                type = "realtime", // required by the general model, new from beta
-                instructions = newInstructions
-            }
-        };
-        Debug.Log("The instructions received were: " + newInstructions);
-        Debug.Log("[Realtime] Dynamically updating guide instructions on the server...");
-        await SendJson(updateSession);
-    }
+        bool shouldRegenerate = false;
 
-    public async Task OldUpdateGuidancePrompt(string newInstructions)
-    {
-        if (!_isConnected) return;
+        //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation for a guidance call...");
 
+        // Push the new guide version instructions
         var updateSession = new
         {
             type = "session.update",
@@ -473,19 +490,19 @@ public class RealtimeGuideClient : MonoBehaviour
             {
                 type = "realtime", // required by the general model, new from beta
                 instructions = newInstructions,
-                tools = new[] 
+                tools = new[]
                 {
                     new
                     {
                         type = "function",
-                        name = "trigger_guidance",
-                        description = "Call this when the player wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                        name = "start_grab_assist",
+                        description = "Call this when the user is trying to grab a specific object.",
                         parameters = new
                         {
                             type = "object",
                             properties = new
                             {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                                target_object = new { type = "string", description = "The object the user is trying to reach." }
                             },
                             required = new[] { "target_object" }
                         }
@@ -493,14 +510,14 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "function",
-                        name = "trigger_teleportation",
-                        description = "Call this when the player wants you to teleport them directly to a specific object.",
+                        name = "stop_grab_assist",
+                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
                         parameters = new
                         {
                             type = "object",
                             properties = new
                             {
-                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                                target_object = new { type = "string", description = "The name of the object they stopped trying to reach." }
                             },
                             required = new[] { "target_object" }
                         }
@@ -508,9 +525,49 @@ public class RealtimeGuideClient : MonoBehaviour
                 }
             }
         };
-        Debug.Log("The instructions received were: " + newInstructions);
-        Debug.Log("[Realtime] Dynamically updating session to do guidance actions...");
         await SendJson(updateSession);
+
+        // Cut off the AI immediately so the user doesn't hear the "wrong" response
+        //await SendJson(new { type = "response.cancel" });
+        if (_isResponseActive)
+        {
+            await SendJson(new { type = "response.cancel" });
+            _isResponseActive = false; // Immediately unlock locally
+
+            if (_isAiSpeaking)
+            {
+                _isAiSpeaking = false;
+                ClearLocalAudioBuffer();
+            }
+
+            shouldRegenerate = true;
+        }
+
+        if (shouldRegenerate)
+        {
+            // Inject a hidden system message telling the AI to look back at the user's last input and apply the new rules
+            var reevaluateItem = new
+            {
+                type = "conversation.item.create",
+                item = new
+                {
+                    type = "message",
+                    role = "system",
+                    content = new[]
+                    {
+                new
+                {
+                    type = "input_text",
+                    text = "System override: The active guidance rules have just been updated. Ignore your previous response if you started one, and immediately re-answer the user's last question using ONLY your new guidelines."
+                }
+            }
+                }
+            };
+            await SendJson(reevaluateItem);
+
+            // Trigger the new audio generation
+            await SendJson(new { type = "response.create" });
+        }
     }
 
     public void StartRecording()
@@ -971,6 +1028,18 @@ public class RealtimeGuideClient : MonoBehaviour
                             _ = SpeakCustomText(audioResponse);
                         }
                     }
+                    else if (functionName == "start_grab_assist")
+                    {
+                        Debug.Log("Started grabbing help for objects");
+
+                        aiGuideScript.StartGrabbing(targetName);
+                    }
+                    else if (functionName == "stop_grab_assist")
+                    {
+                        Debug.Log("Stopped grabbing help for objects");
+
+                        aiGuideScript.StopGrabbing();
+                    }
 
                     // Crucial: send a response back to the API acknowledging the tool was handled
                     var functionResult = new
@@ -1045,6 +1114,17 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(new { type = "response.create" });
     }
 
+    public async Task CancelPrompt()
+    {
+        if (_isResponseActive)
+        {
+            await SendJson(new { type = "response.cancel" });
+            _isResponseActive = false; // Immediately unlock locally
+            ClearLocalAudioBuffer();
+            _isAiSpeaking = false;
+        }
+    }
+
     // Sending images directly to realtime
     public void SendVisualContext(string viewpointBase64, string birdsEyeBase64)
     {
@@ -1076,44 +1156,38 @@ public class RealtimeGuideClient : MonoBehaviour
             }
         };
 
-        Debug.Log($"[Realtime] Injecting session with visual content");
+        //Debug.Log($"[Realtime] Injecting session with visual content");
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
-    // Gets a text description of the images taken to pass to Realtime API
-    public async Task<string> GetImageDescriptionAsync(string viewpointBase64, string birdsEyeBase64)
+    public async Task SendImageAssistedPrompt(string prompt, string handsBase64, string bodyBase64)
     {
-        List<Content> content = new List<Content>
-            {
-                new Content(ContentType.Text, "You are looking at two views of a VR scene. Image 1 is the user's view, Image 2 is a bird's eye map. Describe the scene's layout and what the user is facing in one concise paragraph."),
-                new Content(ContentType.ImageUrl, viewpointBase64),
-                new Content(ContentType.ImageUrl, birdsEyeBase64)
-            };
-
-        var chatPrompts = new List<Message>
-            {
-                new(Role.User, content),
-            };
-
-        var chatRequest = new ChatRequest(chatPrompts, model: "gpt-4o", maxTokens: 300);
-        string output = "N/A";
-        try
+        var eventData = new
         {
-            // Call the API
-            var chatResponse = await client.ChatEndpoint.GetCompletionAsync(chatRequest);
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new object[]
+                {
+                    new { type = "input_text", text = prompt },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = handsBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = bodyBase64
+                    }
+                }
+            }
+        };
 
-            output = chatResponse.FirstChoice.ToString();
-            //Debug.Log("Image description by GPT-4: " + output);
-            string result = output;
-
-            // Return the text
-            return result;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Vision Error: {e.Message}");
-            return null; // Return null on failure
-        }
+        await SendJson(eventData);
+        await SendJson(new { type = "response.create" });
     }
 
     // CONVERTERS

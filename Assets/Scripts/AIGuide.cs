@@ -32,7 +32,6 @@ public class AIGuide : MonoBehaviour
     private bool wasVRButtonDownLastFrame = false;
 
     // Variables for hazard detection
-    private bool hazardDetectionEnabled = true; // hazard detection feature toggle
     private float dangerZoneDistance = 1.5f;
     private float hazardCheckInterval = 0.25f; // hazard detection frequency (see CheckHazardDistances())
     private float hazardPromptCooldown = 6.0f; // response frequency from guide
@@ -40,11 +39,16 @@ public class AIGuide : MonoBehaviour
     private int maxHazardsDetected = 10;
     private Collider[] hazardObjectColliders;
     private float nextHazardCheckTime = 0f;
-    private float lastHazardPromptTime = -999f;
-    private GameObject lastHazardPrompted;
     private Vector3 previousPlayerPosition;
     private Vector3 trueWorldVelocity;
     public Transform headsetTransform;
+
+    private Dictionary<int, float> promptedHazardsHistory = new Dictionary<int, float>();
+    private float lastHazardPromptTime = -999f;
+    private GameObject lastHazardPrompted;
+    private float globalHazardCooldown = 4.0f; 
+    private float perObjectCooldown = 20.0f;
+    private float maxTTCOfInterest = 2.0f;
 
     // Variables for prompting the user if they need assistance
     private float lastPlayerInteractionTime;
@@ -55,6 +59,11 @@ public class AIGuide : MonoBehaviour
     private bool isDescribingRoute = false;
     private Coroutine routeDescriptionCoroutine;
     private string destination;
+
+    // Variables for continuous hand movement instructions during grabbing
+    private string targetToGrab;
+    private bool isGrabbing = false;
+    private Coroutine grabLoopCoroutine;
 
     // Variables for wizard components
     public string result;
@@ -190,7 +199,7 @@ public class AIGuide : MonoBehaviour
             case SwitchTools.GuideType.ObjectGrabbing:
                 Debug.Log("Using the object grabbing guide!");
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
+                    $"The player is asking you to help them grab an object."; // {m_OpenAIQueriesScript.grabbingObjectGuideline}";
                 break;
             case SwitchTools.GuideType.SightedGuidance:
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
@@ -224,8 +233,8 @@ public class AIGuide : MonoBehaviour
                 sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
                 sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
 
-                sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
+                //sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
+                //sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
 
                 sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
                 sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
@@ -356,13 +365,10 @@ public class AIGuide : MonoBehaviour
         // Determine which type of update this is (guidance updates use the tools structure) and push to OpenAI
         if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.SightedGuidance))
             await realtimeClient.UpdateGuidancePrompt(freshPrompt);
+        else if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.ObjectGrabbing))
+            await realtimeClient.UpdateGrabbingPrompt(freshPrompt);
         else
             await realtimeClient.UpdateLivePrompt(freshPrompt);
-
-        /*if (m_SwitchToolsScript.sightedGuidanceGuide)
-            await realtimeClient.UpdateGuidancePrompt(freshPrompt);
-        else
-            await realtimeClient.UpdateLivePrompt(freshPrompt);*/
 
         Debug.Log($"Guide version shifted successfully. Guide was told: {freshPrompt}");
     }
@@ -406,7 +412,7 @@ public class AIGuide : MonoBehaviour
                 checkPlayerVelocity();
 
                 // Check for objects too close to the player
-                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null) // prevent the hazard alerts from interrupting the guidance descriptions
+                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
                     CheckHazardDistances();
             }
 
@@ -443,8 +449,7 @@ public class AIGuide : MonoBehaviour
             headsetTransform = m_SharedMovementScript.playerRig.Camera.transform;
         else
         {
-            // Calculate true world-space velocity based on position delta
-            // We ignore the Y axis to strictly track ground-plane movement
+            // Calculate true world-space velocity based on position delta - ignore the Y axis to strictly track ground-plane movement
             Vector3 currentPos = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
             Vector3 prevPos = new Vector3(previousPlayerPosition.x, 0, previousPlayerPosition.z);
 
@@ -566,14 +571,6 @@ public class AIGuide : MonoBehaviour
         yield return null;
     }
 
-    void UpdateVisualContext()
-    {
-        if (realtimeClient._isConnected)
-        {
-            StartCoroutine(CaptureImageContext());
-        }
-    }
-
     private IEnumerator CaptureImageContext()
     {
         // Trigger the screenshot
@@ -589,7 +586,7 @@ public class AIGuide : MonoBehaviour
         // Send the context once we have the links
         if (camSystem.converted)
         {
-            Debug.Log("Images converted. Sending to Vision API...");
+            //Debug.Log("Images converted. Sending to Vision API...");
             realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
         }
     }
@@ -860,10 +857,13 @@ public class AIGuide : MonoBehaviour
 
     private void CheckHazardDistances()
     {
-        if (!hazardDetectionEnabled || Time.time < nextHazardCheckTime) return;
+        if (Time.time < nextHazardCheckTime) return;
         nextHazardCheckTime = Time.time + hazardCheckInterval;
 
-        // CRAMPED SPACE FILTER: Use the new true velocity
+        // If the AI guide is currently speaking, completely drop this hazard calculation to prevent building up a queue of historical hazards
+        if (realtimeClient._isAiSpeaking) return;
+
+        // Use the true velocity to minimize what we talk about in a cramped space
         if (trueWorldVelocity.magnitude < 0.3f) return;
 
         int hitCount = Physics.OverlapSphereNonAlloc(
@@ -876,7 +876,6 @@ public class AIGuide : MonoBehaviour
         GameObject bestCandidate = null;
         float highestUrgency = -1f;
         Vector3 normalizedVelocity = trueWorldVelocity.normalized;
-
         float playerRadius = 0.45f;
 
         for (int i = 0; i < hitCount; i++)
@@ -884,27 +883,52 @@ public class AIGuide : MonoBehaviour
             Collider hit = hazardObjectColliders[i];
             if (hit == null) continue;
 
-            // Flatten positions to the XZ plane to avoid false positives from ceiling/floor height differences
+            // Approximate floor level assuming the headset is ~1.5m above the ground
+            float estimatedFloorY = headsetTransform.position.y - 1.5f;
+
+            // If the bottom-most point of the object is higher than 30cm off the floor, skip it - it's probably on top of something else
+            if (hit.bounds.min.y > estimatedFloorY + 0.3f) continue;
+
+            // Flatten positions to the XZ plane to avoid false positives from height deltas
             Vector3 hazardPoint = hit.ClosestPoint(headsetTransform.position);
             Vector3 flatHazardPoint = new Vector3(hazardPoint.x, 0, hazardPoint.z);
             Vector3 flatPlayerPoint = new Vector3(headsetTransform.position.x, 0, headsetTransform.position.z);
 
             Vector3 vectorToHazard = flatHazardPoint - flatPlayerPoint;
 
-            // 1. DIRECTION FILTER: Ensure the object is in the direction of movement
+            // Project the headset's forward direction flat onto the ground plane
+            Vector3 flatHeadsetForward = new Vector3(headsetTransform.forward.x, 0, headsetTransform.forward.z).normalized;
+            // Check if the hazard is generally in front of the player's face/body
+            float gazeAlignment = Vector3.Dot(flatHeadsetForward, vectorToHazard.normalized);
+            // A value of 0.2f creates roughly a 150-degree cone of awareness in front of the player - anything behind their shoulders is ignored
+            if (gazeAlignment < 0.2f) continue;
+
+            // Ensure the object is generally in front of movement
             float forwardAlignment = Vector3.Dot(normalizedVelocity, vectorToHazard.normalized);
             if (forwardAlignment < 0.1f) continue;
 
-            // 2. TRAJECTORY FILTER: Cylinder check
+            // Cylinder lateral bounds check to make sure we're heading towards it fairly directly (different from cone which grabs peripheral objects, too)
             Vector3 projectedPath = Vector3.Project(vectorToHazard, normalizedVelocity);
             float perpendicularDistance = Vector3.Distance(vectorToHazard, projectedPath);
-
             if (perpendicularDistance > (playerRadius + 0.1f)) continue;
 
             float distance = Vector3.Distance(flatPlayerPoint, flatHazardPoint);
 
-            // CALCULATE URGENCY
-            float urgency = forwardAlignment / (distance + 0.1f);
+            // TTC - time to collision system for better hazard detection
+            // Calculate the rate of closure explicitly along the vector to the hazard
+            float approachVelocity = Vector3.Dot(trueWorldVelocity, vectorToHazard.normalized);
+
+            // If the approach velocity is near zero or negative, the player is moving parallel or away
+            if (approachVelocity <= 0.05f) continue;
+
+            // TTC equation: Time = Distance / Velocity
+            float timeToCollision = distance / approachVelocity;
+
+            // Ignore hazards that aren't an imminent threat based on current speed
+            if (timeToCollision > maxTTCOfInterest) continue;
+
+            // Calculate urgency inversely proportional to TTC (lower TTC = much higher urgency)
+            float urgency = 1f / (timeToCollision + 0.01f);
 
             if (urgency > highestUrgency)
             {
@@ -921,15 +945,32 @@ public class AIGuide : MonoBehaviour
 
     private bool ShouldPrompt(GameObject hazard)
     {
-        bool cooldownReady = Time.time - lastHazardPromptTime >= hazardPromptCooldown;
-        bool isDifferentHazard = hazard != lastHazardPrompted;
+        float currentTime = Time.time;
 
-        // In a cramped space, we increase the cooldown
-        return cooldownReady || isDifferentHazard;
+        // Global cooldown check (enforce conversational spacing and don't prompt for every hazard every second)
+        if (currentTime - lastHazardPromptTime < globalHazardCooldown) return false;
+
+        // Per-object temporary suppression (once we warn about an object, don't warn about it again for a while)
+        int hazardID = hazard.GetInstanceID();
+        if (promptedHazardsHistory.TryGetValue(hazardID, out float lastObjectPromptTime))
+        {
+            if (currentTime - lastObjectPromptTime < perObjectCooldown)
+            {
+                return false; // Suppress alert - we warned them about this specific object too recently
+            }
+        }
+
+        return true;
     }
 
     private void HandleHazardPrompt(GameObject hazard)
     {
+        // Update timing states immediately to lock out back-to-back hazard alerts
+        int hazardID = hazard.GetInstanceID();
+        promptedHazardsHistory[hazardID] = Time.time;
+        lastHazardPromptTime = Time.time;
+        lastHazardPrompted = hazard;
+
         string hazardName = hazard.name;
         string prompt = $"The player is approaching {hazardName}. " +
                         "Let them know briefly and clearly. DO NOT add any extra fluff. For example: " +
@@ -1041,4 +1082,70 @@ public class AIGuide : MonoBehaviour
             yield return new WaitForSeconds(minimumSilenceInterval);
         }
     }
+
+    // For the grabbing descriptions, if the user is using the grabbing guide, call it
+    // otherwise, maybe have a bool in the openAIqueries that gets set when the function determines it wants to be grabbing
+    public void StartGrabbing(string targetName)
+    {
+        targetToGrab = targetName;
+        isGrabbing = true;
+
+        // Enable needed cameras
+        camSystem.handCam.enabled = true;
+        camSystem.bodyCam.enabled = true;
+
+        grabLoopCoroutine = StartCoroutine(GrabInstructionLoop());
+    }
+
+    public void StopGrabbing()
+    {
+        isGrabbing = false;
+        // Disable cameras
+        camSystem.handCam.enabled = false;
+        camSystem.bodyCam.enabled = false;
+
+        if (grabLoopCoroutine != null) StopCoroutine(grabLoopCoroutine);
+    }
+
+    private IEnumerator GrabInstructionLoop()
+    {
+        // Start a timer to stop this coroutine automatically after the user tries grabbing an object for too long
+        float startTime = Time.time;
+        float maxDuration = 30f; // Seconds before the loop forces a stop
+        yield return new WaitForSeconds(0.5f);
+
+        while (isGrabbing && (Time.time - startTime) < maxDuration)
+        {
+            // Capture the screenshot of the hand - wait for things to be captured before continuing
+            yield return camSystem.CaptureHandScreenshots();
+            string handFrame = camSystem.handImageBase64;
+            string bodyFrame = camSystem.bodyImageBase64;
+
+            // Build the repeated grabbing instruction from the object grabbing guidelines
+            string prompt = $"You are assisting the player to grab a {targetToGrab}. " +
+                            $"You will be passed two images: one of the player's hands (which are floating blue hands) so you can see what objects they are near, " +
+                            $"and one of a side profile of the player's body, to build more context on what objects they are near " +
+                            $"or allow you to give instructions if the object is at their feet." +
+                            $"{m_OpenAIQueriesScript.grabbingObjectGuideline}.";
+
+            _ = realtimeClient.SendImageAssistedPrompt(prompt, handFrame, bodyFrame);
+
+            // Wait for the AI to speak before taking the next frame - prevents building up a backlog
+            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
+            yield return new WaitForSeconds(0.5f); // Natural gap between instructions
+        }
+
+        if ((Time.time - startTime) >= maxDuration)
+        {
+            Debug.Log("Grab Assist timed out.");
+
+            // Message the user about pre-emptive stop
+            _ = realtimeClient.CancelPrompt();
+            _ = realtimeClient.SendManualPrompt($"The player has been trying to grab {targetToGrab} for a you are pausing the assistance. " +
+                                                $"Politely inform the player of this, then ask the player to let you know if they still want to " +
+                                                $"keep trying to grab it.");
+            StopGrabbing();
+        }
+    }
+
 }
