@@ -478,7 +478,9 @@ MonoBehaviour:
   - {fileID: 195098282}
   - {fileID: 938198513}
   randomTargets: []
+  m_SelectedTargetScript: {fileID: 0}
   timesTargetReached: 0
+  previousTargetIndex: -1
 --- !u!114 &402456197
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -494,8 +496,14 @@ MonoBehaviour:
   unloadingBag: {fileID: 6865184996840066951}
   interactionTable: {fileID: 5552016847197668724}
   preparationTool: {fileID: 7881704530530869455}
+  bagReferenceCollider: {fileID: 0}
   navigationTaskActive: 0
+  previousNavTaskState: 0
   unloadingAndPreparationTaskActive: 0
+  previousUnloadingAndPreparationTaskState: 0
+  m_RandomTargetScript: {fileID: 0}
+  m_UnloadSpawnerAndPrepareTaskScript: {fileID: 0}
+  m_SwitchToolsScript: {fileID: 0}
   navigationTaskScore: 0
   unloadingTaskScore: 0
   preparationTaskScore: 0
@@ -517,10 +525,13 @@ MonoBehaviour:
   failureClip: {fileID: 8300000, guid: 5b1f33ebd0138004ea81f6284a9f2085, type: 3}
   maxRaycastDistance: 10
   raycastLayers:
-    serializedVersion: 2
     m_Bits: 4294967295
   csvFileName: orientation_results_kitchen_xx.csv
   showDebugPrimitive: 0
+  _vrHandling: {fileID: 0}
+  _triggerWasPressedLastFrame: 0
+  _trialIndex: 0
+  _trialStartTime: 0
 --- !u!1 &435430842
 GameObject:
   m_ObjectHideFlags: 0
@@ -5134,7 +5145,9 @@ PrefabInstance:
       value: 62aa3f67-457e-4bd1-b4e3-6ddda393a92c
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2233455278813214417, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
+    - {fileID: 1306309722696838278, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b8b364c79b74ff246bd983c54d398cbd, type: 3}
