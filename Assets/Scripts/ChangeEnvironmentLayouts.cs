@@ -31,6 +31,7 @@ public class ChangeEnvironmentLayouts : MonoBehaviour
         string currentSceneName = SceneManager.GetActiveScene().name;
         GameObject mainRoom = GameObject.Find(currentSceneName);
 
+        if (currentSceneName != "Kitchen" || currentSceneName != "Pharmacy")
         availableLayouts[0] = mainRoom; // Final room
         availableLayouts[1] = GameObject.Find(currentSceneName + " 2"); // E.g., Kitchen 2
         availableLayouts[2] = GameObject.Find(currentSceneName + " 3");
