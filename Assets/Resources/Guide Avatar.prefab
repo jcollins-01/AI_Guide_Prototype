@@ -898,7 +898,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SharedMovementScript: {fileID: 0}
   m_GuideFollowScript: {fileID: 0}
-  headsetTransform: {fileID: 0}
   result: 
   role: 1
 --- !u!136 &8437371553571294055
@@ -2335,7 +2334,6 @@ GameObject:
   - component: {fileID: 7023472372937295635}
   - component: {fileID: 8909618232153423243}
   - component: {fileID: 1444634486419631467}
-  - component: {fileID: 5773937654978726821}
   - component: {fileID: 6875431324172593756}
   - component: {fileID: 6800734287260567717}
   m_Layer: 3
@@ -2422,7 +2420,7 @@ MonoBehaviour:
   - componentID: 14
     component: {fileID: 1444634486419631467}
   - componentID: 15
-    component: {fileID: 5773937654978726821}
+    component: {fileID: 0}
   - componentID: 16
     component: {fileID: 0}
   - componentID: 17
@@ -2487,18 +2485,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 969de85a1e7dce540aa3a129f8a53b1d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &5773937654978726821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2408046841447391164}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1d8f5a4e5f21774f8aedba9e9ea7df4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!82 &6875431324172593756
