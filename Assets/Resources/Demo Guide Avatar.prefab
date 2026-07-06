@@ -897,7 +897,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SharedMovementScript: {fileID: 0}
   m_GuideFollowScript: {fileID: 0}
-  m_guideAudioSync: {fileID: 0}
+  headsetTransform: {fileID: 0}
   result: 
   role: 1
 --- !u!136 &8437371553571294055
@@ -2456,6 +2456,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4caab915be45544e97eb9d6447f2d82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _outputAudioSource: {fileID: 0}
 --- !u!114 &1444634486419631467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6560,6 +6561,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd4ff7916cbc1db4dae0b06d829ff79f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _rebuildAudioStream: 0
 --- !u!1 &5881213320819778500
 GameObject:
   m_ObjectHideFlags: 0
