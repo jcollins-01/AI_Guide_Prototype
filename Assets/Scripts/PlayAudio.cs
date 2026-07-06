@@ -41,12 +41,10 @@ public class PlayAudio : MonoBehaviour
     // Variables to hold scripts we need access to
     private SharedMovement m_SharedMovementScript;
     private GuideFollow m_GuideFollowScript;
-    private AudioClipSync m_audioClipSync;
 
     // Monitoring bools
     private bool sharedMovementFound = false;
     private bool guideFollowFound = false;
-    private bool audioClipSyncAssigned = false;
 
     // Audio sources for sonification
     public AudioSource playerAudio;
@@ -163,8 +161,6 @@ public class PlayAudio : MonoBehaviour
                 guideFollowLogged = true;
             }
         }
-        if (!audioClipSyncAssigned)
-            assignAudioClipSync();
 
         // If we have shared movement components assigned (a guide and player) or the confederates are in the scene
         bool hasConfederate = GameObject.FindWithTag("Confederate");
@@ -277,7 +273,6 @@ public class PlayAudio : MonoBehaviour
             playerAudio.clip = teleportEffect;
             playerAudio.Play();
             LogClip("Teleport completed", teleportEffect);
-            //m_audioClipSync.SetClipName(teleportEffect.name);
         }
     }
 
@@ -306,7 +301,6 @@ public class PlayAudio : MonoBehaviour
             playerAudio.clip = turnEffect;
             playerAudio.Play();
             LogClip("Snap turn", turnEffect);
-            //m_audioClipSync.SetClipName(turnEffect.name);
         }
     }
 
@@ -339,27 +333,22 @@ public class PlayAudio : MonoBehaviour
                     if (surfaceMaterial == "wood")
                     {
                         playerAudio.clip = woodEffect;
-                        //m_audioClipSync.SetClipName(woodEffect.name);
                     }
                     else if (surfaceMaterial == "water")
                     {
                         playerAudio.clip = waterEffect;
-                        //m_audioClipSync.SetClipName(waterEffect.name);
                     }
                     else if (surfaceMaterial == "grass")
                     {
                         playerAudio.clip = grassEffect;
-                        //m_audioClipSync.SetClipName(grassEffect.name);
                     }
                     else if (surfaceMaterial == "floor")
                     {
                         playerAudio.clip = generalWalkEffect;
-                        //m_audioClipSync.SetClipName(generalWalkEffect.name);
                     }
                     else
                     {
                         playerAudio.clip = walkEffect;
-                        //m_audioClipSync.SetClipName(walkEffect.name);
                     }
 
                     if (!playerAudio.isPlaying)
@@ -382,27 +371,22 @@ public class PlayAudio : MonoBehaviour
                         if (surfaceMaterial == "wood")
                         {
                             playerAudio.clip = woodEffect;
-                            //m_audioClipSync.SetClipName(woodEffect.name);
                         }
                         else if (surfaceMaterial == "water")
                         {
                             playerAudio.clip = waterEffect;
-                            //m_audioClipSync.SetClipName(waterEffect.name);
                         }
                         else if (surfaceMaterial == "grass")
                         {
                             playerAudio.clip = grassEffect;
-                            //m_audioClipSync.SetClipName(grassEffect.name);
                         }
                         else if (surfaceMaterial == "floor")
                         {
                             playerAudio.clip = generalWalkEffect;
-                            //m_audioClipSync.SetClipName(generalWalkEffect.name);
                         }
                         else
                         {
                             playerAudio.clip = walkEffect;
-                            //m_audioClipSync.SetClipName(walkEffect.name);
                         }
 
                         if (!playerAudio.isPlaying)
@@ -460,27 +444,21 @@ public class PlayAudio : MonoBehaviour
                         {
                             case 1: // human
                                 playerAudio.clip = woodEffect;
-                                //m_audioClipSync.SetClipName(woodEffect.name);
                                 break;
                             case 2: // robot
                                 playerAudio.clip = robotWalkEffect;
-                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                 break;
                             case 3: // cane
                                 playerAudio.clip = caneWalkEffect;
-                                //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                 break;
                             case 4: // dog
                                 playerAudio.clip = dogWalkEffect;
-                                //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
-                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                 break;
                             case 6: // invisible
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                         }
                     }
@@ -490,27 +468,21 @@ public class PlayAudio : MonoBehaviour
                         {
                             case 1: // human
                                 playerAudio.clip = waterEffect;
-                                //m_audioClipSync.SetClipName(waterEffect.name);
                                 break;
                             case 2: // robot
                                 playerAudio.clip = robotWalkEffect;
-                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                 break;
                             case 3: // cane
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                             case 4: // dog
                                 playerAudio.clip = waterEffect;
-                                //m_audioClipSync.SetClipName(waterEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
-                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                 break;
                             case 6: // invisible
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                         }
                     }
@@ -520,27 +492,21 @@ public class PlayAudio : MonoBehaviour
                         {
                             case 1: // human
                                 playerAudio.clip = grassEffect;
-                                //m_audioClipSync.SetClipName(grassEffect.name);
                                 break;
                             case 2: // robot
                                 playerAudio.clip = robotWalkEffect;
-                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                 break;
                             case 3: // cane
                                 playerAudio.clip = caneWalkEffect;
-                                //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                 break;
                             case 4: // dog
                                 playerAudio.clip = grassEffect;
-                                //m_audioClipSync.SetClipName(grassEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
-                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                 break;
                             case 6: // invisible
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                         }
                     }
@@ -550,27 +516,21 @@ public class PlayAudio : MonoBehaviour
                         {
                             case 1: // human
                                 playerAudio.clip = generalWalkEffect;
-                                //m_audioClipSync.SetClipName(generalWalkEffect.name);
                                 break;
                             case 2: // robot
                                 playerAudio.clip = robotWalkEffect;
-                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                 break;
                             case 3: // cane
                                 playerAudio.clip = caneWalkEffect;
-                                //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                 break;
                             case 4: // dog
                                 playerAudio.clip = dogWalkEffect;
-                                //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
-                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                 break;
                             case 6: // invisible
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                         }
                     }
@@ -580,27 +540,21 @@ public class PlayAudio : MonoBehaviour
                         {
                             case 1: // human
                                 playerAudio.clip = walkEffect;
-                                //m_audioClipSync.SetClipName(walkEffect.name);
                                 break;
                             case 2: // robot
                                 playerAudio.clip = robotWalkEffect;
-                                //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                 break;
                             case 3: // cane
                                 playerAudio.clip = caneWalkEffect;
-                                //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                 break;
                             case 4: // dog
                                 playerAudio.clip = dogWalkEffect;
-                                //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                 break;
                             case 5: // bird
                                 playerAudio.clip = birdFlyEffect;
-                                //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                 break;
                             case 6: // invisible
                                 playerAudio.clip = noEffect;
-                                //m_audioClipSync.SetClipName(noEffect.name);
                                 break;
                         }
                     }
@@ -632,27 +586,21 @@ public class PlayAudio : MonoBehaviour
                             {
                                 case 1: // human
                                     playerAudio.clip = woodEffect;
-                                    //m_audioClipSync.SetClipName(woodEffect.name);
                                     break;
                                 case 2: // robot
                                     playerAudio.clip = robotWalkEffect;
-                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                     break;
                                 case 3: // cane
                                     playerAudio.clip = caneWalkEffect;
-                                    //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                     break;
                                 case 4: // dog
                                     playerAudio.clip = dogWalkEffect;
-                                    //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                     break;
                                 case 5: // bird
                                     playerAudio.clip = birdFlyEffect;
-                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                     break;
                                 case 6: // invisible
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                             }
                         }
@@ -662,27 +610,21 @@ public class PlayAudio : MonoBehaviour
                             {
                                 case 1: // human
                                     playerAudio.clip = waterEffect;
-                                    //m_audioClipSync.SetClipName(waterEffect.name);
                                     break;
                                 case 2: // robot
                                     playerAudio.clip = robotWalkEffect;
-                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                     break;
                                 case 3: // cane
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                                 case 4: // dog
                                     playerAudio.clip = waterEffect;
-                                    //m_audioClipSync.SetClipName(waterEffect.name);
                                     break;
                                 case 5: // bird
                                     playerAudio.clip = birdFlyEffect;
-                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                     break;
                                 case 6: // invisible
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                             }
                         }
@@ -692,27 +634,21 @@ public class PlayAudio : MonoBehaviour
                             {
                                 case 1: // human
                                     playerAudio.clip = grassEffect;
-                                    //m_audioClipSync.SetClipName(grassEffect.name);
                                     break;
                                 case 2: // robot
                                     playerAudio.clip = robotWalkEffect;
-                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                     break;
                                 case 3: // cane
                                     playerAudio.clip = caneWalkEffect;
-                                    //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                     break;
                                 case 4: // dog
                                     playerAudio.clip = grassEffect;
-                                    //m_audioClipSync.SetClipName(grassEffect.name);
                                     break;
                                 case 5: // bird
                                     playerAudio.clip = birdFlyEffect;
-                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                     break;
                                 case 6: // invisible
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                             }
                         }
@@ -722,27 +658,21 @@ public class PlayAudio : MonoBehaviour
                             {
                                 case 1: // human
                                     playerAudio.clip = generalWalkEffect;
-                                    //m_audioClipSync.SetClipName(generalWalkEffect.name);
                                     break;
                                 case 2: // robot
                                     playerAudio.clip = robotWalkEffect;
-                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                     break;
                                 case 3: // cane
                                     playerAudio.clip = caneWalkEffect;
-                                    //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                     break;
                                 case 4: // dog
                                     playerAudio.clip = dogWalkEffect;
-                                    //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                     break;
                                 case 5: // bird
                                     playerAudio.clip = birdFlyEffect;
-                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                     break;
                                 case 6: // invisible
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                             }
                         }
@@ -753,27 +683,21 @@ public class PlayAudio : MonoBehaviour
                             {
                                 case 1: // human
                                     playerAudio.clip = walkEffect;
-                                    //m_audioClipSync.SetClipName(walkEffect.name);
                                     break;
                                 case 2: // robot
                                     playerAudio.clip = robotWalkEffect;
-                                    //m_audioClipSync.SetClipName(robotWalkEffect.name);
                                     break;
                                 case 3: // cane
                                     playerAudio.clip = caneWalkEffect;
-                                    //m_audioClipSync.SetClipName(caneWalkEffect.name);
                                     break;
                                 case 4: // dog
                                     playerAudio.clip = dogWalkEffect;
-                                    //m_audioClipSync.SetClipName(dogWalkEffect.name);
                                     break;
                                 case 5: // bird
                                     playerAudio.clip = birdFlyEffect;
-                                    //m_audioClipSync.SetClipName(birdFlyEffect.name);
                                     break;
                                 case 6: // invisible
                                     playerAudio.clip = noEffect;
-                                    //m_audioClipSync.SetClipName(noEffect.name);
                                     break;
                             }
                         }
@@ -887,32 +811,6 @@ public class PlayAudio : MonoBehaviour
         }
     }
 
-    // NOT IN USE
-    private void assignAudioClipSync()
-    {
-        if (FindObjectOfType<AudioClipSync>())
-        {
-            // Find each appropriate clip sync based on our role
-            if (gameObject.tag == "Guide Rig")
-            {
-                m_audioClipSync = GameObject.FindWithTag("Guide").gameObject.GetComponent<AudioClipSync>();
-                audioClipSyncAssigned = true;
-            }
-
-            if (gameObject.tag == "Player Rig")
-            {
-                m_audioClipSync = GameObject.FindWithTag("Player").gameObject.GetComponent<AudioClipSync>();
-                audioClipSyncAssigned = true;
-            }
-
-            if (gameObject.tag == "Confederate Rig")
-            {
-                m_audioClipSync = GameObject.FindWithTag("Confederate").gameObject.GetComponent<AudioClipSync>();
-                audioClipSyncAssigned = true;
-            }
-        }
-    }
-
     private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
@@ -928,16 +826,14 @@ public class PlayAudio : MonoBehaviour
                     playerAudio = thePlayer.GetComponentInParent<AudioSource>();
 
                 sharedMovementFound = true;
-                //Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, theGuide={theGuide.name}, screenreader=false");
             }
-            else if (thePlayer != null) // Look for only player if we're in screenreader mode
+            else if (thePlayer != null) 
             {
                 // Assign playerAudio component after we have access to thePlayer
                 if (playerAudio == null)
                     playerAudio = thePlayer.GetComponentInParent<AudioSource>();
 
                 sharedMovementFound = true;
-                //Debug.Log($"[PlayAudio] SharedMovement found. thePlayer={thePlayer.name}, screenreader=true");
             }
         }
     }

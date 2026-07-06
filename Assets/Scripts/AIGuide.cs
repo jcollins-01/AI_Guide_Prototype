@@ -313,7 +313,7 @@ public class AIGuide : MonoBehaviour
         if (!originalMaterials.ContainsKey(selectedReference))
             originalMaterials.Add(selectedReference, renderer.material);
 
-        renderer.material = Resources.Load<Material>("Screenreader/Glow");
+        renderer.material = Resources.Load<Material>("Materials/Glow");
     }
 
     void ClearPreviousHighlight(GameObject selectedReference)

@@ -39,7 +39,7 @@ public class GuideFollow : MonoBehaviour
         // Find or add necessary components
         agent = gameObject.AddComponent<NavMeshAgent>();
 
-        gameObject.AddComponent<GuideModels>();
+        //gameObject.AddComponent<GuideModels>();
 
         lastPosition = transform.position;
     }

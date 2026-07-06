@@ -46,7 +46,7 @@ public class FloorDivider : MonoBehaviour
         // Find or assign the default material
         if (defaultMaterial == null)
         {
-            defaultMaterial = Resources.Load<Material>("Screenreader/Transparent");
+            defaultMaterial = Resources.Load<Material>("Materials/Transparent");
             if (defaultMaterial == null)
             {
                 Debug.LogError("Default material 'Transparent' not found in Resources. Please assign it manually.");
