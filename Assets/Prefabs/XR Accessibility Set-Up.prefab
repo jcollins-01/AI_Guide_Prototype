@@ -237,11 +237,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4390015463081112607}
   - component: {fileID: 5877004808892114936}
-  - component: {fileID: 3912404330517653208}
   - component: {fileID: 2960497261650544495}
   - component: {fileID: 2029537097534794439}
   - component: {fileID: 4215317199857201527}
-  - component: {fileID: 3413201469433430967}
   m_Layer: 0
   m_Name: RoomManager
   m_TagString: Untagged
@@ -280,23 +278,6 @@ MonoBehaviour:
   _normcoreAppSettings: {fileID: 11400000, guid: 1b49de5196410e54ba70df01a1ba20c4, type: 2}
   _roomToJoinOnStart: AI Guide Room
   _joinRoomOnStart: 1
---- !u!114 &3912404330517653208
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 515573276153513017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06fc0dcb0e01281468c85993f1721fd5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  VRGuideActive: 1
-  VRScreenreaderActive: 0
-  legacyHoldToSpeak: 0
-  continuousVoice: 0
-  personalVoicesOn: 0
 --- !u!114 &2960497261650544495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -347,24 +328,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
---- !u!114 &3413201469433430967
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 515573276153513017}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be585f239408bf44fa6bd76d1f057b44, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  roomLayoutOne: 0
-  roomLayoutTwo: 0
-  roomLayoutThree: 0
-  tableLayoutOne: 0
-  tableLayoutTwo: 0
-  tableLayoutThree: 0
 --- !u!1 &1664173335677098786
 GameObject:
   m_ObjectHideFlags: 0
@@ -2337,56 +2300,6 @@ MonoBehaviour:
   m_MoveObjectOut: 15
   m_DirectionalAnchorRotation: 1
   m_PoseProvider: {fileID: 0}
---- !u!1 &7590262931299558336
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1073088676547998532}
-  - component: {fileID: 1950918133402116085}
-  m_Layer: 0
-  m_Name: VR Screenreader
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1073088676547998532
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7590262931299558336}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.244859, y: 1.1165638, z: -3.6968398}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8069861427943574683}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1950918133402116085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7590262931299558336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6010ff1166322574ca49372e47f8c678, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  readerReferences: []
-  leftParentController: {fileID: 339869027439255636}
-  rightParentController: {fileID: 3757570565205170901}
-  lastHitObject: {fileID: 0}
-  handlerReticlePosition: {x: 0, y: 0, z: 0}
-  sharedMovementFound: 0
 --- !u!1 &7787742017789161219
 GameObject:
   m_ObjectHideFlags: 0
@@ -2419,7 +2332,6 @@ Transform:
   - {fileID: 4390015463081112607}
   - {fileID: 2381187785762909811}
   - {fileID: 908158353660120984}
-  - {fileID: 1073088676547998532}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7862680025263140678

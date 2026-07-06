@@ -745,7 +745,6 @@ GameObject:
   - component: {fileID: 4412478693603466205}
   - component: {fileID: 7499811820484695667}
   - component: {fileID: 3281081718068572207}
-  - component: {fileID: 81155940342381372}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Untagged
@@ -929,18 +928,11 @@ MonoBehaviour:
   rightTarget: {fileID: 3030265470375909441}
   teleportRayTrigger: 3
   activationThreshold: 0.2
---- !u!114 &81155940342381372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3950086387134620364}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0e1b0d35c0179c48a08a1b2b876f1bb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  leftReticle: {fileID: 0}
+  rightReticle: {fileID: 0}
+  teleportRayMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &4257700459563805511
 GameObject:
   m_ObjectHideFlags: 0
