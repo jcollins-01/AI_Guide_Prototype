@@ -65,7 +65,9 @@ public class UnloadObject : MonoBehaviour
             // Grab the screenreader script to access the unloadingBagCollider
             m_VRScreenreaderScript = FindObjectOfType<VRScreenreader>();
 
-            m_UnloadSpawnerAndPrepareTaskScript = m_ShortTaskControllerScript.unloadingBag.GetComponent<RandomObjectSpawner>();
+            m_UnloadSpawnerAndPrepareTaskScript = bag.GetComponent<RandomObjectSpawner>();
+            // Rather than specifying the unloading bag, look at whatever object was set to the spawning source
+            //m_UnloadSpawnerAndPrepareTaskScript = m_ShortTaskControllerScript.unloadingBag.GetComponent<RandomObjectSpawner>();
             m_XRGrabInteractableScript = m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetComponent<XRGrabInteractable>();
 
             if (m_XRGrabInteractableScript != null)

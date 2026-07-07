@@ -18,6 +18,7 @@ public class ShortTaskController : MonoBehaviour
     private bool previousNavTaskState;
     public bool unloadingAndPreparationTaskActive;
     private bool previousUnloadingAndPreparationTaskState;
+    public bool tableVersion = false;
 
     // Scripts we need access to
     private RandomTarget m_RandomTargetScript;
@@ -121,36 +122,65 @@ public class ShortTaskController : MonoBehaviour
 
     private void SetUpUnloadAndPrepareSpawner()
     {
-        if (unloadingBag != null)
-        {   
-            if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
+        if (!tableVersion)
+        {
+            if (unloadingBag != null)
             {
-                unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
-                m_UnloadSpawnerAndPrepareTaskScript = unloadingBag.GetComponent<RandomObjectSpawner>();   
+                if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
+                {
+                    unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                    m_UnloadSpawnerAndPrepareTaskScript = unloadingBag.GetComponent<RandomObjectSpawner>();
+                }
+                m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
             }
-            m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
         }
-
-        // if (interactionTable != null)
-        // {
-        //     if (m_PrepareSpawnerScript == null) // First time running the unloading and preparing task
-        //     {
-        //         interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
-        //         m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
-        //     }
-        // }
+        else
+        {
+            /*if (interactionTable != null)
+            {
+                if (m_PrepareSpawnerScript == null) // First time running the unloading and preparing task
+                {
+                    interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                    m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
+                }
+            }*/
+            if (interactionTable != null)
+            {
+                if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
+                {
+                    interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                    m_UnloadSpawnerAndPrepareTaskScript = interactionTable.GetComponent<RandomObjectSpawner>();
+                }
+                m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
+            }
+        }
     }
 
     private void TakeDownUnloadAndPrepareSpawner()
     {
-        if (unloadingBag != null)
+        if (!tableVersion)
         {
-            if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+            if (unloadingBag != null)
             {
-                if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
-                    Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
+                if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+                {
+                    if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
+                        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
+                }
             }
         }
+        else
+        {
+            if (interactionTable != null)
+            {
+                if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+                {
+                    if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
+                        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
+                }
+            }
+        }
+        
 
         // if (interactionTable != null)
         // {

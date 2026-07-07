@@ -24,7 +24,7 @@ public class RandomObjectSpawner : MonoBehaviour
     // Scripts we need access to
     private ShortTaskController m_ShortTaskControllerScript;
 
-    void Start()
+    void Awake() // was Start
     {
         // Assign spawnSource to be the GameObject this script is on
         spawnSource = this.gameObject;
