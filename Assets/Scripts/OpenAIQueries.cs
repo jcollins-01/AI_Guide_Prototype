@@ -1126,7 +1126,7 @@ public class RealtimeGuideClient : MonoBehaviour
     }
 
     // Sending images directly to realtime
-    public void SendVisualContext(string viewpointBase64, string birdsEyeBase64)
+    public void SendVisualContext(string viewpointBase64, string birdsEyeBase64, string overheadBase64)
     {
         var eventData = new
         {
@@ -1140,7 +1140,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "input_text",
-                        text = "[Visual Context] You are looking at two views of the player's VR scene. Image 1 is the player's view, Image 2 is a bird's eye of the scene. If you ever see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide."
+                        text = "[Visual Context] You are looking at three views of the player's VR scene. Image 1 is the player's view, Image 2 is a bird's eye of the scene, Image 3 is an overhead shot right above the player. If you ever see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide."
                     },
                     new
                     {
@@ -1151,6 +1151,11 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         type = "input_image",
                         image_url = birdsEyeBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = overheadBase64
                     }
                 }
             }

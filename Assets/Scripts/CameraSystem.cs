@@ -13,15 +13,22 @@ public class CameraSystem : MonoBehaviour
     private float birdZOffset = -10f; // Moves the camera back from directly over the player to get a better angle
     private float fieldOfView = 80f; // 60f is default
     private Vector3 birdRotation = new Vector3(65f, 0f, 0f);
+
     private Vector3 handLocalPos = new Vector3(0, 0.1f, 0.3f);
     private Vector3 handRotation = new Vector3(30, 0, 0);
+
     private Vector3 bodyLocalPos = new Vector3(1.0f, 0.5f, 0.5f);
     private Vector3 bodyRotation = new Vector3(10, -90, 0);
+
+    private Vector3 overheadLocalPos = new Vector3(0, 5.0f, 0); // 5 meters directly above the head
+    private Vector3 overheadRotation = new Vector3(90, 0, 0);   // Looking straight down
+
     private Transform head;
 
     // Public camera variables for AIGuide script to access
     public Camera birdEyeCamera;
     public Camera viewpointCamera;
+    public Camera overheadCamera;
     public Camera handCam;
     public Camera bodyCam;
 
@@ -35,6 +42,8 @@ public class CameraSystem : MonoBehaviour
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
         createBirdEyeCamera();
+        createOverheadCamera();
+
         createHandCam();
         createBodyCam();
 
@@ -74,6 +83,14 @@ public class CameraSystem : MonoBehaviour
             bodyCam.transform.position = head.position + (head.rotation * bodyLocalPos);
             bodyCam.transform.rotation = head.rotation * Quaternion.Euler(bodyRotation);
         }
+
+        // Keep the overhead camera centered on the player, but pointing straight down
+        if (overheadCamera != null)
+        {
+            // We only take the head position, not rotation, so the camera doesn't tilt when the player looks up/down
+            overheadCamera.transform.position = head.position + overheadLocalPos;
+            overheadCamera.transform.rotation = Quaternion.Euler(overheadRotation);
+        }
     }
 
     private void createBirdEyeCamera()
@@ -91,6 +108,15 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.transform.position = new Vector3(transform.position.x, birdHeight, transform.position.z + birdZOffset);
         birdEyeCamera.transform.eulerAngles = birdRotation;
         birdEyeCamera.fieldOfView = fieldOfView;
+    }
+
+    private void createOverheadCamera()
+    {
+        GameObject newCamera = new GameObject("Overhead Camera");
+        overheadCamera = newCamera.AddComponent<Camera>();
+
+        SetupCamera(overheadCamera);
+        overheadCamera.fieldOfView = 80f; // Wide enough to see the immediate vicinity
     }
 
     private void createHandCam()
@@ -135,6 +161,7 @@ public class CameraSystem : MonoBehaviour
         converted = false;
         StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera));
         StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera));
+        StartCoroutine(CaptureScreenshotCoroutine(overheadCamera));
     }
 
     public Coroutine CaptureHandScreenshots()
@@ -184,6 +211,10 @@ public class CameraSystem : MonoBehaviour
             //Debug.Log("Converting birds eye screenshot to base 64");
             birdsEyeImageBase64 = GetBase64FromBytes(bytes);
         }
+        else if (camera == overheadCamera)
+        {
+            overheadImageBase64 = GetBase64FromBytes(bytes);
+        }
         else if (camera == handCam)
         {
             Debug.Log("Converting hand screenshot to base 64");
@@ -200,6 +231,7 @@ public class CameraSystem : MonoBehaviour
 
     [HideInInspector] public string viewpointImageBase64;
     [HideInInspector] public string birdsEyeImageBase64;
+    [HideInInspector] public string overheadImageBase64;
     [HideInInspector] public string handImageBase64;
     [HideInInspector] public string bodyImageBase64;
 

@@ -587,7 +587,7 @@ public class AIGuide : MonoBehaviour
         if (camSystem.converted)
         {
             //Debug.Log("Images converted. Sending to Vision API...");
-            realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64);
+            realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64, camSystem.overheadImageBase64);
         }
     }
 

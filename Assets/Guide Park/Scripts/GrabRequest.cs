@@ -7,6 +7,145 @@ using UnityEngine.XR.Interaction.Toolkit;
 
 public class GrabRequest : MonoBehaviour
 {
+    private PlayAudio m_PlayAudioScript;
+    private VRHandling m_VRHandlingScript;
+    private SharedMovement m_SharedMovementScript;
+
+    private GameObject thePlayer;
+    private RealtimeTransform realtimeTransform;
+    private XRGrabInteractable xrGrabInteractable;
+
+    private bool playAudioFound = false;
+    private bool controllersGrabbed = false;
+    private bool sharedMovementFound = false;
+
+    [HideInInspector]
+    public bool grabbed = false;
+    private AudioSource playerAudio;
+    private AudioClip grabSound;
+
+    void Start()
+    {
+        if (GetComponent<RealtimeTransform>() != null)
+            realtimeTransform = GetComponent<RealtimeTransform>();
+
+        xrGrabInteractable = GetComponent<XRGrabInteractable>();
+
+        // Listen for XR Interaction Toolkit select events
+        xrGrabInteractable.selectEntered.AddListener(OnGrabEntered);
+        xrGrabInteractable.selectExited.AddListener(OnGrabExited);
+
+        grabSound = Resources.Load<AudioClip>("Audio/grabbed");
+    }
+
+    void OnDestroy()
+    {
+        // Clean up listeners when object is destroyed to prevent memory leaks
+        if (xrGrabInteractable != null)
+        {
+            xrGrabInteractable.selectEntered.RemoveListener(OnGrabEntered);
+            xrGrabInteractable.selectExited.RemoveListener(OnGrabExited);
+        }
+    }
+
+    void Update()
+    {
+        if (!playAudioFound) getPlayAudio();
+        if (!controllersGrabbed) getControllers();
+        if (!sharedMovementFound) getSharedMovement();
+
+        // Custom scaling logic to shrink objects if grabbed
+        GuideParkFunctions();
+    }
+
+    // Fires EXACTLY once when the player grabs the object
+    private void OnGrabEntered(SelectEnterEventArgs args)
+    {
+        grabbed = true;
+
+        if (realtimeTransform != null)
+            realtimeTransform.RequestOwnership();
+
+        // Play audio reliably
+        if (playAudioFound && playerAudio != null && grabSound != null)
+        {
+            playerAudio.clip = grabSound;
+            playerAudio.Play();
+            Debug.Log("[GrabRequest] Audio played successfully via Event.");
+        }
+
+        // Ignore collisions
+        Physics.IgnoreLayerCollision(7, 0, true); // Default
+        Physics.IgnoreLayerCollision(7, 6, true); // XR Rig
+        Physics.IgnoreLayerCollision(7, 3, true); // Player
+    }
+
+    // Fires EXACTLY once when the player releases the object
+    private void OnGrabExited(SelectExitEventArgs args)
+    {
+        grabbed = false;
+
+        // Restore collisions
+        Physics.IgnoreLayerCollision(7, 0, false);
+        Physics.IgnoreLayerCollision(7, 6, false);
+        Physics.IgnoreLayerCollision(7, 3, false);
+    }
+
+    private void getPlayAudio()
+    {
+        if (m_PlayAudioScript == null)
+            m_PlayAudioScript = FindObjectOfType<PlayAudio>();
+        else
+        {
+            playerAudio = m_PlayAudioScript.playerAudio;
+            if (playerAudio != null)
+                playAudioFound = true;
+        }
+    }
+
+    private void getControllers()
+    {
+        if (m_VRHandlingScript == null)
+            m_VRHandlingScript = FindObjectOfType<VRHandling>();
+        else
+        {
+            controllersGrabbed = true;
+        }
+    }
+
+    private void getSharedMovement()
+    {
+        if (m_SharedMovementScript == null)
+            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+        else
+        {
+            thePlayer = m_SharedMovementScript.thePlayer;
+            if (thePlayer != null)
+                sharedMovementFound = true;
+        }
+    }
+
+    private void GuideParkFunctions()
+    {
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("GuidePark2_Networked"))
+        {
+            if (grabbed && thePlayer != null && thePlayer.GetComponent<RealtimeView>().isOwnedLocallyInHierarchy)
+            {
+                xrGrabInteractable.transform.localScale = Vector3.zero;
+            }
+        }
+    }
+}
+/*using Normal.Realtime;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
+
+public class GrabRequest : MonoBehaviour
+{
     // Variables to hold scripts we need access to
     private PlayAudio m_PlayAudioScript;
     private VRHandling m_VRHandlingScript;
@@ -99,6 +238,7 @@ public class GrabRequest : MonoBehaviour
             {
                 playerAudio.Play();
                 grabSoundCount += 1;
+                Debug.Log("Should have played grab effect");
             }
 
             // Ignore collisions between Default objects (layer 0), XRRig (layer 6), Player (layer 3), and Interactable (layer 7)
@@ -163,3 +303,4 @@ public class GrabRequest : MonoBehaviour
         }
     }
 }
+*/

@@ -24,8 +24,7 @@ public class PrefabPairSpawner : MonoBehaviour
     public float spawnDistance = 2.0f;
     public float sideOffset = 0.5f;
 
-    [Header("Pair Configuration")]
-    [Tooltip("Assign pairs in order: Element 0 = PairOne, Element 1 = PairTwo, etc.")]
+    [Header("Prefab Pairs")]
     public PrefabPair[] prefabPairs = new PrefabPair[4];
 
     [Header("Active Selection")]
