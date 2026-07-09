@@ -174,27 +174,32 @@ public class AIGuide : MonoBehaviour
                 Debug.Log("Using the baseline guide!");
                 prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
                    " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-                   m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
+                   m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules +
+                   " IMPORTANT: When mentioning any object to a player in ANY of your responses, you must use its registry name so that the player can learn it."; // used to have + m_OpenAIQueriesScript.commandClassifications
                 break;
             case SwitchTools.GuideType.ObjectDescription:
                 Debug.Log("Using the object description guide!");
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
+                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline} " +
+                    $"IMPORTANT: When describing any object to a player, you must use its registry name so that the player can learn it.";
                 break;
             case SwitchTools.GuideType.ObjectLocation:
                 Debug.Log("Using the object location guide!");
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
+                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}" +
+                    $"IMPORTANT: When explaining an object's location to a player, you must use its registry name so that the player can learn it.";
                 break;
             case SwitchTools.GuideType.SceneUnderstanding:
                 Debug.Log("Using the scene understanding guide!");
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
+                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}" +
+                    $"IMPORTANT: When you discuss or describe any objects in your response, you must use their registry names so that the player can learn them.";
                 break;
             case SwitchTools.GuideType.Navigation:
                 Debug.Log("Using the navigation guide!");
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
+                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}" +
+                    $"IMPORTANT: When mentioning any object in your response, you must use its registry name so that the player can learn it.";
                 break;
             case SwitchTools.GuideType.ObjectGrabbing:
                 Debug.Log("Using the object grabbing guide!");
@@ -238,6 +243,7 @@ public class AIGuide : MonoBehaviour
 
                 sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
                 sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
+                sbPrompt.AppendLine("IMPORTANT: When mentioning any object to a player in ANY of your responses, you must use its registry name so that the player can learn it.");
 
                 prompt = sbPrompt.ToString();
                 break;
@@ -249,103 +255,6 @@ public class AIGuide : MonoBehaviour
         }
         return prompt;
     }
-    /*public string GetFormattedPrompt()
-    {
-        // Ensure data is fresh
-        m_OpenAIQueriesScript.LoadRoomDescriptions();
-        m_OpenAIQueriesScript.getGuideRole();
-
-        // Determine baseline or version of improved guide
-        string prompt;
-
-        if (m_SwitchToolsScript.baselineGuide)
-        {
-            Debug.Log("Using the baseline guide!");
-            prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
-               " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-               m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
-        }
-        else if (m_SwitchToolsScript.objectDescriptionGuide)
-        {
-            Debug.Log("Using the object description guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
-        }
-        else if (m_SwitchToolsScript.objectLocationGuide)
-        {
-            Debug.Log("Using the object location guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" + 
-                $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
-        }
-        else if (m_SwitchToolsScript.sceneUnderstandingGuide)
-        {
-            Debug.Log("Using the scene understanding guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
-        }
-        else if (m_SwitchToolsScript.navigationGuide)
-        {
-            Debug.Log("Using the navigation guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
-        }
-        else if (m_SwitchToolsScript.objectGrabbingGuide)
-        {
-            Debug.Log("Using the object grabbing guide!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player is asking you to help them grab an object. {m_OpenAIQueriesScript.grabbingObjectGuideline}";
-        }
-        else if (m_SwitchToolsScript.sightedGuidanceGuide)
-        {
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
-        }
-        else if (m_SwitchToolsScript.allCombinedGuide) // Deprecated for now - won't be using unless we learn more about how it determines intention
-        {
-            Debug.Log("Using the all-guideline intention guide!");
-            StringBuilder sbPrompt = new StringBuilder();
-
-            // Base Persona & Rules
-            sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
-            sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
-            // New guideline on trust/revealing uncertainty
-            sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
-            
-            // Command functions for guidance, teleportation, and modification are handled by the tools architecture native to Realtime
-
-            // Conditional Behavioral Guidelines
-            sbPrompt.AppendLine("\n### CONDITIONAL GUIDELINES ###");
-            sbPrompt.AppendLine("Depending on what the user asks, apply the following rules. If the user has multiple intents, combine the rules naturally.");
-
-            sbPrompt.AppendLine("\nIF THE USER WANTS AN OBJECT DESCRIPTION:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectDescriptionGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER IS LOCATING A SPECIFIC OBJECT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.objectLocationGuideline);
-
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.sceneUnderstandingGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER WANTS INFORMATION TO HELP THEM NAVIGATE SOMEWHERE ON THEIR OWN:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.spaceNavigationGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER IS REACHING FOR OR GRABBING AN OBJECT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.grabbingObjectGuideline);
-
-            sbPrompt.AppendLine("\nIF THE USER NEEDS TECHNICAL SUPPORT:");
-            sbPrompt.AppendLine(m_OpenAIQueriesScript.technicalSupportGuideline);
-
-            prompt = sbPrompt.ToString();
-        }
-        else
-        {
-            // Using the improved guide, but haven't set a specific intention yet
-            Debug.Log("Providing only basic information/introduction to the guide session!");
-            prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}";
-        }
-
-        return prompt;
-    }*/
 
     // Handles event of user done talking
     private void HandleAutoStop()
