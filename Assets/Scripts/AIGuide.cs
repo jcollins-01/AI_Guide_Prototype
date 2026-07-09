@@ -151,8 +151,6 @@ public class AIGuide : MonoBehaviour
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
         m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
-        //realtimeClient.OnServerDetectedSpeechStart += () => playEffect("listening"); // Subscribe to event of detecting a user's speech  starting (continuous voice)
-        //realtimeClient.OnServerDetectedSpeechStop += () => playEffect("done_listening"); // Subscribe to event of detecting a user's speech stopping (continuous voice)
 
         // Reset player interaction time with the client
         lastPlayerInteractionTime = Time.time;
@@ -179,9 +177,8 @@ public class AIGuide : MonoBehaviour
                 break;
             case SwitchTools.GuideType.ObjectDescription:
                 Debug.Log("Using the object description guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline} " +
-                    $"IMPORTANT: When describing any object to a player, you must use its registry name so that the player can learn it.";
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                    $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
                 break;
             case SwitchTools.GuideType.ObjectLocation:
                 Debug.Log("Using the object location guide!");

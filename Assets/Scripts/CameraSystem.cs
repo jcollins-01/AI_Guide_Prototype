@@ -2,6 +2,7 @@ using System.Collections;
 using System.IO;
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 #if UNITY_ANDROID
 using UnityEngine.Android;
 #endif
@@ -26,15 +27,20 @@ public class CameraSystem : MonoBehaviour
     private Transform head;
 
     // Public camera variables for AIGuide script to access
-    public Camera birdEyeCamera;
-    public Camera viewpointCamera;
-    public Camera overheadCamera;
-    public Camera handCam;
-    public Camera bodyCam;
+    [HideInInspector] public Camera birdEyeCamera;
+    [HideInInspector] public Camera viewpointCamera;
+    [HideInInspector] public Camera overheadCamera;
+    [HideInInspector] public Camera handCam;
+    [HideInInspector] public Camera bodyCam;
 
     // Variables for monitoring
     private bool calledCamerasToStart = false;
     public bool converted = false;
+
+    [Header("Instance Masking Settings")]
+    public Camera maskCamera;
+    public Material unlitMaskMaterialBase; // the material we'll alter to mask things
+    private int maskLayer = 17;
 
     // Start is called before the first frame update
     void Start()
@@ -46,6 +52,8 @@ public class CameraSystem : MonoBehaviour
 
         createHandCam();
         createBodyCam();
+
+        createMaskCamera();
 
         // Grabs the user's headset transform from AI guide script to guide hand + body cam positioning
         head = viewpointCamera.transform;
@@ -91,6 +99,19 @@ public class CameraSystem : MonoBehaviour
             overheadCamera.transform.position = head.position + overheadLocalPos;
             overheadCamera.transform.rotation = Quaternion.Euler(overheadRotation);
         }
+    }
+
+    private void createMaskCamera()
+    {
+        GameObject newCamera = new GameObject("Mask Camera");
+        maskCamera = newCamera.AddComponent<Camera>();
+        SetupCamera(maskCamera);
+
+        // This camera ONLY sees the mask layer and renders a black background
+        maskCamera.cullingMask = 1 << maskLayer;
+        maskCamera.clearFlags = CameraClearFlags.SolidColor;
+        maskCamera.backgroundColor = Color.black;
+        maskCamera.enabled = false; // Only render when explicitly told to
     }
 
     private void createBirdEyeCamera()
@@ -154,6 +175,73 @@ public class CameraSystem : MonoBehaviour
         // Set Near Clip Plane very low so it doesn't clip hands
         cam.nearClipPlane = 0.05f;
         cam.fieldOfView = 90f;
+    }
+
+    // Public method for SpatialPerceptionSensor to call
+    public void CaptureObjectMask(GameObject targetObj, Color maskColor, Action<string> onComplete)
+    {
+        StartCoroutine(CaptureObjectMaskCoroutine(targetObj, maskColor, onComplete));
+    }
+
+    private IEnumerator CaptureObjectMaskCoroutine(GameObject targetObj, Color maskColor, Action<string> onComplete)
+    {
+        yield return new WaitForEndOfFrame();
+
+        // Save original layer and materials
+        int originalLayer = targetObj.layer;
+        Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
+        Dictionary<Renderer, Material[]> originalMaterials = new Dictionary<Renderer, Material[]>();
+
+        // Apply unique color mask and move to isolation layer
+        targetObj.layer = maskLayer;
+        foreach (Renderer r in renderers)
+        {
+            originalMaterials[r] = r.materials;
+            r.gameObject.layer = maskLayer;
+
+            Material[] solidMats = new Material[r.materials.Length];
+            for (int i = 0; i < solidMats.Length; i++)
+            {
+                solidMats[i] = new Material(unlitMaskMaterialBase);
+                solidMats[i].color = maskColor;
+            }
+            r.materials = solidMats;
+        }
+
+        // Position mask camera (from player's perspective looking at the object)
+        maskCamera.transform.position = viewpointCamera.transform.position;
+        maskCamera.transform.LookAt(targetObj.transform);
+
+        // Render to texture
+        RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        maskCamera.targetTexture = renderTexture;
+        maskCamera.Render();
+
+        Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        RenderTexture.active = renderTexture;
+        texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        texture.Apply();
+
+        // Convert to Base64
+        byte[] bytes = texture.EncodeToJPG(75);
+        string base64 = GetBase64FromBytes(bytes);
+
+        // Cleanup Memory
+        maskCamera.targetTexture = null;
+        RenderTexture.active = null;
+        Destroy(renderTexture);
+        Destroy(texture);
+
+        // Restore original object state
+        targetObj.layer = originalLayer;
+        foreach (Renderer r in renderers)
+        {
+            r.materials = originalMaterials[r];
+            r.gameObject.layer = originalLayer;
+        }
+
+        // Return the base64 string to the caller
+        onComplete?.Invoke(base64);
     }
 
     public void CaptureScreenshot()

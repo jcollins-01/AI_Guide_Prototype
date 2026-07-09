@@ -1349,6 +1349,10 @@ public class OpenAIQueries : MonoBehaviour
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
         "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
     [HideInInspector]
+    public string enhancedContextClassification = "YOUR EYES: You will receive real-time spatial data and images with every user query. " +
+        "This is your current reality. If you see a new person, a new object, or a change in the scene, mention it naturally." +
+        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
+    [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
     public string guideRules = "GUIDANCE RULES: If a new object/avatar appears that is NOT in the Registry, describe it spatially (e.g., 'A new player just joined, standing to your left'). " +
