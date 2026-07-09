@@ -18,6 +18,7 @@ public class AIGuide : MonoBehaviour
     private RealtimeGuideClient realtimeClient;
     private SwitchTools m_SwitchToolsScript;
     private CameraSystem camSystem;
+    private SpatialPerceptionSensor perceptionSensor;
 
     // Variables for monitoring
     private bool guideRoleAssigned = false;
@@ -94,8 +95,9 @@ public class AIGuide : MonoBehaviour
     private void AddGuideComponents()
     {
         // Find necessary components to the attached GameObject
-        m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On XR Rig
+        m_GuideFollowScript = FindObjectOfType<GuideFollow>(); // On Guide XR Rig
         m_SwitchToolsScript = FindObjectOfType<SwitchTools>(); // On Room Manager
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>(); // On Guide XR Rig
 
         // Add necessary components to the attached GameObject
         m_AutomaticModificationScript = gameObject.AddComponent<AutomaticModification>();
@@ -182,30 +184,27 @@ public class AIGuide : MonoBehaviour
                 break;
             case SwitchTools.GuideType.ObjectLocation:
                 Debug.Log("Using the object location guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}" +
-                    $"IMPORTANT: When explaining an object's location to a player, you must use its registry name so that the player can learn it.";
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                    $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
                 break;
             case SwitchTools.GuideType.SceneUnderstanding:
                 Debug.Log("Using the scene understanding guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}" +
-                    $"IMPORTANT: When you discuss or describe any objects in your response, you must use their registry names so that the player can learn them.";
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                    $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
                 break;
             case SwitchTools.GuideType.Navigation:
                 Debug.Log("Using the navigation guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}" +
-                    $"IMPORTANT: When mentioning any object in your response, you must use its registry name so that the player can learn it.";
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                    $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
                 break;
             case SwitchTools.GuideType.ObjectGrabbing:
                 Debug.Log("Using the object grabbing guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
                     $"The player is asking you to help them grab an object."; // {m_OpenAIQueriesScript.grabbingObjectGuideline}";
                 break;
             case SwitchTools.GuideType.SightedGuidance:
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.contextClassification}" +
-                $"The player wants help moving to a specific object. THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                $"The player wants help moving to a specific object."; //THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
                 break;
             case SwitchTools.GuideType.AllCombined:
                 Debug.Log("Using the all-guideline intention guide!");
@@ -213,8 +212,8 @@ public class AIGuide : MonoBehaviour
 
                 // Base Persona & Rules
                 sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
-                sbPrompt.AppendLine(m_OpenAIQueriesScript.contextClassification);
-                sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.enhancedContextClassification);
+                //sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
                 // New guideline on trust/revealing uncertainty
                 sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);
 
@@ -473,9 +472,13 @@ public class AIGuide : MonoBehaviour
         // Start Audio Recording immediately
         realtimeClient.StartRecording();
         realtimeClient._isProcessingCommand = false;
+
         StartCoroutine(CaptureImageContext());
         yield return null;
     }
+
+    // Flag to track the callback
+    private bool masksCaptured = false;
 
     private IEnumerator CaptureImageContext()
     {
@@ -483,17 +486,38 @@ public class AIGuide : MonoBehaviour
         camSystem.converted = false;
         camSystem.CaptureScreenshot();
 
-        // Wait for the capture to finish and convert
-        while (!camSystem.converted)
+        // Trigger the mask screenshots
+        masksCaptured = false;
+        perceptionSensor.RequestVisualTelemetry(() =>
         {
-            yield return null; 
+            masksCaptured = true; // This fires when the batch rendering is complete
+        });
+
+        // Wait for BOTH standard and mask captures to finish
+        while (!camSystem.converted || !masksCaptured)
+        {
+            yield return null;
         }
+
+        // Grab the dynamic text context NOW that captures are done
+        string dynamicContext = perceptionSensor.GetDynamicSpatialContext();
 
         // Send the context once we have the links
         if (camSystem.converted)
         {
             //Debug.Log("Images converted. Sending to Vision API...");
-            realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64, camSystem.overheadImageBase64);
+            if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
+                realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64, camSystem.overheadImageBase64);
+            else
+            {
+                realtimeClient.SendVisualAndSpatialContext(
+                    dynamicContext, 
+                    camSystem.viewpointImageBase64, 
+                    camSystem.overheadImageBase64,
+                    camSystem.overheadImageBase64,
+                    camSystem.overheadMaskBase64
+                );
+            }
         }
     }
 
@@ -968,7 +992,6 @@ public class AIGuide : MonoBehaviour
             string prompt = $"We are currently navigating towards the {targetName}. " +
                             $"Look at your latest visual context. Briefly describe ONE important, NEW object the user is walking past. " +
                             $"The object you choose should be relevant to what a blind person being guided would want to hear about as they're being helped around. " +
-                            //$"You should only give one simple sentence with no more than ten words, but change up your sentence structure regularly. For example: " +
                             $"You should only give one simple sentence, but change up your sentence structure regularly. For example: " +
                             "We're walking down a street lined with cartoonish trees." +
                             "We're passing a short, colorful building with a flat roof." +

@@ -33,18 +33,27 @@ public class CameraSystem : MonoBehaviour
     [HideInInspector] public Camera handCam;
     [HideInInspector] public Camera bodyCam;
 
+    // Mask Cameras
+    [HideInInspector] public Camera viewpointMaskCamera;
+    [HideInInspector] public Camera overheadMaskCamera;
+
     // Variables for monitoring
     private bool calledCamerasToStart = false;
     public bool converted = false;
 
     [Header("Instance Masking Settings")]
+    private SpatialPerceptionSensor perceptionSensor;
     public Camera maskCamera;
-    public Material unlitMaskMaterialBase; // the material we'll alter to mask things
+    private Material unlitMaskMaterialBase; // the material we'll alter to mask things
     private int maskLayer = 17;
 
     // Start is called before the first frame update
     void Start()
     {
+        // Gets the masking material from the perception sensor
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
+        unlitMaskMaterialBase = perceptionSensor.unlitMaskMaterialBase;
+
         // Pulls the viewpointCamera automatically from the Main Camera under XR Origin
         viewpointCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
         createBirdEyeCamera();
@@ -53,7 +62,7 @@ public class CameraSystem : MonoBehaviour
         createHandCam();
         createBodyCam();
 
-        createMaskCamera();
+        createMaskCameras();
 
         // Grabs the user's headset transform from AI guide script to guide hand + body cam positioning
         head = viewpointCamera.transform;
@@ -101,17 +110,17 @@ public class CameraSystem : MonoBehaviour
         }
     }
 
-    private void createMaskCamera()
+    private void createMaskCameras()
     {
-        GameObject newCamera = new GameObject("Mask Camera");
-        maskCamera = newCamera.AddComponent<Camera>();
-        SetupCamera(maskCamera);
+        // Viewpoint Mask Camera
+        GameObject vpMaskObj = new GameObject("Viewpoint Mask Camera");
+        viewpointMaskCamera = vpMaskObj.AddComponent<Camera>();
+        SetupMaskCamera(viewpointMaskCamera);
 
-        // This camera ONLY sees the mask layer and renders a black background
-        maskCamera.cullingMask = 1 << maskLayer;
-        maskCamera.clearFlags = CameraClearFlags.SolidColor;
-        maskCamera.backgroundColor = Color.black;
-        maskCamera.enabled = false; // Only render when explicitly told to
+        // Overhead Mask Camera
+        GameObject ohMaskObj = new GameObject("Overhead Mask Camera");
+        overheadMaskCamera = ohMaskObj.AddComponent<Camera>();
+        SetupMaskCamera(overheadMaskCamera);
     }
 
     private void createBirdEyeCamera()
@@ -177,71 +186,90 @@ public class CameraSystem : MonoBehaviour
         cam.fieldOfView = 90f;
     }
 
-    // Public method for SpatialPerceptionSensor to call
-    public void CaptureObjectMask(GameObject targetObj, Color maskColor, Action<string> onComplete)
+    private void SetupMaskCamera(Camera cam)
     {
-        StartCoroutine(CaptureObjectMaskCoroutine(targetObj, maskColor, onComplete));
+        cam.transform.SetParent(null);
+        cam.cullingMask = 1 << maskLayer;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = Color.black;
+        cam.enabled = false;
+        cam.nearClipPlane = 0.05f;
+        cam.fieldOfView = 80f; // Match your main camera FOVs
     }
 
-    private IEnumerator CaptureObjectMaskCoroutine(GameObject targetObj, Color maskColor, Action<string> onComplete)
+    // Pass your active anchors dictionary/list from your perception script into this method
+    public void CaptureMaskedScenes(Dictionary<string, ObjectAnchor> activeAnchors, Action onComplete)
+    {
+        StartCoroutine(CaptureBatchMasksCoroutine(activeAnchors, onComplete));
+    }
+
+    private IEnumerator CaptureBatchMasksCoroutine(Dictionary<string, ObjectAnchor> activeAnchors, Action onComplete)
     {
         yield return new WaitForEndOfFrame();
 
-        // Save original layer and materials
-        int originalLayer = targetObj.layer;
-        Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
         Dictionary<Renderer, Material[]> originalMaterials = new Dictionary<Renderer, Material[]>();
+        Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
 
-        // Apply unique color mask and move to isolation layer
-        targetObj.layer = maskLayer;
-        foreach (Renderer r in renderers)
+        // Swap all objects to their respective mask colors
+        foreach (var kvp in activeAnchors)
         {
-            originalMaterials[r] = r.materials;
-            r.gameObject.layer = maskLayer;
+            ObjectAnchor anchor = kvp.Value;
+            if (anchor.gameObjectReference == null) continue;
 
-            Material[] solidMats = new Material[r.materials.Length];
-            for (int i = 0; i < solidMats.Length; i++)
+            GameObject targetObj = anchor.gameObjectReference;
+            originalLayers[targetObj] = targetObj.layer;
+            targetObj.layer = maskLayer;
+
+            Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
             {
-                solidMats[i] = new Material(unlitMaskMaterialBase);
-                solidMats[i].color = maskColor;
+                originalMaterials[r] = r.materials;
+                r.gameObject.layer = maskLayer;
+
+                Material[] solidMats = new Material[r.materials.Length];
+                for (int i = 0; i < solidMats.Length; i++)
+                {
+                    solidMats[i] = new Material(unlitMaskMaterialBase);
+                    solidMats[i].color = anchor.uniqueColorID;
+                }
+                r.materials = solidMats;
             }
-            r.materials = solidMats;
         }
 
-        // Position mask camera (from player's perspective looking at the object)
-        maskCamera.transform.position = viewpointCamera.transform.position;
-        maskCamera.transform.LookAt(targetObj.transform);
+        // Align mask cameras to current main camera positions
+        viewpointMaskCamera.transform.position = viewpointCamera.transform.position;
+        viewpointMaskCamera.transform.rotation = viewpointCamera.transform.rotation;
 
-        // Render to texture
-        RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-        maskCamera.targetTexture = renderTexture;
-        maskCamera.Render();
+        overheadMaskCamera.transform.position = overheadCamera.transform.position;
+        overheadMaskCamera.transform.rotation = overheadCamera.transform.rotation;
 
-        Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-        RenderTexture.active = renderTexture;
-        texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-        texture.Apply();
+        // Render Viewpoint Mask
+        viewpointMaskBase64 = RenderCameraToBase64(viewpointMaskCamera);
 
-        // Convert to Base64
-        byte[] bytes = texture.EncodeToJPG(75);
-        string base64 = GetBase64FromBytes(bytes);
+        // Render Overhead Mask
+        overheadMaskBase64 = RenderCameraToBase64(overheadMaskCamera);
 
-        // Cleanup Memory
-        maskCamera.targetTexture = null;
-        RenderTexture.active = null;
-        Destroy(renderTexture);
-        Destroy(texture);
-
-        // Restore original object state
-        targetObj.layer = originalLayer;
-        foreach (Renderer r in renderers)
+        // Restore all original states
+        foreach (var kvp in activeAnchors)
         {
-            r.materials = originalMaterials[r];
-            r.gameObject.layer = originalLayer;
+            ObjectAnchor anchor = kvp.Value;
+            if (anchor.gameObjectReference == null) continue;
+
+            GameObject targetObj = anchor.gameObjectReference;
+            targetObj.layer = originalLayers[targetObj];
+
+            Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                if (originalMaterials.ContainsKey(r))
+                {
+                    r.materials = originalMaterials[r];
+                }
+                r.gameObject.layer = originalLayers[targetObj];
+            }
         }
 
-        // Return the base64 string to the caller
-        onComplete?.Invoke(base64);
+        onComplete?.Invoke();
     }
 
     public void CaptureScreenshot()
@@ -268,6 +296,17 @@ public class CameraSystem : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
 
+        if (camera == viewpointCamera) viewpointImageBase64 = RenderCameraToBase64(camera);
+        else if (camera == birdEyeCamera) birdsEyeImageBase64 = RenderCameraToBase64(camera);
+        else if (camera == overheadCamera) overheadImageBase64 = RenderCameraToBase64(camera);
+        else if (camera == handCam) handImageBase64 = RenderCameraToBase64(camera);
+        else if (camera == bodyCam) bodyImageBase64 = RenderCameraToBase64(camera);
+
+        converted = true;
+    }
+
+    private string RenderCameraToBase64(Camera camera)
+    {
         RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
         camera.targetTexture = renderTexture;
         camera.Render();
@@ -278,43 +317,14 @@ public class CameraSystem : MonoBehaviour
         texture.Apply();
 
         byte[] bytes = texture.EncodeToJPG(75);
-        // Don't need to save the images to the application for debugging anymore
-        //string path = Path.Combine(Application.persistentDataPath, "VR_Capture.png");
-        //File.WriteAllBytes(path, bytes);
-        //Debug.Log("Screenshot saved to: " + path);
+        string base64 = $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}";
 
         camera.targetTexture = null;
         RenderTexture.active = null;
         Destroy(renderTexture);
         Destroy(texture);
 
-        // Convert images to base 64 string
-        if (camera == viewpointCamera)
-        {
-            //Debug.Log("Converting viewpoint screenshot to base 64");
-            viewpointImageBase64 = GetBase64FromBytes(bytes);
-        }
-        else if (camera == birdEyeCamera)
-        {
-            //Debug.Log("Converting birds eye screenshot to base 64");
-            birdsEyeImageBase64 = GetBase64FromBytes(bytes);
-        }
-        else if (camera == overheadCamera)
-        {
-            overheadImageBase64 = GetBase64FromBytes(bytes);
-        }
-        else if (camera == handCam)
-        {
-            Debug.Log("Converting hand screenshot to base 64");
-            handImageBase64 = GetBase64FromBytes(bytes);
-        }
-        else if (camera == bodyCam)
-        {
-            Debug.Log("Converting body screenshot to base 64");
-            bodyImageBase64 = GetBase64FromBytes(bytes);
-        }
-
-        converted = true;
+        return base64;
     }
 
     [HideInInspector] public string viewpointImageBase64;
@@ -322,6 +332,9 @@ public class CameraSystem : MonoBehaviour
     [HideInInspector] public string overheadImageBase64;
     [HideInInspector] public string handImageBase64;
     [HideInInspector] public string bodyImageBase64;
+
+    [HideInInspector] public string viewpointMaskBase64;
+    [HideInInspector] public string overheadMaskBase64;
 
     private string GetBase64FromBytes(byte[] imageBytes)
     {

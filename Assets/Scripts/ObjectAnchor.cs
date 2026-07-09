@@ -15,7 +15,6 @@ public class ObjectAnchor
     public string ongoingDescription;
 
     // Visual Reference Data
-    public string localScreenshotBase64;
     public Color uniqueColorID; // For unique color masking filters
 
     public ObjectAnchor(GameObject go, string techName)

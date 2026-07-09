@@ -1,22 +1,23 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
 public class SpatialPerceptionSensor : MonoBehaviour
 {
-    public float viewRadius = 5.0f;
+    public float viewRadius = 15.0f;
     public LayerMask interactableLayer;
     public Transform playerHeadset;
-    public Transform playerHandRight; // For tracking grab movements, needs it own thing
+    public Transform playerHandRight;
 
-    private Dictionary<string, ObjectAnchor> activeAnchors = new Dictionary<string, ObjectAnchor>();
+    // Changed to public so CameraSystem can access the anchors for batch masking
+    public Dictionary<string, ObjectAnchor> activeAnchors = new Dictionary<string, ObjectAnchor>();
 
     CameraSystem camSystem;
-
+    public Material unlitMaskMaterialBase;
 
     void Start()
     {
-        // Periodic sensor sweeps mimicking human line-of-sight (cover the area around the guide without having to move its head)
         InvokeRepeating(nameof(PerformSpatialSweep), 0.2f, 0.5f);
     }
 
@@ -27,43 +28,45 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
     void PerformSpatialSweep()
     {
-        // Cast a sensory sphere around the guide's line of sight
-        RaycastHit[] hits = Physics.SphereCastAll(transform.position, viewRadius, transform.forward, viewRadius, interactableLayer);
+        Collider[] hits = Physics.OverlapSphere(transform.position, viewRadius, interactableLayer);
 
         foreach (var hit in hits)
         {
-            GameObject obj = hit.collider.gameObject;
+            GameObject obj = hit.gameObject;
             string id = obj.GetInstanceID().ToString();
 
             if (!activeAnchors.ContainsKey(id))
             {
-                // Generate a highly distinct random color for the AI to recognize
+                // Generate a highly distinct random color
                 Color uniqueColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
-                // New object encountered! Create an Anchor to track it
                 ObjectAnchor newAnchor = new ObjectAnchor(obj, obj.name);
+                newAnchor.uniqueColorID = uniqueColor; // Ensure the color is saved to the anchor
                 activeAnchors.Add(id, newAnchor);
 
-                Debug.Log($"Guide encountered a new object {obj} by the name of {obj.name}");
-                Debug.Log($"Current number of unique objects we've seen is {GetObjectAnchors()}");
-
-                // Trigger the mask screenshot and save the base64 via callback
-                if (camSystem != null)
-                {
-                    camSystem.CaptureObjectMask(obj, uniqueColor, (base64String) =>
-                    {
-                        newAnchor.localScreenshotBase64 = base64String;
-                        Debug.Log($"Successfully saved mask screenshot for {obj.name}");
-                    });
-                }
+                Debug.Log($"Guide encountered {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(uniqueColor)}");
+                Debug.Log($"Number of objects we've seen is now {GetObjectAnchors()}");
             }
 
-            // Update real-time spatial properties
             activeAnchors[id].lastKnownPosition = obj.transform.position;
         }
     }
 
-    // Returns the number of objects we've encoutered so far
+    // Call this from AI Guide right before talking to the LLM
+    public void RequestVisualTelemetry(Action onComplete)
+    {
+        if (camSystem != null)
+        {
+            // Triggers the batch capture in CameraSystem, passing the active anchors
+            camSystem.CaptureMaskedScenes(activeAnchors, onComplete);
+        }
+        else
+        {
+            Debug.LogError("CameraSystem not found. Cannot capture scene masks.");
+            onComplete?.Invoke();
+        }
+    }
+
     public int GetObjectAnchors()
     {
         return activeAnchors.Count;
@@ -71,17 +74,31 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
     public float GetAnchorPlayerDistance(ObjectAnchor obj)
     {
-        float distanceToPlayer = Vector3.Distance(playerHeadset.position, obj.gameObjectReference.transform.position);
-        return distanceToPlayer;
+        Collider col = obj.gameObjectReference.GetComponent<Collider>();
+        if (col != null)
+        {
+            // Gets the closest point on the collider to the headset
+            Vector3 closestPoint = col.ClosestPoint(playerHeadset.position);
+            return Vector3.Distance(playerHeadset.position, closestPoint);
+        }
+
+        // Fallback just in case the object has no collider
+        return Vector3.Distance(playerHeadset.position, obj.gameObjectReference.transform.position);
     }
 
     public float GetAnchorHandDistance(ObjectAnchor obj)
     {
-        float distanceToHand = Vector3.Distance(playerHandRight.position, obj.gameObjectReference.transform.position);
-        return distanceToHand;
+        Collider col = obj.gameObjectReference.GetComponent<Collider>();
+        if (col != null)
+        {
+            // Gets the closest point on the collider to the hand
+            Vector3 closestPoint = col.ClosestPoint(playerHandRight.position);
+            return Vector3.Distance(playerHandRight.position, closestPoint);
+        }
+
+        return Vector3.Distance(playerHandRight.position, obj.gameObjectReference.transform.position);
     }
 
-    // Call this from your Realtime WebSocket client when the AI learns a new name
     public void AddAliasToAnchor(GameObject target, string newAlias)
     {
         string id = target.GetInstanceID().ToString();
@@ -94,7 +111,6 @@ public class SpatialPerceptionSensor : MonoBehaviour
         }
     }
 
-    // Resolves queries like "Go to the blue-striped building" - do a keyword search and see if a known alias matches an object
     public GameObject ResolveObjectByAlias(string query)
     {
         string lowerQuery = query.ToLower();
@@ -123,28 +139,23 @@ public class SpatialPerceptionSensor : MonoBehaviour
         {
             ObjectAnchor anchor = kvp.Value;
 
-            // Only include objects within a relevant radius to save tokens
-            if (GetAnchorPlayerDistance(anchor) <= 5.0f)
+            if (GetAnchorPlayerDistance(anchor) <= viewRadius)
             {
                 sb.AppendLine($"- Registry Name: {anchor.technicalName}");
                 sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
                 sb.AppendLine($"  Distance to Right Hand: {GetAnchorHandDistance(anchor):F2}m");
 
-                // If you have the mask color, you can pass it here so the vision model can cross-reference it
-                sb.AppendLine($"  Mask Color ID: {ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
+                // Added the '#' prefix so the model recognizes it as a hex code
+                sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
                 count++;
             }
         }
 
-        if (count == 0)
-        {
-            sb.AppendLine("No recognized objects within immediate vicinity.");
-        }
+        if (count == 0) sb.AppendLine("No recognized objects within immediate vicinity.");
 
         return sb.ToString();
     }
 
-    // For when we are fulfilling a navigation request that may require us to access objects beyond what we can see, but are things we've encountered
     public string GetAllSpatialContext()
     {
         StringBuilder sb = new StringBuilder();
@@ -154,18 +165,14 @@ public class SpatialPerceptionSensor : MonoBehaviour
         foreach (var kvp in activeAnchors)
         {
             ObjectAnchor anchor = kvp.Value;
-
             sb.AppendLine($"- Registry Name: {anchor.technicalName}");
             sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
             sb.AppendLine($"  Distance to Right Hand: {GetAnchorHandDistance(anchor):F2}m");
-            sb.AppendLine($"  Mask Color ID: {ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
+            sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
             count++;
         }
 
-        if (count == 0)
-        {
-            sb.AppendLine("No recognized objects within immediate vicinity.");
-        }
+        if (count == 0) sb.AppendLine("No recognized objects within immediate vicinity.");
 
         return sb.ToString();
     }
@@ -175,7 +182,6 @@ public class SpatialPerceptionSensor : MonoBehaviour
         if (camSystem == null)
         {
             SharedMovement m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-            // Can grab the camSystem once the shared movement script has been added + has added its own camera
             if (m_SharedMovementScript != null)
                 camSystem = m_SharedMovementScript.camera;
         }

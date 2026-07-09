@@ -1165,6 +1165,61 @@ public class RealtimeGuideClient : MonoBehaviour
         SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
     }
 
+    // Sending images directly to realtime
+    public void SendVisualAndSpatialContext(string dynamicContext, string viewpointBase64, string viewpointMaskBase64, string overheadBase64, string overheadMaskBase64)
+    {
+        var eventData = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user", // Changed from "user" to "system" to prevent conflict with voice audio
+                content = new object[]
+                {
+                    new
+                    {
+                        type = "input_text",
+                        text = "[Visual Context] The following data contains exact distances and unique hex color IDs for objects in your field of vision. " +
+                        "You MUST rely strictly on this text data for distance calculations, as the 2D images lack depth. " +
+                        "You are receiving four screenshots. Image 1 is the player's standard view. Image 2 is a color segmentation mask for the player's view " +
+                        "(match the solid colors in this image to the hex codes in the text data). " +
+                        "Image 3 is a standard overhead shot right above the player. Image 4 is the color segmentation mask for the overhead shot. " +
+                        "If you ever see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide."
+                    },
+                    new
+                    {
+                        type = "input_text",
+                        text = dynamicContext
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = viewpointBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = viewpointMaskBase64 
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = overheadBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = overheadMaskBase64 
+                    }
+                }
+            }
+        };
+
+        Debug.Log($"[Realtime] Injecting session with visual content {JsonConvert.SerializeObject(eventData.item.content, Formatting.Indented)}");
+        SendJson(eventData); // Send the data instead of serializing, since SendJson serializes already
+    }
+
     public async Task SendImageAssistedPrompt(string prompt, string handsBase64, string bodyBase64)
     {
         var eventData = new
@@ -1349,7 +1404,7 @@ public class OpenAIQueries : MonoBehaviour
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
         "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
     [HideInInspector]
-    public string enhancedContextClassification = "YOUR EYES: You will receive real-time spatial data and images with every user query. " +
+    public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object, or a change in the scene, mention it naturally." +
         "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
     [HideInInspector]
