@@ -1182,6 +1182,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         type = "input_text",
                         text = "[Visual Context] The following data contains exact distances and unique hex color IDs for objects in your field of vision. " +
                         "You MUST rely strictly on this text data for distance calculations, as the 2D images lack depth. " +
+                        "The degree values help you determine the clockface angle of the object to the player (e.g., 90 degrees is to the right, translates to 3 o'clock). " +
                         "You are receiving four screenshots. Image 1 is the player's standard view. Image 2 is a color segmentation mask for the player's view " +
                         "(match the solid colors in this image to the hex codes in the text data). " +
                         "Image 3 is a standard overhead shot right above the player. Image 4 is the color segmentation mask for the overhead shot. " +

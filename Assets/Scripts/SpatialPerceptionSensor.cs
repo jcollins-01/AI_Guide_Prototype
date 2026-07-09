@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SpatialPerceptionSensor : MonoBehaviour
 {
-    public float viewRadius = 15.0f;
+    public float viewRadius = 30.0f;
     public LayerMask interactableLayer;
     public Transform playerHeadset;
     public Transform playerHandRight;
@@ -99,6 +99,38 @@ public class SpatialPerceptionSensor : MonoBehaviour
         return Vector3.Distance(playerHandRight.position, obj.gameObjectReference.transform.position);
     }
 
+    public float GetAnchorRelativeAngle(ObjectAnchor obj)
+    {
+        // Default to the transform position
+        Vector3 targetPos = obj.gameObjectReference.transform.position;
+
+        // Use the closest point on the collider if available for accuracy
+        Collider col = obj.gameObjectReference.GetComponent<Collider>();
+        if (col != null)
+        {
+            targetPos = col.ClosestPoint(playerHeadset.position);
+        }
+
+        // Get the direction from the player's headset to the object
+        Vector3 directionToTarget = targetPos - playerHeadset.position;
+
+        // Flatten the Y-axis so height differences don't skew the angle
+        directionToTarget.y = 0;
+        Vector3 forward = playerHeadset.forward;
+        forward.y = 0;
+
+        // Calculate the signed angle (-180 to 180 degrees) around the Up axis
+        float angle = Vector3.SignedAngle(forward, directionToTarget, Vector3.up);
+
+        // Normalize to a 0-360 degree range for easier LLM interpretation
+        if (angle < 0)
+        {
+            angle += 360f;
+        }
+
+        return angle;
+    }
+
     public void AddAliasToAnchor(GameObject target, string newAlias)
     {
         string id = target.GetInstanceID().ToString();
@@ -143,9 +175,8 @@ public class SpatialPerceptionSensor : MonoBehaviour
             {
                 sb.AppendLine($"- Registry Name: {anchor.technicalName}");
                 sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
-                sb.AppendLine($"  Distance to Right Hand: {GetAnchorHandDistance(anchor):F2}m");
-
-                // Added the '#' prefix so the model recognizes it as a hex code
+                sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+                sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
                 sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
                 count++;
             }
@@ -167,7 +198,8 @@ public class SpatialPerceptionSensor : MonoBehaviour
             ObjectAnchor anchor = kvp.Value;
             sb.AppendLine($"- Registry Name: {anchor.technicalName}");
             sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
-            sb.AppendLine($"  Distance to Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+            sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+            sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
             sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
             count++;
         }
