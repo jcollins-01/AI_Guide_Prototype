@@ -34,17 +34,33 @@ public class PrefabPairSpawner : MonoBehaviour
     private GameObject currentLeft;
     private GameObject currentRight;
 
+    // Sensor script for clean-up
+    SpatialPerceptionSensor perceptionSensor;
+
     void Start()
     {
         // Initialize whatever state is currently selected in the inspector
         UpdateSpawnedPairs();
+
+        // Grab the perception sensor
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
     }
 
     private void UpdateSpawnedPairs()
     {
         // Always clear existing objects first
-        if (currentLeft != null) Destroy(currentLeft);
-        if (currentRight != null) Destroy(currentRight);
+        if (currentLeft != null)
+        {
+            Destroy(currentLeft);
+            string id = currentLeft.GetInstanceID().ToString();
+            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
+        }
+        if (currentRight != null)
+        {
+            Destroy(currentRight);
+            string id = currentRight.GetInstanceID().ToString();
+            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
+        }
 
         // If 'None' is selected, stop here (leaves the scene clear)
         if (_currentPairType == PairSelection.None) return;

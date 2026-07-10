@@ -18,12 +18,12 @@ public class ShortTaskController : MonoBehaviour
     private bool previousNavTaskState;
     public bool unloadingAndPreparationTaskActive;
     private bool previousUnloadingAndPreparationTaskState;
-    public bool tableVersion = false;
 
     // Scripts we need access to
     private RandomTarget m_RandomTargetScript;
     private RandomObjectSpawner m_UnloadSpawnerAndPrepareTaskScript;
     private SwitchTools m_SwitchToolsScript;
+    private SpatialPerceptionSensor perceptionSensor;
 
     // Variables to track scores
     public int navigationTaskScore = 0;
@@ -41,6 +41,9 @@ public class ShortTaskController : MonoBehaviour
 
         // The PrepareObject script needs an active reference to the VRHandling script
         gameObject.AddComponent<VRHandling>();
+
+        // To clean-up our collision references with the enhanced guide
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
 
         // Set up state variables for detecting changes
         previousNavTaskState = navigationTaskActive;
@@ -122,65 +125,43 @@ public class ShortTaskController : MonoBehaviour
 
     private void SetUpUnloadAndPrepareSpawner()
     {
-        if (!tableVersion)
+        if (unloadingBag != null)
         {
-            if (unloadingBag != null)
+            if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
             {
-                if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
-                {
-                    unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
-                    m_UnloadSpawnerAndPrepareTaskScript = unloadingBag.GetComponent<RandomObjectSpawner>();
-                }
-                m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
+                unloadingBag.AddComponent<RandomObjectSpawner>(); // Add a spawner
+                m_UnloadSpawnerAndPrepareTaskScript = unloadingBag.GetComponent<RandomObjectSpawner>();
             }
+            m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
         }
-        else
-        {
-            /*if (interactionTable != null)
+
+        /*if (interactionTable != null)
             {
                 if (m_PrepareSpawnerScript == null) // First time running the unloading and preparing task
                 {
                     interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
                     m_PrepareSpawnerScript = interactionTable.GetComponent<RandomObjectSpawner>();
                 }
-            }*/
-            if (interactionTable != null)
-            {
-                if (m_UnloadSpawnerAndPrepareTaskScript == null) // First time running the unloading and preparing task
-                {
-                    interactionTable.AddComponent<RandomObjectSpawner>(); // Add a spawner
-                    m_UnloadSpawnerAndPrepareTaskScript = interactionTable.GetComponent<RandomObjectSpawner>();
-                }
-                m_UnloadSpawnerAndPrepareTaskScript.SpawnRandomObject();
-            }
-        }
+         }*/
     }
 
     private void TakeDownUnloadAndPrepareSpawner()
     {
-        if (!tableVersion)
+        if (interactionTable != null)
         {
-            if (unloadingBag != null)
+            if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
             {
-                if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
+                if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
                 {
-                    if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
-                        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
-                }
+                    Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
+                    // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
+                    string id = m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetInstanceID().ToString();
+                    if (perceptionSensor.activeAnchors.ContainsKey(id))
+                        perceptionSensor.activeAnchors.Remove(id);
+                }  
             }
         }
-        else
-        {
-            if (interactionTable != null)
-            {
-                if (m_UnloadSpawnerAndPrepareTaskScript != null) // If the bag has had a RandomObjectSpawner added (the task had begun at some point)
-                {
-                    if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
-                        Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
-                }
-            }
-        }
-        
+
 
         // if (interactionTable != null)
         // {

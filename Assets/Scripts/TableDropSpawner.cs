@@ -32,10 +32,16 @@ public class TableDropSpawner : MonoBehaviour
     private GameObject currentTable;
     private GameObject currentItem;
 
+    // Sensor we need to access for clean-up
+    SpatialPerceptionSensor perceptionSensor;
+
     void Start()
     {
         // Initialize whatever state is currently selected in the inspector
         UpdateSpawnedObjects();
+
+        // Get the perception sensor
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
     }
 
     private void UpdateSpawnedObjects()
@@ -43,8 +49,20 @@ public class TableDropSpawner : MonoBehaviour
         // If 'None' is selected, destroy the item and the table, then stop
         if (_currentItemType == ItemSelection.None)
         {
-            if (currentItem != null) Destroy(currentItem);
-            if (currentTable != null) Destroy(currentTable);
+            if (currentItem != null)
+            {
+                Destroy(currentItem);
+                // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
+                string id = currentItem.GetInstanceID().ToString();
+                if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
+            }
+            if (currentTable != null)
+            {
+                Destroy(currentTable);
+                string id = currentTable.GetInstanceID().ToString();
+                if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
+            }
+
             return;
         }
 
@@ -79,7 +97,13 @@ public class TableDropSpawner : MonoBehaviour
         }
 
         // Clear the previous item
-        if (currentItem != null) Destroy(currentItem);
+        if (currentItem != null)
+        {
+            Destroy(currentItem);
+            // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
+            string id = currentItem.GetInstanceID().ToString();
+            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
+        }
 
         // Validate the selected item prefab
         int index = (int)_currentItemType - 1;

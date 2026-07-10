@@ -13,6 +13,9 @@ public class RandomTarget : MonoBehaviour
     public int timesTargetReached = 0;
     private int previousTargetIndex = -1;
 
+    // Perception sensor that we need to clean-up
+    private SpatialPerceptionSensor perceptionSensor;
+
     public void SetUpRandomTargets()
     {
         // Set up all possible destinations for random target points
@@ -29,9 +32,18 @@ public class RandomTarget : MonoBehaviour
         foreach (GameObject obj in randomTargets)
         {
             Destroy(obj);
+            // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
+            string id = obj.GetInstanceID().ToString();
+            if (perceptionSensor.activeAnchors.ContainsKey(id))
+                perceptionSensor.activeAnchors.Remove(id);
         }
 
         randomTargets.Clear();
+    }
+
+    private void Start()
+    {
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
     }
 
     private void Update()
