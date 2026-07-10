@@ -1019,19 +1019,12 @@ public class AIGuide : MonoBehaviour
         targetToGrab = targetName;
         isGrabbing = true;
 
-        // Enable needed cameras
-        camSystem.handCam.enabled = true;
-        camSystem.bodyCam.enabled = true;
-
         grabLoopCoroutine = StartCoroutine(GrabInstructionLoop());
     }
 
     public void StopGrabbing()
     {
         isGrabbing = false;
-        // Disable cameras
-        camSystem.handCam.enabled = false;
-        camSystem.bodyCam.enabled = false;
 
         if (grabLoopCoroutine != null) StopCoroutine(grabLoopCoroutine);
     }
@@ -1040,27 +1033,63 @@ public class AIGuide : MonoBehaviour
     {
         // Start a timer to stop this coroutine automatically after the user tries grabbing an object for too long
         float startTime = Time.time;
-        float maxDuration = 30f; // Seconds before the loop forces a stop
+        float maxDuration = 60f; // Seconds before the loop forces a stop
         yield return new WaitForSeconds(0.5f);
-
+        
         while (isGrabbing && (Time.time - startTime) < maxDuration)
         {
-            // Capture the screenshot of the hand - wait for things to be captured before continuing
-            yield return camSystem.CaptureHandScreenshots();
-            string handFrame = camSystem.handImageBase64;
-            string bodyFrame = camSystem.bodyImageBase64;
+            Debug.Log("Starting new capture");
+            // Lock the grabbing cycle
+            realtimeClient.isProcessingGrabRequest = true;
 
-            // Build the repeated grabbing instruction from the object grabbing guidelines
-            string prompt = $"You are assisting the player to grab a {targetToGrab}. " +
-                            $"You will be passed two images: one of the player's hands (which are floating blue hands) so you can see what objects they are near, " +
-                            $"and one of a side profile of the player's body, to build more context on what objects they are near " +
-                            $"or allow you to give instructions if the object is at their feet." +
+            // Trigger standard screenshots (helpful for offering semantic grouding with the exact distance and angles, e.g., the cup is behind something else)
+            camSystem.converted = false;
+            camSystem.CaptureHandScreenshots();
+
+            // Trigger the mask screenshots
+            bool masksCaptured = false; // Local flag to safely track this specific iteration
+            perceptionSensor.RequestHandTelemetry(() =>
+            {
+                masksCaptured = true;
+            });
+
+            // Wait for BOTH standard and mask captures to finish
+            while (!camSystem.converted || !masksCaptured)
+            {
+                yield return null;
+            }
+
+            // Grab the spatial telemetry text
+            string dynamicContext = perceptionSensor.GetDynamicSpatialContext();
+
+            // Build the repeated grabbing instruction
+            // We inject the dynamic telemetry directly into the prompt so the LLM can read the distances/angles.
+            string prompt = $"You are assisting the player to grab the '{targetToGrab}'. " +
+                            $"Use the provided images and the following spatial telemetry to guide their hand to the object. " +
+                            $"The telemetry provides the exact distance to the player's right hand and the relative angle (0=Front, 90=Right, 180=Back, 270=Left)." +
+                            $"You are receiving four screenshots. Image 1 is the standard view of the player's hand. Image 2 is a color segmentation mask for the player's hand " +
+                            $"(match the solid colors in this image to the hex codes in the text data). " +
+                            $"Image 3 is a standard body shot from the player's side. Image 4 is the color segmentation mask for the body shot. " +
+                            $"{dynamicContext}" +
                             $"{m_OpenAIQueriesScript.grabbingObjectGuideline}.";
 
-            _ = realtimeClient.SendImageAssistedPrompt(prompt, handFrame, bodyFrame);
-
-            // Wait for the AI to speak before taking the next frame - prevents building up a backlog
+            // First, we need to wait until the AI starts speaking/generating a response
             yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
+
+            // Then, wait for our test that the AI is DONE speaking that response - these two steps prevents building up a backlog
+            yield return new WaitUntil(() => !realtimeClient.IsActuallySpeaking);
+
+            // Send the prompt and the updated context images
+            _ = realtimeClient.SendImageAndSpatialAssistedPrompt(
+                prompt, 
+                camSystem.handImageBase64, 
+                camSystem.handMaskBase64,
+                camSystem.bodyImageBase64,
+                camSystem.bodyMaskBase64
+            );
+            Debug.Log("Sent new grab instruction prompt");
+
+            Debug.Log("Grabbing instruction done being spoken - pausing before starting next turn");
             yield return new WaitForSeconds(0.5f); // Natural gap between instructions
         }
 
@@ -1070,7 +1099,7 @@ public class AIGuide : MonoBehaviour
 
             // Message the user about pre-emptive stop
             _ = realtimeClient.CancelPrompt();
-            _ = realtimeClient.SendManualPrompt($"The player has been trying to grab {targetToGrab} for a you are pausing the assistance. " +
+            _ = realtimeClient.SendManualPrompt($"The player has been trying to grab {targetToGrab} for too long and you are pausing the assistance. " +
                                                 $"Politely inform the player of this, then ask the player to let you know if they still want to " +
                                                 $"keep trying to grab it.");
             StopGrabbing();

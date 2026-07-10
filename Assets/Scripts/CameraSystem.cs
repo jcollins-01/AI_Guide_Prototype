@@ -36,6 +36,8 @@ public class CameraSystem : MonoBehaviour
     // Mask Cameras
     [HideInInspector] public Camera viewpointMaskCamera;
     [HideInInspector] public Camera overheadMaskCamera;
+    [HideInInspector] public Camera handMaskCamera;
+    [HideInInspector] public Camera bodyMaskCamera;
 
     // Variables for monitoring
     private bool calledCamerasToStart = false;
@@ -121,6 +123,16 @@ public class CameraSystem : MonoBehaviour
         GameObject ohMaskObj = new GameObject("Overhead Mask Camera");
         overheadMaskCamera = ohMaskObj.AddComponent<Camera>();
         SetupMaskCamera(overheadMaskCamera);
+
+        // Hand Mask Camera
+        GameObject haMaskObj = new GameObject("Hand Mask Camera");
+        handMaskCamera = haMaskObj.AddComponent<Camera>();
+        SetupMaskCamera(handMaskCamera);
+
+        // Body Mask Camera
+        GameObject boMaskObj = new GameObject("Body Mask Camera");
+        bodyMaskCamera = boMaskObj.AddComponent<Camera>();
+        SetupMaskCamera(bodyMaskCamera);
     }
 
     private void createBirdEyeCamera()
@@ -272,11 +284,86 @@ public class CameraSystem : MonoBehaviour
         onComplete?.Invoke();
     }
 
+    // Pass your active anchors dictionary/list from your perception script into this method
+    public void CaptureMaskedHands(Dictionary<string, ObjectAnchor> activeAnchors, Action onComplete)
+    {
+        StartCoroutine(CaptureHandMasksCoroutine(activeAnchors, onComplete));
+    }
+
+    private IEnumerator CaptureHandMasksCoroutine(Dictionary<string, ObjectAnchor> activeAnchors, Action onComplete)
+    {
+        yield return new WaitForEndOfFrame();
+
+        Dictionary<Renderer, Material[]> originalMaterials = new Dictionary<Renderer, Material[]>();
+        Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
+
+        // Swap all objects to their respective mask colors
+        foreach (var kvp in activeAnchors)
+        {
+            ObjectAnchor anchor = kvp.Value;
+            if (anchor.gameObjectReference == null) continue;
+
+            GameObject targetObj = anchor.gameObjectReference;
+            originalLayers[targetObj] = targetObj.layer;
+            targetObj.layer = maskLayer;
+
+            Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                originalMaterials[r] = r.materials;
+                r.gameObject.layer = maskLayer;
+
+                Material[] solidMats = new Material[r.materials.Length];
+                for (int i = 0; i < solidMats.Length; i++)
+                {
+                    solidMats[i] = new Material(unlitMaskMaterialBase);
+                    solidMats[i].color = anchor.uniqueColorID;
+                }
+                r.materials = solidMats;
+            }
+        }
+
+        // Align mask cameras to current main camera positions
+        handMaskCamera.transform.position = handCam.transform.position;
+        handMaskCamera.transform.rotation = handCam.transform.rotation;
+
+        bodyMaskCamera.transform.position = bodyCam.transform.position;
+        bodyMaskCamera.transform.rotation = bodyCam.transform.rotation;
+
+        // Render Hand Mask
+        handMaskBase64 = RenderCameraToBase64(handMaskCamera);
+
+        // Render Body Mask
+        bodyMaskBase64 = RenderCameraToBase64(bodyMaskCamera);
+
+        // Restore all original states
+        foreach (var kvp in activeAnchors)
+        {
+            ObjectAnchor anchor = kvp.Value;
+            if (anchor.gameObjectReference == null) continue;
+
+            GameObject targetObj = anchor.gameObjectReference;
+            targetObj.layer = originalLayers[targetObj];
+
+            Renderer[] renderers = targetObj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                if (originalMaterials.ContainsKey(r))
+                {
+                    r.materials = originalMaterials[r];
+                }
+                r.gameObject.layer = originalLayers[targetObj];
+            }
+        }
+
+        onComplete?.Invoke();
+    }
+
     public void CaptureScreenshot()
     {
         converted = false;
         StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera));
-        StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera));
+        //StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera));
         StartCoroutine(CaptureScreenshotCoroutine(overheadCamera));
     }
 
@@ -335,6 +422,8 @@ public class CameraSystem : MonoBehaviour
 
     [HideInInspector] public string viewpointMaskBase64;
     [HideInInspector] public string overheadMaskBase64;
+    [HideInInspector] public string handMaskBase64;
+    [HideInInspector] public string bodyMaskBase64;
 
     private string GetBase64FromBytes(byte[] imageBytes)
     {

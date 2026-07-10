@@ -67,6 +67,20 @@ public class SpatialPerceptionSensor : MonoBehaviour
         }
     }
 
+    public void RequestHandTelemetry(Action onComplete)
+    {
+        if (camSystem != null)
+        {
+            // Triggers the batch capture in CameraSystem, passing the active anchors
+            camSystem.CaptureMaskedHands(activeAnchors, onComplete);
+        }
+        else
+        {
+            Debug.LogError("CameraSystem not found. Cannot capture hand masks.");
+            onComplete?.Invoke();
+        }
+    }
+
     public int GetObjectAnchors()
     {
         return activeAnchors.Count;
@@ -178,6 +192,10 @@ public class SpatialPerceptionSensor : MonoBehaviour
                 sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
                 sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
                 sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
+                if (anchor.userAliases.Count > 0)
+                {
+                    sb.AppendLine($"  Known Aliases: {string.Join(", ", anchor.userAliases)}");
+                }
                 count++;
             }
         }
@@ -201,6 +219,10 @@ public class SpatialPerceptionSensor : MonoBehaviour
             sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
             sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
             sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
+            if (anchor.userAliases.Count > 0)
+            {
+                sb.AppendLine($"  Known Aliases: {string.Join(", ", anchor.userAliases)}");
+            }
             count++;
         }
 

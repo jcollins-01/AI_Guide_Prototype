@@ -45,6 +45,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private OpenAIQueries _openAIQueriesScript;
     private GuideAudioSync guideAudioSync;
     private AIGuide aiGuideScript;
+    private SpatialPerceptionSensor perceptionSensor;
 
     public AudioSource outputSource;
 
@@ -67,6 +68,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _foundFirstSentence = false;
     private bool _isResponseActive = false;
     private bool _isUserSpeaking = false;
+    public bool isProcessingGrabRequest = false;
 
     // For handling special case speech
     private string _firstFullSentence;
@@ -114,6 +116,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private void Start()
     {
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
         aiGuideScript = GetComponent<AIGuide>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
@@ -251,6 +254,22 @@ public class RealtimeGuideClient : MonoBehaviour
                                 target_object = new { type = "string", description = "The object the user stopped trying to reach." }
                             },
                             required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "label_object",
+                        description = "Call this when the user refers to a specific object by a colloquial name that doesn't match its exact technical name.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The technical name from the spatial telemetry." }//,
+                                //alias = new { type = "string", description = "The new colloquial name or nickname the user just used." }
+                            },
+                            required = new[] { "target_object" }//, "alias" }
                         }
                     }
                     // Deprecated modification + audio beacons for now
@@ -847,6 +866,13 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
+    public bool IsActuallySpeaking => _audioPlaybackQueue.Count > 0 || IsPlayingAudio();
+
+    private bool IsPlayingAudio()
+    {
+        return outputSource.isPlaying; // guide voice source
+    }
+
     private void HandleServerEvent(string json)
     {
         try
@@ -954,6 +980,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 case "response.done":
                     _isAiSpeaking = false;
                     _isResponseActive = false;
+                    isWaitingForResponse = false;
                     // Log the FULL details to see why it finished
                     var responseObj = jsonObj["response"];
                     string status = (string)responseObj["status"];
@@ -1039,6 +1066,17 @@ public class RealtimeGuideClient : MonoBehaviour
                         Debug.Log("Stopped grabbing help for objects");
 
                         aiGuideScript.StopGrabbing();
+                    }
+                    else if (functionName == "label_object")
+                    {
+                        string alias = (string)argsObj["alias"]; // "striped house"
+
+                        GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        if (obj != null)
+                        {
+                            // Call your sensor function here
+                            perceptionSensor.AddAliasToAnchor(obj, alias);
+                        }
                     }
 
                     // Crucial: send a response back to the API acknowledging the tool was handled
@@ -1249,6 +1287,49 @@ public class RealtimeGuideClient : MonoBehaviour
 
         await SendJson(eventData);
         await SendJson(new { type = "response.create" });
+        isWaitingForResponse = true;
+    }
+
+    public bool isWaitingForResponse;
+
+    public async Task SendImageAndSpatialAssistedPrompt(string prompt, string handsBase64, string handsMaskBase64, string bodyBase64, string bodyMaskBase64)
+    {
+        var eventData = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "user",
+                content = new object[]
+                {
+                    new { type = "input_text", text = prompt },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = handsBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = handsMaskBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = bodyBase64
+                    },
+                    new
+                    {
+                        type = "input_image",
+                        image_url = bodyMaskBase64
+                    }
+                }
+            }
+        };
+
+        await SendJson(eventData);
+        await SendJson(new { type = "response.create" });
     }
 
     // CONVERTERS
@@ -1386,6 +1467,7 @@ public class OpenAIQueries : MonoBehaviour
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
     public RealtimeAvatarVoice _avatarVoice;
+    private SpatialPerceptionSensor perceptionSensor;
 
     // Universal guide variables
     public string objectNames;
@@ -1403,11 +1485,13 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
-        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
+        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture." +
+        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry, call the label_object function to store this mapping for future conversations.";
     [HideInInspector]
     public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object, or a change in the scene, mention it naturally." +
-        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
+        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture." +
+        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry, call the label_object function to store this mapping for future conversations.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -1517,6 +1601,7 @@ public class OpenAIQueries : MonoBehaviour
     {
         // Find and load appropriate resources
         m_AIGuideScript = GetComponent<AIGuide>();
+        perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
         audioSource = GameObject.Find("Human Model").GetComponent<AudioSource>(); // Ensure we grab the guide audio source for OpenAI, not PlayAudio
         LoadRoomDescriptions();
         LoadPredeterminedAudio();
@@ -1604,7 +1689,11 @@ public class OpenAIQueries : MonoBehaviour
 
     public GameObject GetClosestObjectByName(string name)
     {
-        // Find EVERY object in the scene (active only)
+        // Try to resolve via existing alias first
+        GameObject resolved = perceptionSensor.ResolveObjectByAlias(query);
+        if (resolved != null) return resolved;
+
+        // Fallback to finding EVERY object in the scene (active only) by exact names
         GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
         GameObject closest = null;
         float minDistance = Mathf.Infinity;
