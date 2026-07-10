@@ -143,6 +143,37 @@ public class SpatialPerceptionSensor : MonoBehaviour
         return float.MaxValue;
     }
 
+    // Another helper for grabbing - this one is meant to help us grab the height of an obstacle
+    public string GetAnchorHandVerticalOffset(ObjectAnchor obj)
+    {
+        // Default to the transform position
+        Vector3 targetPos = obj.gameObjectReference.transform.position;
+
+        // Use the closest point on the collider if available for accuracy
+        Collider col = obj.gameObjectReference.GetComponent<Collider>();
+        if (col != null)
+        {
+            targetPos = col.ClosestPoint(playerHandRight.position);
+        }
+
+        // Calculate the difference purely on the Y (Up/Down) axis
+        float yDifference = targetPos.y - playerHandRight.position.y;
+
+        // Create a semantic string for the LLM
+        if (Mathf.Abs(yDifference) < 0.03f) // If within 3cm, consider it level
+        {
+            return "Level with hand";
+        }
+        else if (yDifference > 0)
+        {
+            return $"{yDifference:F2}m Above hand";
+        }
+        else
+        {
+            return $"{Mathf.Abs(yDifference):F2}m Below hand";
+        }
+    }
+
     public float GetAnchorRelativeAngle(ObjectAnchor obj)
     {
         // Default to the transform position
@@ -232,6 +263,7 @@ public class SpatialPerceptionSensor : MonoBehaviour
                 sb.AppendLine($"- Registry Name: {anchor.technicalName}");
                 sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
                 sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+                sb.AppendLine($"  Vertical Offset from Player's Right Hand: {GetAnchorHandVerticalOffset(anchor)}");
                 sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
                 sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
                 if (anchor.userAliases.Count > 0)
@@ -249,6 +281,17 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
     public string GetAllSpatialContext()
     {
+        // Run this to clean-up any objects that were destroyed/not properly cleaned in other scripts
+        List<string> staleKeys = activeAnchors
+            .Where(kvp => kvp.Value.gameObjectReference == null)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (string key in staleKeys)
+        {
+            activeAnchors.Remove(key);
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("SPATIAL TELEMETRY OF ALL ENCOUNTERED OBJECTS (Hidden from user):");
 
@@ -259,6 +302,7 @@ public class SpatialPerceptionSensor : MonoBehaviour
             sb.AppendLine($"- Registry Name: {anchor.technicalName}");
             sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
             sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+            sb.AppendLine($"  Vertical Offset from Player's Right Hand: {GetAnchorHandVerticalOffset(anchor)}");
             sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
             sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
             if (anchor.userAliases.Count > 0)

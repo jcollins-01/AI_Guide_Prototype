@@ -1037,7 +1037,7 @@ public class AIGuide : MonoBehaviour
     {
         // Start a timer to stop this coroutine automatically after the user tries grabbing an object for too long
         float startTime = Time.time;
-        float maxDuration = 60f; // Seconds before the loop forces a stop
+        float maxDuration = 120f; // Seconds before the loop forces a stop
         yield return new WaitForSeconds(0.5f);
         
         while (isGrabbing && (Time.time - startTime) < maxDuration)
@@ -1092,7 +1092,8 @@ public class AIGuide : MonoBehaviour
             // We inject the dynamic telemetry directly into the prompt so the LLM can read the distances/angles.
             string prompt = $"You are assisting the player to grab the '{targetToGrab}'. " +
                             $"Use the provided images and the following spatial telemetry to guide their hand to the object. " +
-                            $"The telemetry provides the exact distance to the player's right hand and the relative angle (0=Front, 90=Right, 180=Back, 270=Left)." +
+                            $"The telemetry provides the exact distance to the player's right hand, the vertical offset (whether they need to move their hand up or down), " +
+                            $"and the relative angle (0=Front, 90=Right, 180=Back, 270=Left)." +
                             $"You are receiving four screenshots. Image 1 is the standard view of the player's hand. Image 2 is a color segmentation mask for the player's hand " +
                             $"(match the solid colors in this image to the hex codes in the text data). " +
                             $"Image 3 is a standard body shot from the player's side. Image 4 is the color segmentation mask for the body shot. " +

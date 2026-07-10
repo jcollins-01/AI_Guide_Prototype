@@ -1529,7 +1529,9 @@ public class OpenAIQueries : MonoBehaviour
         "Fourth, the orientation of their hand when reaching in order to grab the object." +
         "2. Provide guidance for grasping with the right hand unless the player specifies using another." +
         "Example Outputs: Move your right hand forward five inches with your palm facing left." +
-        "Move your right hand left two inches with your palm facing down.";
+        "Move your right hand left two inches with your palm facing down." +
+        "Move your right hand forward five inches and down ten inches with your palm facing down." +
+        "Move your right hand back ten inches and up about five inches with your palm facing left.";
     /*public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
