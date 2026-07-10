@@ -193,7 +193,7 @@ public class RealtimeGuideClient : MonoBehaviour
                 input_audio_format = "pcm16",
                 output_audio_format = "pcm16",
                 turn_detection = turnDetectionConfig,*/
-                tools = new[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
+                tools = new object[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
                 {
                     new
                     {
@@ -244,16 +244,16 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         type = "function",
                         name = "label_object",
-                        description = "Call this when the user refers to a specific object by a colloquial name that doesn't match its exact technical name.",
+                        description = "Call this when the user refers to a specific object by a colloquial name, nickname, or description that doesn't exactly match its Registry Name.",
                         parameters = new
                         {
                             type = "object",
                             properties = new
                             {
-                                target_object = new { type = "string", description = "The technical name from the spatial telemetry." }//,
-                                //alias = new { type = "string", description = "The new colloquial name or nickname the user just used." }
+                                target_object = new { type = "string", description = "The exact technical Registry Name from the spatial telemetry." },
+                                alias = new { type = "string", description = "The colloquial name or nickname the user just used (e.g., 'striped gazebo')." }
                             },
-                            required = new[] { "target_object" }//, "alias" }
+                            required = new[] { "target_object", "alias" } // Make sure alias is required!
                         }
                     }
                     // Deprecated modification + audio beacons for now
@@ -334,11 +334,6 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(updateSession);
 
         //Debug.Log("[Realtime] Toggling guide mode and forcing re-evaluation...");
-
-        // Cut off the AI immediately so the user doesn't hear the "wrong" response
-        //await SendJson(new { type = "response.cancel" });
-
-        // if the response was active and got cancelled, then we recreate a message
 
         if (_isResponseActive)
         {
@@ -1454,7 +1449,8 @@ public class OpenAIQueries : MonoBehaviour
     public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object, or a change in the scene, mention it naturally." +
         "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture." +
-        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry, call the label_object function to store this mapping for future conversations.";
+        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
+        "call the label_object function to store this mapping for future conversations. Do this proactively so you remember their preferred terms.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -1657,7 +1653,7 @@ public class OpenAIQueries : MonoBehaviour
     public GameObject GetClosestObjectByName(string name)
     {
         // Try to resolve via existing alias first
-        GameObject resolved = perceptionSensor.ResolveObjectByAlias(query);
+        GameObject resolved = perceptionSensor.ResolveObjectByAlias(name);
         if (resolved != null) return resolved;
 
         // Fallback to finding EVERY object in the scene (active only) by exact names
