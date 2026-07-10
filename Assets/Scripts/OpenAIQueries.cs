@@ -243,21 +243,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "function",
-                        name = "stop_grab_assist",
-                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The object the user stopped trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
                         name = "label_object",
                         description = "Call this when the user refers to a specific object by a colloquial name that doesn't match its exact technical name.",
                         parameters = new
@@ -521,21 +506,6 @@ public class RealtimeGuideClient : MonoBehaviour
                             properties = new
                             {
                                 target_object = new { type = "string", description = "The object the user is trying to reach." }
-                            },
-                            required = new[] { "target_object" }
-                        }
-                    },
-                    new
-                    {
-                        type = "function",
-                        name = "stop_grab_assist",
-                        description = "Call this when the user has successfully grabbed the object or gives up and moves on to do any other action instead.",
-                        parameters = new
-                        {
-                            type = "object",
-                            properties = new
-                            {
-                                target_object = new { type = "string", description = "The name of the object they stopped trying to reach." }
                             },
                             required = new[] { "target_object" }
                         }
@@ -1059,12 +1029,6 @@ public class RealtimeGuideClient : MonoBehaviour
                         Debug.Log("Started grabbing help for objects");
 
                         aiGuideScript.StartGrabbing(targetName);
-                    }
-                    else if (functionName == "stop_grab_assist")
-                    {
-                        Debug.Log("Stopped grabbing help for objects");
-
-                        aiGuideScript.StopGrabbing();
                     }
                     else if (functionName == "label_object")
                     {

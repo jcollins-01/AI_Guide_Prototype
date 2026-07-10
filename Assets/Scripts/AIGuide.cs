@@ -1026,7 +1026,11 @@ public class AIGuide : MonoBehaviour
     {
         isGrabbing = false;
 
-        if (grabLoopCoroutine != null) StopCoroutine(grabLoopCoroutine);
+        if (grabLoopCoroutine != null)
+        {
+            StopCoroutine(grabLoopCoroutine);
+            grabLoopCoroutine = null;
+        }
     }
 
     private IEnumerator GrabInstructionLoop()
@@ -1038,13 +1042,28 @@ public class AIGuide : MonoBehaviour
         
         while (isGrabbing && (Time.time - startTime) < maxDuration)
         {
-            // WAIT FOR SILENCE FIRST
-            // Before we capture anything, ensure the AI has finished its previous thought.
-            // This prevents backlogs and ensures the next capture is as fresh as possible.
-            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking && !realtimeClient.IsActuallySpeaking);
+            // Before anything else, check if the hand is close enough to grab the object
+            float currentDistance = perceptionSensor.GetHandDistanceToTargetByName(targetToGrab);
 
-            // Optional natural gap so the AI doesn't sound like it's rapid-firing instructions
-            yield return new WaitForSeconds(0.25f);
+            // Check if the hand is within 5 centimeters (should work for our colliders)
+            if (currentDistance < 0.05f)
+            {
+                Debug.Log($"Unity detected hand is {currentDistance}m from {targetToGrab}.");
+
+                // Interrupt whatever the AI is currently saying
+                _ = realtimeClient.CancelPrompt();
+
+                // Force an immediate contextual voice confirmation
+                _ = realtimeClient.SendManualPrompt($"The user just successfully grabbed the {targetToGrab}. " +
+                    $"Say a quick, enthusiastic 'Got it!' or 'You found it!' and tell them to press the grip button to grab the object. Keep it under 15 words.");
+
+                StopGrabbing();
+                yield break; // Exit loop instantly
+            }
+
+            // Before we capture anything, ensure the AI has finished its previous thought -
+            // this prevents backlogs and ensures the next capture is as fresh as possible
+            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking && !realtimeClient.IsActuallySpeaking);
 
             // Now capture fresh data
             Debug.Log("Starting new capture");
@@ -1092,7 +1111,6 @@ public class AIGuide : MonoBehaviour
 
             Debug.Log("Sent new grab instruction prompt");
 
-            // 4. WAIT FOR THE API TO ACKNOWLEDGE
             // We must wait a brief moment for the API WebSocket to return "response.created" 
             // which flips _isAiSpeaking to true. Otherwise, the while loop will restart instantly,
             // bypass the WaitUntil above, and fire a second request before the API answers the first.

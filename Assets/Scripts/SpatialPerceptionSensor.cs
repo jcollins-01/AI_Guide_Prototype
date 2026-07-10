@@ -113,6 +113,35 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
         return Vector3.Distance(playerHandRight.position, obj.gameObjectReference.transform.position);
     }
+    
+    // Helper function specifically to get hand distances while grabbing and check if we've sucessfully grabbed an anchor object
+    public float GetHandDistanceToTargetByName(string targetName)
+    {
+        // Iterate through the active anchors to find the one matching the target name
+        foreach (var kvp in activeAnchors)
+        {
+            ObjectAnchor anchor = kvp.Value;
+
+            // Check if the technical name matches the target
+            if (string.Equals(anchor.technicalName, targetName, StringComparison.OrdinalIgnoreCase))
+            {
+                return GetAnchorHandDistance(anchor);
+            }
+
+            // Also check if it matches any user-assigned aliases, just in case there was an AI hallucination at some point
+            foreach (string alias in anchor.userAliases)
+            {
+                if (string.Equals(alias, targetName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return GetAnchorHandDistance(anchor);
+                }
+            }
+        }
+
+        // If the object isn't found in the dictionary, return a massive distance 
+        // so it never accidentally triggers a false "success" state
+        return float.MaxValue;
+    }
 
     public float GetAnchorRelativeAngle(ObjectAnchor obj)
     {
