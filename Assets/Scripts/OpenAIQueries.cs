@@ -68,7 +68,6 @@ public class RealtimeGuideClient : MonoBehaviour
     private bool _foundFirstSentence = false;
     private bool _isResponseActive = false;
     private bool _isUserSpeaking = false;
-    public bool isProcessingGrabRequest = false;
 
     // For handling special case speech
     private string _firstFullSentence;
@@ -1561,10 +1560,12 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: {North is in front of you; the lake is to the northeast.} {The city streets are laid out in a grid. After passing three streets, you can turn left to reach the museum.}";*/
 
     [HideInInspector]
-    public string grabbingObjectGuideline = "1. Provide grasping information in the following order: First, which hand the player needs to move. " +
+    public string grabbingObjectGuideline = "1. Provide brief, grasping information in the following order: First, which hand the player needs to move. " +
         "Second, the direction to move it in (using the vectors left, right, up, down, forward, and backward). Third, the distance to move it in a standard unit of measurement. " +
         "Fourth, the orientation of their hand when reaching in order to grab the object." +
-        "2. Provide guidance for grasping with the right hand unless the player specifies using another.";
+        "2. Provide guidance for grasping with the right hand unless the player specifies using another." +
+        "Example Outputs: Move your right hand forward five inches with your palm facing left." +
+        "Move your right hand left two inches with your palm facing down.";
     /*public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +

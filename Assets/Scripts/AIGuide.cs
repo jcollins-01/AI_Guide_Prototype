@@ -1038,9 +1038,16 @@ public class AIGuide : MonoBehaviour
         
         while (isGrabbing && (Time.time - startTime) < maxDuration)
         {
+            // WAIT FOR SILENCE FIRST
+            // Before we capture anything, ensure the AI has finished its previous thought.
+            // This prevents backlogs and ensures the next capture is as fresh as possible.
+            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking && !realtimeClient.IsActuallySpeaking);
+
+            // Optional natural gap so the AI doesn't sound like it's rapid-firing instructions
+            yield return new WaitForSeconds(0.25f);
+
+            // Now capture fresh data
             Debug.Log("Starting new capture");
-            // Lock the grabbing cycle
-            realtimeClient.isProcessingGrabRequest = true;
 
             // Trigger standard screenshots (helpful for offering semantic grouding with the exact distance and angles, e.g., the cup is behind something else)
             camSystem.converted = false;
@@ -1073,12 +1080,7 @@ public class AIGuide : MonoBehaviour
                             $"{dynamicContext}" +
                             $"{m_OpenAIQueriesScript.grabbingObjectGuideline}.";
 
-            // First, we need to wait until the AI starts speaking/generating a response
-            yield return new WaitUntil(() => !realtimeClient._isAiSpeaking);
-
-            // Then, wait for our test that the AI is DONE speaking that response - these two steps prevents building up a backlog
-            yield return new WaitUntil(() => !realtimeClient.IsActuallySpeaking);
-
+            Debug.Log("Ready to send new grab instruction prompt");
             // Send the prompt and the updated context images
             _ = realtimeClient.SendImageAndSpatialAssistedPrompt(
                 prompt, 
@@ -1087,12 +1089,18 @@ public class AIGuide : MonoBehaviour
                 camSystem.bodyImageBase64,
                 camSystem.bodyMaskBase64
             );
+
             Debug.Log("Sent new grab instruction prompt");
 
-            Debug.Log("Grabbing instruction done being spoken - pausing before starting next turn");
-            yield return new WaitForSeconds(0.5f); // Natural gap between instructions
+            // 4. WAIT FOR THE API TO ACKNOWLEDGE
+            // We must wait a brief moment for the API WebSocket to return "response.created" 
+            // which flips _isAiSpeaking to true. Otherwise, the while loop will restart instantly,
+            // bypass the WaitUntil above, and fire a second request before the API answers the first.
+            float apiTimeout = Time.time + 3.0f; // 3 second safety timeout
+            yield return new WaitUntil(() => realtimeClient._isAiSpeaking || Time.time > apiTimeout);
         }
 
+        // Max time duration timeout
         if ((Time.time - startTime) >= maxDuration)
         {
             Debug.Log("Grab Assist timed out.");
