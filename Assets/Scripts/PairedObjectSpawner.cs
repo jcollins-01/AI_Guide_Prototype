@@ -49,18 +49,8 @@ public class PrefabPairSpawner : MonoBehaviour
     private void UpdateSpawnedPairs()
     {
         // Always clear existing objects first
-        if (currentLeft != null)
-        {
-            Destroy(currentLeft);
-            string id = currentLeft.GetInstanceID().ToString();
-            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
-        }
-        if (currentRight != null)
-        {
-            Destroy(currentRight);
-            string id = currentRight.GetInstanceID().ToString();
-            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
-        }
+        if (currentLeft != null) Destroy(currentLeft);
+        if (currentRight != null) Destroy(currentRight);
 
         // If 'None' is selected, stop here (leaves the scene clear)
         if (_currentPairType == PairSelection.None) return;

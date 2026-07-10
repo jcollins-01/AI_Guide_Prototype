@@ -49,19 +49,8 @@ public class TableDropSpawner : MonoBehaviour
         // If 'None' is selected, destroy the item and the table, then stop
         if (_currentItemType == ItemSelection.None)
         {
-            if (currentItem != null)
-            {
-                Destroy(currentItem);
-                // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
-                string id = currentItem.GetInstanceID().ToString();
-                if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
-            }
-            if (currentTable != null)
-            {
-                Destroy(currentTable);
-                string id = currentTable.GetInstanceID().ToString();
-                if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
-            }
+            if (currentItem != null) Destroy(currentItem);
+            if (currentTable != null) Destroy(currentTable);
 
             return;
         }
@@ -97,13 +86,7 @@ public class TableDropSpawner : MonoBehaviour
         }
 
         // Clear the previous item
-        if (currentItem != null)
-        {
-            Destroy(currentItem);
-            // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
-            string id = currentItem.GetInstanceID().ToString();
-            if (perceptionSensor.activeAnchors.ContainsKey(id)) perceptionSensor.activeAnchors.Remove(id);
-        }
+        if (currentItem != null) Destroy(currentItem);
 
         // Validate the selected item prefab
         int index = (int)_currentItemType - 1;

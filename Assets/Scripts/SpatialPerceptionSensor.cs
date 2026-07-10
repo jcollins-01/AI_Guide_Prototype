@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -177,6 +178,18 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
     public string GetDynamicSpatialContext()
     {
+        // Run this to clean-up any objects that were destroyed/not properly cleaned in other scripts
+        List<string> staleKeys = activeAnchors
+            .Where(kvp => kvp.Value.gameObjectReference == null)
+            .Select(kvp => kvp.Key)
+            .ToList();
+
+        foreach (string key in staleKeys)
+        {
+            activeAnchors.Remove(key);
+        }
+
+        // Now get the spatial context with the cleaned list
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("CURRENT SPATIAL TELEMETRY (Hidden from user):");
 

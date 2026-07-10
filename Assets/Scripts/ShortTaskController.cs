@@ -154,10 +154,6 @@ public class ShortTaskController : MonoBehaviour
                 if (m_UnloadSpawnerAndPrepareTaskScript.spawnedObject != null) // Destroy any lingering spawnedObjects from unloading
                 {
                     Destroy(m_UnloadSpawnerAndPrepareTaskScript.spawnedObject);
-                    // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
-                    string id = m_UnloadSpawnerAndPrepareTaskScript.spawnedObject.GetInstanceID().ToString();
-                    if (perceptionSensor.activeAnchors.ContainsKey(id))
-                        perceptionSensor.activeAnchors.Remove(id);
                 }  
             }
         }

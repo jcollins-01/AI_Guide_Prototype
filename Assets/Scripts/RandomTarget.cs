@@ -32,10 +32,6 @@ public class RandomTarget : MonoBehaviour
         foreach (GameObject obj in randomTargets)
         {
             Destroy(obj);
-            // Remove them from the activeAnchors to keep it clean and prevent bad references / null errors
-            string id = obj.GetInstanceID().ToString();
-            if (perceptionSensor.activeAnchors.ContainsKey(id))
-                perceptionSensor.activeAnchors.Remove(id);
         }
 
         randomTargets.Clear();
