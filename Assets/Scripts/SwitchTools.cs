@@ -28,9 +28,11 @@ public class SwitchTools : MonoBehaviour
         AllCombined // Deprecated for now, but kept for future use
     }
 
-    [Header("Type of Guide")]
+    [Header("Guide Settings")]
     [SerializeField]
     private GuideType _currentGuideType = GuideType.Baseline;
+    [Tooltip("The silence time in seconds that the guide waits for before responding")]
+    public float silenceThreshold = 2.5f; // default is 2.5 seconds, 1.2 cuts you off a lot
 
     public GuideType activeGuideType
     {

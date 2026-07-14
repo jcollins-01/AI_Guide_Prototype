@@ -46,6 +46,7 @@ public class RealtimeGuideClient : MonoBehaviour
     private GuideAudioSync guideAudioSync;
     private AIGuide aiGuideScript;
     private SpatialPerceptionSensor perceptionSensor;
+    private SwitchTools switchTools;
 
     public AudioSource outputSource;
 
@@ -90,7 +91,7 @@ public class RealtimeGuideClient : MonoBehaviour
     public bool _legacyHoldToSpeakOn = false;
     public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
     private float _silenceTimer = 0f;
-    private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
+    private float _silenceThreshold = 2.5f; // Seconds of silence before auto-stopping
     private float _volumeThreshold = 0.05f; // Minimum volume to be considered talking, was 0.02f, caught computer fan
     private bool _hasSpoken = false; // Prevents auto-stopping before a user starts talking
 
@@ -116,6 +117,7 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
         perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
+        switchTools = FindObjectOfType<SwitchTools>();
         aiGuideScript = GetComponent<AIGuide>();
         if (_openAIQueriesScript != null)
             Debug.Log("Found the queries script");
@@ -127,8 +129,6 @@ public class RealtimeGuideClient : MonoBehaviour
         personalVoicesMode = FindObjectOfType<SwitchTools>().personalVoicesOn;
 
         _micDevice = Microphone.devices[0];
-
-
     }
 
     public async Task Connect(string systemInstructions, bool usingBaseline)
@@ -635,6 +635,9 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         // Find the guide audio sync component to share over network
         getAudioSync();
+
+        // Update how long the guide pauses for between turns
+        CheckSilenceThreshold();
         
         // Call continuous microphone streaming logic
         HandleMicStreaming();
@@ -654,6 +657,17 @@ public class RealtimeGuideClient : MonoBehaviour
             if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
                 PlayAudioChunk(nextChunk);
         }
+    }
+
+    private void CheckSilenceThreshold()
+    {
+        if (switchTools != null)
+        {
+            if (!Mathf.Approximately(switchTools.silenceThreshold, _silenceThreshold)) // if the switch tools threshold is different
+            {
+                _silenceThreshold = switchTools.silenceThreshold; // adjust our local threshold
+            }
+        }  
     }
 
     private void HandleJitter()
