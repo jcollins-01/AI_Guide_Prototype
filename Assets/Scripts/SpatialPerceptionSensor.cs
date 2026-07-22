@@ -301,10 +301,10 @@ public class SpatialPerceptionSensor : MonoBehaviour
             ObjectAnchor anchor = kvp.Value;
             sb.AppendLine($"- Registry Name: {anchor.technicalName}");
             sb.AppendLine($"  Distance to Player: {GetAnchorPlayerDistance(anchor):F2}m");
-            sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
-            sb.AppendLine($"  Vertical Offset from Player's Right Hand: {GetAnchorHandVerticalOffset(anchor)}");
-            sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
-            sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
+            //sb.AppendLine($"  Distance to Player's Right Hand: {GetAnchorHandDistance(anchor):F2}m");
+            //sb.AppendLine($"  Vertical Offset from Player's Right Hand: {GetAnchorHandVerticalOffset(anchor)}");
+            //sb.AppendLine($"  Relative Angle to Player: {GetAnchorRelativeAngle(anchor):F0}° (0=Front, 90=Right, 180=Back, 270=Left)");
+            //sb.AppendLine($"  Mask Color ID: #{ColorUtility.ToHtmlStringRGBA(anchor.uniqueColorID)}");
             if (anchor.userAliases.Count > 0)
             {
                 sb.AppendLine($"  Known Aliases: {string.Join(", ", anchor.userAliases)}");

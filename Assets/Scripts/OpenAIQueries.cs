@@ -255,6 +255,21 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object", "alias" } // Make sure alias is required!
                         }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "review_memory",
+                        description = "Call this when the user asks about an object that isn't in your current spatial telemetry, to see if you've encountered it before.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The object you are searching your full telemetry memory for." }
+                            },
+                            required = new[] { "target_object" }
+                        }
                     }
                     // Deprecated modification + audio beacons for now
                     /*,
@@ -1046,9 +1061,78 @@ public class RealtimeGuideClient : MonoBehaviour
                         GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
                         if (obj != null)
                         {
-                            // Call your sensor function here
+                            // Call the sensor function to add the new alias
                             perceptionSensor.AddAliasToAnchor(obj, alias);
                         }
+                    }
+                    else if (functionName == "review_memory")
+                    {
+                        // this function will search all game objects + aliases for the one that matches what they're discussing
+                        // it grabs the one specific object without needing to review all of the spatial telemetry at once + crashing the system
+                        Debug.Log("Calling review memory");
+                        GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        string outputPayload;
+                        if (obj != null)
+                        {
+                            Debug.Log("Found an object in review");
+                            // 1. Keep the payload strictly factual. No behavioral commands here.
+                            outputPayload = JsonConvert.SerializeObject(new
+                            {
+                                status = "found_in_memory",
+                                object_name = obj.name,
+                                distance_meters = _openAIQueriesScript.distanceToClosestTarget
+                            });
+                        }
+                        else
+                        {
+                            Debug.Log("Found no object in review");
+                            outputPayload = JsonConvert.SerializeObject(new
+                            {
+                                status = "not_found",
+                                message = "Object does not exist in memory."
+                            });
+                        }
+
+                        Debug.Log($"review memory Found the object {obj.name} and it was {_openAIQueriesScript.distanceToClosestTarget} away ");
+
+                        // 2. Send the factual function output
+                        var memoryFunctionResult = new
+                        {
+                            type = "conversation.item.create",
+                            item = new
+                            {
+                                type = "function_call_output",
+                                call_id = callId,
+                                output = outputPayload
+                            }
+                        };
+                        _ = SendJson(memoryFunctionResult);
+
+                        // 3. Inject a hidden system message to strictly enforce the persona BEFORE it responds
+                        var characterEnforcement = new
+                        {
+                            type = "conversation.item.create",
+                            item = new
+                            {
+                                type = "message",
+                                role = "system",
+                                content = new[]
+                                {
+                                    new
+                                    {
+                                        type = "input_text",
+                                        text = "System Instruction: You just retrieved the requested object from memory. Answer the user's question directly and naturally using this new spatial data. CRITICAL: Do NOT narrate that you checked your memory, readings, or telemetry. Speak directly as the guide in the scene."
+                                    }
+                                }
+                            }
+                        };
+                        _ = SendJson(characterEnforcement);
+
+                        // 4. Trigger the AI to generate a response now that it has the context and the rules
+                        _ = SendJson(new { type = "response.create" });
+
+                        // Break out of the switch statement early
+                        break;
                     }
 
                     // Crucial: send a response back to the API acknowledging the tool was handled
@@ -1190,12 +1274,13 @@ public class RealtimeGuideClient : MonoBehaviour
                     new
                     {
                         type = "input_text",
-                        text = "[Visual Context] The following data contains exact distances and unique hex color IDs for objects in your field of vision. " +
-                        "You MUST rely strictly on this text data for distance calculations, as the 2D images lack depth. " +
-                        "The degree values help you determine the clockface angle of the object to the player (e.g., 90 degrees is to the right, translates to 3 o'clock). " +
-                        "You are receiving four screenshots. Image 1 is the player's standard view. Image 2 is a color segmentation mask for the player's view " +
+                        text = "[Visual Context] You are receiving four images and a text block of spatial telemetry. " +
+                        "Image 1 is the player's viewpoint. Image 2 is a color segmentation mask for the player's view " +
                         "(match the solid colors in this image to the hex codes in the text data). " +
-                        "Image 3 is a standard overhead shot right above the player. Image 4 is the color segmentation mask for the overhead shot. " +
+                        "Image 3 is an overhead shot above the player. Image 4 is the color segmentation mask for the overhead shot. " +
+                        "CRITICAL INSTRUCTION: The text data ONLY contains objects within your immediate radius. " +
+                        "You MUST use the visual screenshots to identify distant landmarks, buildings, backgrounds, and the wider environment. " +
+                        "Use the text data exclusively for precise distance calculations of nearby objects. " +
                         "If you ever see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide."
                     },
                     new
@@ -1457,14 +1542,20 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
-        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture." +
-        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry, call the label_object function to store this mapping for future conversations.";
+        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
     [HideInInspector]
     public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
-        "This is your current reality. If you see a new person, a new object, or a change in the scene, mention it naturally." +
-        "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture." +
+        "This is your current reality. Utilize BOTH the spatial data and images effectively to answer the user's questions. " +
+        "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. A user may ask about objects you have seen before, " +
+        "but are no longer in your spatial telemetry. In this case, call the review_memory function to find the closest object to what they're looking for " +
+        "and review your conversation history with the user to best answer their question. " +
         "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
-        "call the label_object function to store this mapping for future conversations. Do this proactively so you remember their preferred terms.";
+        "call the label_object function to store this mapping for future conversations. Do this proactively so you remember their preferred terms." +
+        "CRITICAL INSTRUCTION: As you respond to the user you MUST NOT mention aspects of your internal architecture." +
+        "For instance, NEVER tell the user that you're saving an alias or mapping their preferred alias to an object. " +
+        "NEVER tell the user that you are checking your spatial data, the spatial telemetry, or visual context windows to address their questions. " +
+        "Do NOT talk about checking your readings to address their questions or use other robotic or machine-like language. " +
+        "You MUST speak as though you are a person accompanying them in the scene, and are answering based on what you see with your eyes in all responses.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -1491,7 +1582,7 @@ public class OpenAIQueries : MonoBehaviour
     public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
         "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts). " +
         "Third, provide its manipulability (how the player can tactilely interact with it) and texture. Fourth, provide its color." +
-        "3. If the user requests a detailed decsription, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";
+        "3. If the user requests a detailed description, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";
     /*public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
         "Follow the specified order for object details: First, define what an object is, including its name from the Navigation Registry if it is on the registry; second, provide its shape and size; third, provide its color; " +
         "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
@@ -1509,9 +1600,10 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: {The mug is at your 1 o’clock, about 2 feet away.}";*/
 
     [HideInInspector]
-    public string sceneUnderstandingGuideline = "1. Give a scene description focused on details most relevant to a player's current context and goals. Provide more information upon request." +
-        "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in a standard unit of measurement." +
-        "3. Build your descriptions around scene content that a player has already mentioned.";
+    public string sceneUnderstandingGuideline = "1. Give a scene description focused on details most relevant to a player's current context and goals. Help them determine the kind of place they are in. Provide more information upon request." +
+        "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in a standard unit of measurement (e.g., there is a boat and a gazebo to your left, about eight meters away)." +
+        "3. Build your descriptions around scene content that a player has already mentioned. " +
+        "4. For distant landmarks and the general environment (e.g., houses, sky, horizons), you MUST rely on the visual images. For objects immediately nearby, use the spatial telemetry data to provide precise distances. Synthesize both into a natural description without ever mentioning that you are looking at images or telemetry data.";
     /*public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
         "Then, mention major landmarks that are relevant to the user’s current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters). " +
@@ -1561,6 +1653,7 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public GameObject targetForModification;
     [HideInInspector] public string modeOfModification;
     [HideInInspector] public GameObject targetForDescription;
+    [HideInInspector] public float distanceToClosestTarget;
 
     public string query;
     public string role;
@@ -1685,6 +1778,7 @@ public class OpenAIQueries : MonoBehaviour
                 {
                     closest = obj;
                     minDistance = dist;
+                    distanceToClosestTarget = minDistance;
                 }
             }
         }
