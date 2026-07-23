@@ -111,7 +111,9 @@ public class RealtimeGuideClient : MonoBehaviour
     // Configuration
     private const string OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2"; // was gpt-4o-realtime-preview, was deprecated on May 7th - 
 
+    // Logging
     private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs/logging
+    private string triggeredTool = "None";
 
     private void Start()
     {
@@ -175,13 +177,15 @@ public class RealtimeGuideClient : MonoBehaviour
                 type = "realtime", // required by the general model, new from beta
                 output_modalities = new[] { "audio" }, // Ask for just audio, now assumes text is included
                 instructions = instructions,
+                
                 audio = new
                 {
                     input = new
                     {
                         // Format is now an object, not a string
                         format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
-                        turn_detection = turnDetectionConfig
+                        turn_detection = turnDetectionConfig,
+                        transcription = new { model = "whisper-1" }, // line to transcribe user query for logger
                     },
                     output = new
                     {
@@ -316,7 +320,8 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         // Format is now an object, not a string
                         format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
-                        turn_detection = turnDetectionConfig
+                        turn_detection = turnDetectionConfig,
+                        transcription = new { model = "whisper-1" }, // line to transcribe user query for logger
                     },
                     output = new
                     {
@@ -573,6 +578,9 @@ public class RealtimeGuideClient : MonoBehaviour
         if (!_isConnected) return;
         Debug.Log("Recording started");
 
+        // LOGGER HOOK: Query initiated by participant
+        InteractionLogger.Instance?.OnUserQueryInitiated();
+
         // Reset variables for voice detection
         _hasSpoken = false;
         _silenceTimer = 0f;
@@ -599,6 +607,10 @@ public class RealtimeGuideClient : MonoBehaviour
     public async Task StopRecordingAndCommit(string screenshotUrl = null)
     {
         Debug.Log("Recording stopped");
+
+        // LOGGER HOOK: User finished speech input - call without text to mark when the user stopped talking
+        InteractionLogger.Instance?.OnUserFinishedSpeaking();
+
         // Flush the final bits of audio
         await HandleMicStreaming();
 
@@ -876,6 +888,7 @@ public class RealtimeGuideClient : MonoBehaviour
             switch (type)
             {
                 case "input_audio_buffer.speech_started":
+                    triggeredTool = "None"; // start as none, update if another function for a specific tool is called based on what user says
                     _isUserSpeaking = true;
                     OnServerDetectedSpeechStart?.Invoke();
 
@@ -895,8 +908,14 @@ public class RealtimeGuideClient : MonoBehaviour
                     // Reset timer on the last time the user prompted the guide
                     break;
 
+                case "conversation.item.input_audio_transcription.completed":
+                    // The server finished transcribing the user's audio
+                    string userTranscript = (string)jsonObj["transcript"];
+                    // LOGGER HOOK: User speech transcribed - call with the transcript this time
+                    InteractionLogger.Instance?.OnUserFinishedSpeaking(userTranscript);
+                    break;
+
                 case "response.created":
-                    
                     _textBuffer.Clear();
                     _isAiSpeaking = true;
                     _isResponseActive = true; // redundant safety catch
@@ -905,8 +924,8 @@ public class RealtimeGuideClient : MonoBehaviour
                     break;
                 
                 case "response.output_audio.delta": // was response.audio.delta
-                    // Native Audio stream from OpenAI (Fastest possible latency)
-                    //Debug.Log("Got response audio");
+                    // LOGGER HOOK: First audio chunk received/played
+                    InteractionLogger.Instance?.OnGuideStartedSpeaking();
                     if (personalVoicesMode) // Don't do anything with the native audio stream from OpenAI
                         break;
                     else
@@ -928,7 +947,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         break;
                     }
 
-                case "response.audio_transcript.delta": // Use this instead of or in addition to text.delta
+                case "response.output_audio_transcript.delta": // was, "response.audio_transcript.delta" -- Use this instead of or in addition to text.delta
                     string transcriptDelta = (string)jsonObj["delta"];
                     _textBuffer.Append(transcriptDelta);
 
@@ -948,7 +967,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
                     break;
 
-                case "response.text.delta":
+                case "response.output_text.delta": // was "response.text.delta":
                     // Use the text grabbed here to pass to ElevenLabs
                     //Debug.Log("Got response text to use in ElevenLabs or log");
                     if (personalVoicesMode) // Still capture the text, but additionally pass it to ElevenLabs
@@ -982,7 +1001,10 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         string remainingText = _textBuffer.ToString().Trim();
                         aiGuideScript.RecordPlayerInteraction();
-                        //Debug.Log($"Full Response Captured: {remainingText}");
+                        Debug.Log($"Full Response Captured: {remainingText}");
+
+                        // LOGGER HOOK: Guide completed speech response
+                        InteractionLogger.Instance?.OnGuideFinishedSpeaking(remainingText, triggeredTool);
                     }
                     else
                     {
@@ -1006,6 +1028,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
                     if (functionName == "trigger_guidance")
                     {
+                        triggeredTool = "Guidance"; // start as none, update if another function was called
                         _openAIQueriesScript.modeOfTransportation = "guide";
                         _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
@@ -1022,6 +1045,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "trigger_teleportation")
                     {
+                        triggeredTool = "Teleportation"; // start as none, update if another function was called
                         _openAIQueriesScript.modeOfTransportation = "teleport";
                         _openAIQueriesScript.targetForGuidance = _openAIQueriesScript.GetClosestObjectByName(targetName);
 
@@ -1038,6 +1062,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "trigger_modification")
                     {
+                        triggeredTool = "Modification"; // start as none, update if another function was called
                         _openAIQueriesScript.modeOfModification = "modify";
                         //Debug.Log("Going to pass on a command to modify an object");
                         _openAIQueriesScript.targetForModification = _openAIQueriesScript.GetClosestObjectByName(targetName);
@@ -1050,12 +1075,14 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "start_grab_assist")
                     {
+                        triggeredTool = "Grabbing"; // start as none, update if another function was called
                         Debug.Log("Started grabbing help for objects");
 
                         aiGuideScript.StartGrabbing(targetName);
                     }
                     else if (functionName == "label_object")
                     {
+                        triggeredTool = "Labeling"; // start as none, update if another function was called
                         string alias = (string)argsObj["alias"]; // "striped house"
 
                         GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
