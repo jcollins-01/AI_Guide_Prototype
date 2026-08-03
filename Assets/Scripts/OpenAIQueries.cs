@@ -133,7 +133,7 @@ public class RealtimeGuideClient : MonoBehaviour
         _micDevice = Microphone.devices[0];
     }
 
-    public async Task Connect(string systemInstructions, bool usingBaseline)
+    public async Task Connect(string systemInstructions, bool inferringIntention)
     {
         _webSocket = new ClientWebSocket();
         _webSocket.Options.SetRequestHeader("Authorization", "Bearer " + _apiKey);
@@ -152,10 +152,10 @@ public class RealtimeGuideClient : MonoBehaviour
             _ = ReceiveLoop();
 
             // Configure the session (Set the "System Prompt")
-            if (usingBaseline)
+            if (inferringIntention)
                 await SendSessionUpdate(systemInstructions);
             else
-                await FirstSessionUpdate(systemInstructions);
+                await FirstSessionUpdate(systemInstructions); // send simplified update with fewer instructions, since we'll specify intention manually
         }
         catch (Exception e)
         {
@@ -165,7 +165,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private async Task SendSessionUpdate(string instructions)
     {
-        Debug.Log("Sending all functions at once for first session (baseline or all combined intention guide)");
+        Debug.Log("[OpenAIQueries] Sending all functions at once for first session (baseline + all combined guides that infer intention)");
         // Dynamically assign the turn_detection to be either null (push to talk) or handled by the voice activity
         object turnDetectionConfig = _continuousVoiceOn ? new { type = "server_vad" } : null;
 
@@ -1082,6 +1082,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "label_object")
                     {
+                        Debug.Log("labeling an object");
                         triggeredTool = "Labeling"; // start as none, update if another function was called
                         string alias = (string)argsObj["alias"]; // "striped house"
 
@@ -1679,7 +1680,6 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector] public string modeOfTransportation;
     [HideInInspector] public GameObject targetForModification;
     [HideInInspector] public string modeOfModification;
-    [HideInInspector] public GameObject targetForDescription;
     [HideInInspector] public float distanceToClosestTarget;
 
     public string query;

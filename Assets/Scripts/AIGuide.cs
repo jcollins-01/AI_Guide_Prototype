@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class AIGuide : MonoBehaviour
 {
+    #region Variables and Scripts
     // Variables to hold scripts we need access to
     private AutomaticGuide m_AutomatedGuideScript;
     private OpenAIQueries m_OpenAIQueriesScript;
@@ -76,6 +77,7 @@ public class AIGuide : MonoBehaviour
     private AudioClip processingClip;
     private AudioClip listeningClip;
     private AudioClip doneListeningClip;
+    #endregion
 
     // Start is called before the first frame update
     void Start()
@@ -172,10 +174,8 @@ public class AIGuide : MonoBehaviour
         {
             case SwitchTools.GuideType.Baseline:
                 Debug.Log("Using the baseline guide!");
-                prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
-                   " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
-                   m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules +
-                   " IMPORTANT: When mentioning any object to a player in ANY of your responses, you must use its registry name so that the player can learn it."; // used to have + m_OpenAIQueriesScript.commandClassifications
+                prompt = "You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. " + m_OpenAIQueriesScript.enhancedContextClassification +
+                   "Address the player's questions to the best of your ability."; 
                 break;
             case SwitchTools.GuideType.ObjectDescription:
                 Debug.Log("Using the object description guide!");
@@ -278,22 +278,6 @@ public class AIGuide : MonoBehaviour
         Debug.Log($"Guide version shifted successfully. Guide was told: {freshPrompt}");
     }
 
-    private void PresetAvatarRoles()
-    {
-        // Set avatars to correct roles in separate scenes for the guide
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        if (currentSceneName.Equals("Tutorial"))
-            role = 1; // human
-        else if (currentSceneName.Equals("GuidePark1_Networked"))
-            role = 2; // human
-        else if (currentSceneName.Equals("GuidePark2_Networked"))
-            role = 4; // dog
-        else if (currentSceneName.Equals("GuidePark3_Networked"))
-            role = 4; // robot
-        else
-            role = 1; // human is default guide for all other rooms
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -307,19 +291,15 @@ public class AIGuide : MonoBehaviour
             // Call the guide
             RealtimeGuide();
 
-            // Only perform the following for improved guides - not the baseline
-            if (!m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
-            {
-                // See if the player has been silent for a while
-                CheckForIdlePlayer();
+            // See if the player has been silent for a while
+            CheckForIdlePlayer();
 
-                // Check the player's velocity so we can determine hazards
-                checkPlayerVelocity();
+            // Check the player's velocity so we can determine hazards
+            checkPlayerVelocity();
 
-                // Check for objects too close to the player
-                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
-                    CheckHazardDistances();
-            }
+            // Check for objects too close to the player
+            if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
+                CheckHazardDistances();
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -327,23 +307,11 @@ public class AIGuide : MonoBehaviour
             // Determine if modification is required based on GPT-4 response
             checkModificationRequests();
 
-            // Determine if description is required based on GPT-4 response
-            checkDescriptionRequests();
-
             // If any confederate is present at the start of the scene, assign the guide
             AssignSingleConfederate();
 
             // Check if both confederates are present and send guide roles each time they are (in case of confederates leaving and coming back)
             BothConfederatesPresent();
-        }
-    }
-
-    private void CheckForIdlePlayer()
-    {
-        // If the AI hasn't prompted yet, and 60 seconds have passed since the last interaction
-        if (!hasPromptedForHelp && (Time.time - lastPlayerInteractionTime) >= idleTimeout)
-        {
-            TriggerHelpPrompt();
         }
     }
 
@@ -386,62 +354,6 @@ public class AIGuide : MonoBehaviour
             }
             // We DO NOT have a stop condition here. 
             // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
-        }
-        else if (realtimeClient._continuousVoiceOn)
-        {
-            if (isDownThisFrame)
-            {
-                if (!realtimeClient._isContinuousSessionActive)
-                {
-                    // Toggle ON
-                    playEffect("listening");
-                    realtimeClient._isContinuousSessionActive = true;
-                    realtimeClient.StartRecording(); // Opens mic permanently
-                    Debug.Log("Continuous Voice Mode: ON");
-                }
-                else
-                {
-                    // Toggle OFF
-                    playEffect("done_listening");
-                    realtimeClient._isContinuousSessionActive = false;
-                    _ = realtimeClient.StopRecordingSilently(); // Closes mic
-                    Debug.Log("Continuous Voice Mode: OFF");
-                }
-            }
-        }
-        else
-        {
-            // Legacy hold-to-speak mode.
-
-            bool isDown = m_VRHandlingScript.isButtonPressed && !isRecording;
-            bool isUp = !m_VRHandlingScript.isButtonPressed && isRecording;
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                playEffect("listening");
-                StartCoroutine(CaptureAndSendContext());
-            }
-
-            if (Input.GetKeyUp(KeyCode.Space))
-            {
-                playEffect("done_listening");
-                _ = realtimeClient.StopRecordingAndCommit();
-            }
-
-            // Separate set with flag vars for VR
-            if (isDown && !isRecording)
-            {
-                playEffect("listening");
-                isRecording = true; // Lock it immediately
-                StartCoroutine(CaptureAndSendContext());
-            }
-
-            if (isUp && isRecording)
-            {
-                playEffect("done_listening");
-                isRecording = false; // Unlock
-                _ = realtimeClient.StopRecordingAndCommit();
-            }
         }
 
         // Logic to mute the guide
@@ -506,19 +418,32 @@ public class AIGuide : MonoBehaviour
         if (camSystem.converted)
         {
             //Debug.Log("Images converted. Sending to Vision API...");
-            if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
-                realtimeClient.SendVisualContext(camSystem.viewpointImageBase64, camSystem.birdsEyeImageBase64, camSystem.overheadImageBase64);
-            else
-            {
-                realtimeClient.SendVisualAndSpatialContext(
-                    dynamicContext, 
-                    camSystem.viewpointImageBase64, 
-                    camSystem.overheadImageBase64,
-                    camSystem.overheadImageBase64,
-                    camSystem.overheadMaskBase64
-                );
-            }
+            // All guides get the grounding information with the visual + spatial context
+            realtimeClient.SendVisualAndSpatialContext(
+                dynamicContext,
+                camSystem.viewpointImageBase64,
+                camSystem.overheadImageBase64,
+                camSystem.overheadImageBase64,
+                camSystem.overheadMaskBase64
+            );
         }
+    }
+
+    #region Guide and Confederate Roles
+    private void PresetAvatarRoles()
+    {
+        // Set avatars to correct roles in separate scenes for the guide
+        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (currentSceneName.Equals("Tutorial"))
+            role = 1; // human
+        else if (currentSceneName.Equals("GuidePark1_Networked"))
+            role = 2; // human
+        else if (currentSceneName.Equals("GuidePark2_Networked"))
+            role = 4; // dog
+        else if (currentSceneName.Equals("GuidePark3_Networked"))
+            role = 4; // robot
+        else
+            role = 1; // human is default guide for all other rooms
     }
 
     // Method to disable all colliders in the children of this gameObject
@@ -573,12 +498,9 @@ public class AIGuide : MonoBehaviour
         guideRoleAssignedStart = true; // Stops assigning guide role for a single confed client
     }
 
-    private IEnumerator muteAudioSource(AudioSource source, AudioClip clip)
-    {
-        yield return new WaitForSeconds(clip.length);
-        source.mute = true;
-    }
+    #endregion
 
+    #region Visual and Audio Effects
     private void playEffect(string clipName)
     {
         switch(clipName)
@@ -617,20 +539,6 @@ public class AIGuide : MonoBehaviour
         }
     }
 
-    // This is never actually used to highlight objects of targeted description - leave it for now, since a user probably wants to see the normal appearance of what's being described
-    private void checkDescriptionRequests()
-    {
-        //Debug.Log("The guide audio source is " + m_OpenAIQueriesScript.audioSource.gameObject.transform.parent.name + " and is playing " + m_OpenAIQueriesScript.audioSource.isPlaying);
-        // Checking if a target GameObject was selected to be descsribed
-        if (m_OpenAIQueriesScript.targetForDescription != null)
-        {
-            // Call to highlight the game object being described while the guide is talking
-            Debug.Log("Has a target to describe: " + m_OpenAIQueriesScript.targetForDescription);
-
-            m_OpenAIQueriesScript.targetForDescription = null;
-        }
-    }
-
     void HighlightSelectedReaderReference(GameObject selectedReference)
     {
         // Add a glow around the selectedReference + brighten its color
@@ -658,6 +566,20 @@ public class AIGuide : MonoBehaviour
         ClearPreviousHighlight(selectedReference);
     }
 
+    IEnumerator DelayGuideStopDuringTeleport(GameObject currentTarget)
+    {
+        yield return new WaitForSeconds(1f);
+        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
+        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
+        playEffect("subway_chime");
+        m_SharedMovementScript.ForceStopAndReset();
+        ClearPreviousHighlight(currentTarget);
+        m_OpenAIQueriesScript.targetForGuidance = null;
+    }
+
+    #endregion
+
+    #region Checks for Guide Actions (guidance/modification)
     private void checkModificationRequests()
     {
         // Checking if a target GameObject was selected to be modified
@@ -762,18 +684,9 @@ public class AIGuide : MonoBehaviour
             }
         }
     }
+    #endregion
 
-    IEnumerator DelayGuideStopDuringTeleport(GameObject currentTarget)
-    {
-        yield return new WaitForSeconds(1f);
-        m_GuideFollowScript.enabled = true; // Turn guide follow back on if no target is given to the guide
-        m_SharedMovementScript.guideCollider.enabled = false; // Turns collider off so guide won't be grabbed accidentally as it follows the player
-        playEffect("subway_chime");
-        m_SharedMovementScript.ForceStopAndReset();
-        ClearPreviousHighlight(currentTarget);
-        m_OpenAIQueriesScript.targetForGuidance = null;
-    }
-
+    #region External Script Grabbers
     private void getSharedMovement()
     {
         if (m_SharedMovementScript == null)
@@ -784,7 +697,9 @@ public class AIGuide : MonoBehaviour
                 camSystem = m_SharedMovementScript.camera;
         }
     }
+    #endregion
 
+    #region Proactive Hazard Helpers
     private void CheckHazardDistances()
     {
         if (Time.time < nextHazardCheckTime) return;
@@ -915,6 +830,17 @@ public class AIGuide : MonoBehaviour
     }
 
     // May need to think about selectively sending hazards // making a harsher cooldown timer between when it can warn
+    #endregion
+
+    #region Proactive Silence Helpers
+    private void CheckForIdlePlayer()
+    {
+        // If the AI hasn't prompted yet, and 60 seconds have passed since the last interaction
+        if (!hasPromptedForHelp && (Time.time - lastPlayerInteractionTime) >= idleTimeout)
+        {
+            TriggerHelpPrompt();
+        }
+    }
 
     private void TriggerHelpPrompt()
     {
@@ -938,6 +864,10 @@ public class AIGuide : MonoBehaviour
         lastPlayerInteractionTime = Time.time;
         hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
     }
+
+    #endregion
+
+    #region Continuous Route Description
 
     private void StartRouteDescriptions(string targetName)
     {
@@ -1011,7 +941,9 @@ public class AIGuide : MonoBehaviour
             yield return new WaitForSeconds(minimumSilenceInterval);
         }
     }
+    #endregion
 
+    #region Continuous Grabbing Description
     // For the grabbing descriptions, if the user is using the grabbing guide, call it
     // otherwise, maybe have a bool in the openAIqueries that gets set when the function determines it wants to be grabbing
     public void StartGrabbing(string targetName)
@@ -1132,5 +1064,6 @@ public class AIGuide : MonoBehaviour
             StopGrabbing();
         }
     }
+    #endregion
 
 }
