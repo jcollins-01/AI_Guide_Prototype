@@ -311,7 +311,7 @@ public class AIGuide : MonoBehaviour
             if (!m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.Baseline))
             {
                 // See if the player has been silent for a while
-                CheckForIdlePlayer();
+                //CheckForIdlePlayer();
 
                 // Check the player's velocity so we can determine hazards
                 checkPlayerVelocity();

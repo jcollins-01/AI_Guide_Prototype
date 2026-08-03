@@ -1606,8 +1606,8 @@ public class OpenAIQueries : MonoBehaviour
     public string trustGuideline = "As you guide the player, inform them of your own uncertainty and mistakes so they can gauge whether to trust your advice.";
 
     [HideInInspector]
-    public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
-        "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts). " +
+    public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request." +
+        "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts)." +
         "Third, provide its manipulability (how the player can tactilely interact with it) and texture. Fourth, provide its color." +
         "3. If the user requests a detailed description, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";
     /*public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
@@ -1619,8 +1619,8 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: The nearest building is a tall skyscraper called Local Hospital. It's a rectangular building around 30 meters tall and has eight floors, with blue windows, a white roof, and white walls. Its door is facing you, and it seems to be made of metal and glass.}";*/
 
     [HideInInspector]
-    public string objectLocationGuideline = "1. When a player is over one meter away from an object, convey its location via clock-face directions and the estimated distance-to-target in a standard unit of measurement." +
-        "2. When a player is within one meter of an object, convey its location with continuous, micro-steps on how the player should move (e.g., Turn left, one step forward)" +
+    public string objectLocationGuideline = "1. When a player is over one three away from an object, convey its location via clock-face directions and the estimated distance-to-target in feet and inches." +
+        "2. When a player is within three feet of an object, convey its location with continuous, micro-steps on how the player should move (e.g., Turn left, one step forward)" +
         "3. When you give feedback on an object's location the first time, identify the object you are providing feedback on so the player can ensure it's the correct one.";
     /*public string objectLocationGuideline = "Give the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
@@ -1628,8 +1628,8 @@ public class OpenAIQueries : MonoBehaviour
 
     [HideInInspector]
     public string sceneUnderstandingGuideline = "1. Give a scene description focused on details most relevant to a player's current context and goals. Help them determine the kind of place they are in. Provide more information upon request." +
-        "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in a standard unit of measurement (e.g., there is a boat and a gazebo to your left, about eight meters away)." +
-        "3. Build your descriptions around scene content that a player has already mentioned. " +
+        "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in feet and inches (e.g., there is a boat and a gazebo to your left, about eight feet away)." +
+        "3. Build your descriptions around scene content that a player has already mentioned." +
         "4. For distant landmarks and the general environment (e.g., houses, sky, horizons), you MUST rely on the visual images. For objects immediately nearby, use the spatial telemetry data to provide precise distances. Synthesize both into a natural description without ever mentioning that you are looking at images or telemetry data.";
     /*public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
         "Then, mention major landmarks that are relevant to the user’s current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
@@ -1660,7 +1660,8 @@ public class OpenAIQueries : MonoBehaviour
         "Example Outputs: Move your right hand forward five inches with your palm facing left." +
         "Move your right hand left two inches with your palm facing down." +
         "Move your right hand forward five inches and down ten inches with your palm facing down." +
-        "Move your right hand back ten inches and up about five inches with your palm facing left.";
+        "Move your right hand back ten inches and up about five inches with your palm facing left." +
+        "You've misaligned yourself with the object and it is far away. Turn left to face the table and step forward so you are closer for grabbing.";
     /*public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
