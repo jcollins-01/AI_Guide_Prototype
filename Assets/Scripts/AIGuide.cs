@@ -202,10 +202,10 @@ public class AIGuide : MonoBehaviour
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
                     $"The player is asking you to help them grab an object."; // {m_OpenAIQueriesScript.grabbingObjectGuideline}";
                 break;
-            case SwitchTools.GuideType.SightedGuidance:
+            /*case SwitchTools.GuideType.SightedGuidance:
                 prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
                 $"The player wants help moving to a specific object."; //THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
-                break;
+                break;*/
             case SwitchTools.GuideType.AllCombined:
                 Debug.Log("Using the all-guideline intention guide!");
                 StringBuilder sbPrompt = new StringBuilder();
@@ -267,10 +267,11 @@ public class AIGuide : MonoBehaviour
         // Regenerate the fresh prompt string based on the newly toggled bools
         string freshPrompt = GetFormattedPrompt();
 
-        // Determine which type of update this is (guidance updates use the tools structure) and push to OpenAI
-        if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.SightedGuidance))
-            await realtimeClient.UpdateGuidancePrompt(freshPrompt);
-        else if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.ObjectGrabbing))
+        // Immediately after we give the guide its basic instructions, share the guidance prompt for all guides
+        //await realtimeClient.UpdateGuidancePrompt(freshPrompt);
+
+        // Determine which type of update this is (certain updates use certain tools) and push to OpenAI
+        if (m_SwitchToolsScript.activeGuideType.Equals(SwitchTools.GuideType.ObjectGrabbing))
             await realtimeClient.UpdateGrabbingPrompt(freshPrompt);
         else
             await realtimeClient.UpdateLivePrompt(freshPrompt);
@@ -625,7 +626,7 @@ public class AIGuide : MonoBehaviour
 
             // If the player is grabbing the guide, call for the movement functions as appropriate
             // Turn off guide follow so that the guide begins to lead the player
-            if (m_SharedMovementScript.movingWithGuide) // was playerGrabbingGuide
+            if (m_SharedMovementScript.movingWithGuide || Input.GetKeyDown(KeyCode.C)) // was playerGrabbingGuide
             {
                 m_GuideFollowScript.enabled = false;
                 if (m_OpenAIQueriesScript.modeOfTransportation == "guide")

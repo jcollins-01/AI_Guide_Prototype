@@ -328,6 +328,39 @@ public class RealtimeGuideClient : MonoBehaviour
                         format = new { type = "audio/pcm", rate = 24000 }, // format = "pcm16",
                         voice = "alloy" // Options: alloy, echo, shimmer
                     }
+                },
+                tools = new object[] // Allows us to make a case to directly call our Unity functions for guidance, no string parsing/partially generated responses
+                {
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_guidance",
+                        description = "Call this when the user wants you to take them to a specific object, or asks for sighted guide to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "trigger_teleportation",
+                        description = "Call this when the user wants you to teleport them directly to a specific object.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact name of the object the user wants to go to, chosen from the Navigation Registry." }
+                            },
+                            required = new[] { "target_object" }
+                        }
+                    }
                 }
             }
         };

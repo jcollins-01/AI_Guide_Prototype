@@ -24,7 +24,7 @@ public class SwitchTools : MonoBehaviour
         SceneUnderstanding,
         Navigation,
         ObjectGrabbing,
-        SightedGuidance,
+        //SightedGuidance,
         AllCombined // Deprecated for now, but kept for future use
     }
 
