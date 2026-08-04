@@ -6,7 +6,10 @@ using UnityEngine;
 
 public class SpatialPerceptionSensor : MonoBehaviour
 {
-    public float viewRadius = 30.0f;
+    public float viewRadius = 1000.0f; // Represents the "edges of the world" distance, 150
+    public float fieldOfViewAngle = 120.0f;  // Restricts vision to a forward cone (human-like peripheral vision)
+    public LayerMask obstacleLayer;
+
     public LayerMask interactableLayer;
     public Transform playerHeadset;
     public Transform playerHandRight;
@@ -27,13 +30,27 @@ public class SpatialPerceptionSensor : MonoBehaviour
         getCameraSystem();
     }
 
-    void PerformSpatialSweep()
+    /*void PerformSpatialSweep()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, viewRadius, interactableLayer);
 
         foreach (var hit in hits)
         {
             GameObject obj = hit.gameObject;
+            Debug.Log($"Seeing {obj.name}");
+
+            // Cast to the closest physical point on the surface, not the bounding box center
+            Vector3 targetCenter = hit.ClosestPoint(playerHeadset.position);
+            // Edge case fallback: If the headset is inside the object, ClosestPoint returns the headset position.
+            if (targetCenter == playerHeadset.position) targetCenter = hit.bounds.center;
+
+            Vector3 directionToTarget = targetCenter - playerHeadset.position;
+
+            // Field of view check
+            float angleToTarget = Vector3.Angle(playerHeadset.forward, directionToTarget);
+            if (angleToTarget > fieldOfViewAngle / 2f)
+                continue; // Outside FOV
+
             string id = obj.GetInstanceID().ToString();
 
             if (!activeAnchors.ContainsKey(id))
@@ -50,6 +67,83 @@ public class SpatialPerceptionSensor : MonoBehaviour
             }
 
             activeAnchors[id].lastKnownPosition = obj.transform.position;
+        }
+    }*/
+
+    void PerformSpatialSweep()
+    {
+        // 1. Get the mathematical planes of the headset's current field of view
+        Camera headsetCam = playerHeadset.GetComponent<Camera>();
+        if (headsetCam == null) return; // Ensure the headset has a camera attached
+
+        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(headsetCam);
+        LayerMask sightMask = interactableLayer | obstacleLayer;
+
+        // 2. Find all interactable objects in the scene (You can cache this list in Start() for better performance)
+        // Using FindObjectsOfType is fine for prototyping, but in production, maintain a List of all hazards/interactables
+        Collider[] allInteractables = Physics.OverlapSphere(playerHeadset.position, viewRadius, interactableLayer, QueryTriggerInteraction.Ignore);
+
+        foreach (Collider col in allInteractables)
+        {
+            GameObject obj = col.gameObject;
+            if (obj.transform.root == playerHeadset.root) continue;
+
+            // 3. Fast Culling: Is the object's bounding box even inside the camera view?
+            if (GeometryUtility.TestPlanesAABB(frustumPlanes, col.bounds))
+            {
+                // 4. It's in the camera view! Now test for occlusion.
+                // Instead of just the center, we define multiple test points on the object's bounds
+                Vector3 center = col.bounds.center;
+                Vector3 extents = col.bounds.extents;
+
+                Vector3[] testPoints = new Vector3[]
+                {
+                    center, // Center
+                    center + new Vector3(0, extents.y, 0), // Top
+                    center + new Vector3(0, -extents.y, 0), // Bottom
+                    center + new Vector3(extents.x, 0, 0), // Right
+                    center + new Vector3(-extents.x, 0, 0), // Left
+                    center + new Vector3(0, extents.y, 0) + (playerHeadset.position - center).normalized * extents.z // Nearest Top Edge
+                };
+
+                bool isVisible = false;
+
+                // 5. Fire rays at all points. If even ONE hits the object, it is partially visible!
+                foreach (Vector3 point in testPoints)
+                {
+                    Vector3 directionToPoint = point - playerHeadset.position;
+                    float distanceToPoint = directionToPoint.magnitude;
+
+                    if (Physics.Raycast(playerHeadset.position, directionToPoint.normalized, out RaycastHit sightHit, viewRadius, sightMask, QueryTriggerInteraction.Ignore))
+                    {
+                        if (sightHit.collider.gameObject == obj || sightHit.transform.IsChildOf(obj.transform))
+                        {
+                            isVisible = true;
+                            Debug.DrawLine(playerHeadset.position, sightHit.point, Color.green, 1f);
+                            break; // Stop checking this object, we know we can see it
+                        }
+                    }
+                }
+
+                if (isVisible)
+                {
+                    string id = obj.GetInstanceID().ToString();
+
+                    if (!activeAnchors.ContainsKey(id))
+                    {
+                        Color uniqueColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+                        ObjectAnchor newAnchor = new ObjectAnchor(obj, obj.name)
+                        {
+                            uniqueColorID = uniqueColor
+                        };
+                        activeAnchors.Add(id, newAnchor);
+
+                        Debug.Log($"Guide saw {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(uniqueColor)}");
+                    }
+
+                    activeAnchors[id].lastKnownPosition = obj.transform.position;
+                }
+            }
         }
     }
 

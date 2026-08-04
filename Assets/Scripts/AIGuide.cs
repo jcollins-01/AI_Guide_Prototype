@@ -32,6 +32,7 @@ public class AIGuide : MonoBehaviour
 
     private bool wasMutingLastFrame = false;
     private bool wasVRButtonDownLastFrame = false;
+    private bool isProactiveChecking = true;
 
     // Variables for hazard detection
     private float dangerZoneDistance = 1.5f;
@@ -282,6 +283,13 @@ public class AIGuide : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Toggle idle checking when 'K' is pressed
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            isProactiveChecking = !isProactiveChecking;
+            Debug.Log("Checking on Player: " + (isProactiveChecking ? "Enabled" : "Disabled"));
+        }
+
         // Calls until the appropriate scripts are assigned (when we have a player and a guide)
         // Needed for access to the player's interactions with the guide + sharing guide audio over network + adding/accessing camera system
         getSharedMovement();
@@ -292,15 +300,18 @@ public class AIGuide : MonoBehaviour
             // Call the guide
             RealtimeGuide();
 
-            // See if the player has been silent for a while
-            CheckForIdlePlayer();
+            if (isProactiveChecking)
+            {
+                // See if the player has been silent for a while
+                CheckForIdlePlayer();
 
-            // Check the player's velocity so we can determine hazards
-            checkPlayerVelocity();
+                // Check the player's velocity so we can determine hazards
+                checkPlayerVelocity();
 
-            // Check for objects too close to the player
-            if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
-                CheckHazardDistances();
+                // Check for objects too close to the player
+                if (!isDescribingRoute && m_OpenAIQueriesScript.targetForGuidance == null && !isGrabbing) // prevent the hazard alerts from interrupting the guidance/grabbing descriptions
+                    CheckHazardDistances();
+            }
 
             // Determine if guidance is required based on GPT-4 response
             checkGuidanceRequests();
@@ -863,7 +874,7 @@ public class AIGuide : MonoBehaviour
     // Resets the interaction timer between player and guide (idle player timer)
     public void RecordPlayerInteraction()
     {
-        Debug.Log("Counter reset! Player interaction recorded.");
+        //Debug.Log("Counter reset! Player interaction recorded.");
         lastPlayerInteractionTime = Time.time;
         hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
     }
