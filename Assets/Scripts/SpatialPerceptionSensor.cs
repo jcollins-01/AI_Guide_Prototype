@@ -174,6 +174,39 @@ public class SpatialPerceptionSensor : MonoBehaviour
         }
     }
 
+    // For when we call with a game object directly
+    public float GetObjectRelativeAngle(GameObject obj)
+    {
+        // Default to the transform position
+        Vector3 targetPos = obj.transform.position;
+
+        // Use the closest point on the collider if available for accuracy
+        Collider col = obj.GetComponent<Collider>();
+        if (col != null)
+        {
+            targetPos = col.ClosestPoint(playerHeadset.position);
+        }
+
+        // Get the direction from the player's headset to the object
+        Vector3 directionToTarget = targetPos - playerHeadset.position;
+
+        // Flatten the Y-axis so height differences don't skew the angle
+        directionToTarget.y = 0;
+        Vector3 forward = playerHeadset.forward;
+        forward.y = 0;
+
+        // Calculate the signed angle (-180 to 180 degrees) around the Up axis
+        float angle = Vector3.SignedAngle(forward, directionToTarget, Vector3.up);
+
+        // Normalize to a 0-360 degree range for easier LLM interpretation
+        if (angle < 0)
+        {
+            angle += 360f;
+        }
+
+        return angle;
+    }
+
     public float GetAnchorRelativeAngle(ObjectAnchor obj)
     {
         // Default to the transform position

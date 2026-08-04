@@ -376,6 +376,21 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object", "alias" } // Make sure alias is required!
                         }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "review_memory",
+                        description = "Call this when the user asks about an object that isn't in your current spatial telemetry, to see if you've encountered it before.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The object you are searching your full telemetry memory for." }
+                            },
+                            required = new[] { "target_object" }
+                        }
                     }
                 }
             }
@@ -1131,7 +1146,6 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "label_object")
                     {
-                        Debug.Log($"labeling an object {targetName}");
                         triggeredTool = "Labeling"; // start as none, update if another function was called
                         string alias = (string)argsObj["alias"]; // "striped house"
 
@@ -1162,18 +1176,20 @@ public class RealtimeGuideClient : MonoBehaviour
                     {
                         // this function will search all game objects + aliases for the one that matches what they're discussing
                         // it grabs the one specific object without needing to review all of the spatial telemetry at once + crashing the system
-                        Debug.Log("Calling review memory");
+                        triggeredTool = "Reviewing";
                         GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
+                        float objectAngle = perceptionSensor.GetObjectRelativeAngle(obj);
                         string outputPayload;
                         if (obj != null)
                         {
                             Debug.Log("Found an object in review");
-                            // 1. Keep the payload strictly factual. No behavioral commands here.
+                            // Keep the payload strictly factual. No behavioral commands here.
                             outputPayload = JsonConvert.SerializeObject(new
                             {
                                 status = "found_in_memory",
                                 object_name = obj.name,
-                                distance_meters = _openAIQueriesScript.distanceToClosestTarget
+                                distance_meters = _openAIQueriesScript.distanceToClosestTarget,
+                                angle_degrees = objectAngle
                             });
                         }
                         else
@@ -1186,9 +1202,9 @@ public class RealtimeGuideClient : MonoBehaviour
                             });
                         }
 
-                        Debug.Log($"review memory Found the object {obj.name} and it was {_openAIQueriesScript.distanceToClosestTarget} away ");
+                        Debug.Log($"Found the object {obj.name} and it was {_openAIQueriesScript.distanceToClosestTarget} away at {objectAngle} degrees.");
 
-                        // 2. Send the factual function output
+                        // Send the factual function output
                         var memoryFunctionResult = new
                         {
                             type = "conversation.item.create",
@@ -1201,7 +1217,7 @@ public class RealtimeGuideClient : MonoBehaviour
                         };
                         _ = SendJson(memoryFunctionResult);
 
-                        // 3. Inject a hidden system message to strictly enforce the persona BEFORE it responds
+                        // Inject a hidden system message to strictly enforce the persona BEFORE it responds
                         var characterEnforcement = new
                         {
                             type = "conversation.item.create",
@@ -1214,14 +1230,14 @@ public class RealtimeGuideClient : MonoBehaviour
                                     new
                                     {
                                         type = "input_text",
-                                        text = "System Instruction: You just retrieved the requested object from memory. Answer the user's question directly and naturally using this new spatial data. CRITICAL: Do NOT narrate that you checked your memory, readings, or telemetry. Speak directly as the guide in the scene."
+                                        text = "System Instruction: You just retrieved the requested object from memory. Answer the user's question directly using this new spatial data. CRITICAL: Do NOT narrate that you checked your memory, readings, or telemetry. Speak directly as the guide in the scene."
                                     }
                                 }
                             }
                         };
                         _ = SendJson(characterEnforcement);
 
-                        // 4. Trigger the AI to generate a response now that it has the context and the rules
+                        // Trigger the AI to generate a response now that it has the context and the rules
                         _ = SendJson(new { type = "response.create" });
 
                         // Break out of the switch statement early
@@ -1850,34 +1866,46 @@ public class OpenAIQueries : MonoBehaviour
 
     public GameObject GetClosestObjectByName(string name)
     {
-        // Try to resolve via existing alias first
-        GameObject resolved = perceptionSensor.ResolveObjectByAlias(name);
-        if (resolved != null) return resolved;
-
-        // Fallback to finding EVERY object in the scene (active only) by exact names
-        GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        // Set-up the vars to track distances and objects
+        Vector3 playerPos = m_SharedMovementScript.thePlayer.transform.position;
         GameObject closest = null;
         float minDistance = Mathf.Infinity;
-        Vector3 playerPos = m_SharedMovementScript.thePlayer.transform.position;
+        float objAngle = Mathf.Infinity;
 
-        foreach (GameObject obj in allObjects)
+        // Try to resolve via existing alias first
+        GameObject resolved = perceptionSensor.ResolveObjectByAlias(name);
+
+        if (resolved != null)
         {
-            if (obj.name == name)
+            closest = resolved;
+            minDistance = Vector3.Distance(closest.transform.position, playerPos);
+        }
+        else
+        {
+            // Fallback to finding EVERY object in the scene (active only) by exact names
+            GameObject[] allObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+
+            foreach (GameObject obj in allObjects)
             {
-                float dist = Vector3.Distance(obj.transform.position, playerPos);
-                if (dist < minDistance)
+                if (obj.name == name)
                 {
-                    closest = obj;
-                    minDistance = dist;
-                    distanceToClosestTarget = minDistance;
+                    float dist = Vector3.Distance(obj.transform.position, playerPos);
+                    if (dist < minDistance)
+                    {
+                        closest = obj;
+                        minDistance = dist;
+                    }
                 }
             }
         }
 
+        // Update the global tracking variable and log, regardless of how we found it
         if (closest != null)
         {
+            distanceToClosestTarget = minDistance;
             Debug.Log($"[Logic] Found {name} closest to player at distance: {minDistance}");
         }
+
         return closest;
     }
 
