@@ -54,7 +54,7 @@ public class AIGuide : MonoBehaviour
 
     // Variables for prompting the user if they need assistance
     private float lastPlayerInteractionTime;
-    private float idleTimeout = 60f; 
+    private float idleTimeout = 120f; // seconds before guide asks if someone needs help
     private bool hasPromptedForHelp = false;
 
     // Variables for continuous description during routes
@@ -862,6 +862,7 @@ public class AIGuide : MonoBehaviour
     // Resets the interaction timer between player and guide (idle player timer)
     public void RecordPlayerInteraction()
     {
+        Debug.Log("Counter reset! Player interaction recorded.");
         lastPlayerInteractionTime = Time.time;
         hasPromptedForHelp = false; // Reset the flag so the AI can check in again later
     }

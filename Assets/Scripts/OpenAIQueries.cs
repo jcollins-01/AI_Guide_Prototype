@@ -955,6 +955,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     triggeredTool = "None"; // start as none, update if another function for a specific tool is called based on what user says
                     _isUserSpeaking = true;
                     OnServerDetectedSpeechStart?.Invoke();
+                    aiGuideScript.RecordPlayerInteraction(); // record a player interaction since the player has started to speak, stop ongoing counters
 
                     // If the AI is talking, instantly shut it up locally
                     if (_isAiSpeaking)
@@ -1064,7 +1065,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     if (status == "completed")
                     {
                         string remainingText = _textBuffer.ToString().Trim();
-                        aiGuideScript.RecordPlayerInteraction();
+                        aiGuideScript.RecordPlayerInteraction(); // also record when response completes, to reset counter from after guide finishes talking
                         Debug.Log($"Full Response Captured: {remainingText}");
 
                         // LOGGER HOOK: Guide completed speech response
