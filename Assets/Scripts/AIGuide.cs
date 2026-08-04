@@ -352,6 +352,7 @@ public class AIGuide : MonoBehaviour
                 playEffect("listening");
                 isRecording = true;
                 StartCoroutine(CaptureAndSendContext());
+                RecordPlayerInteraction(); // record a player interaction since the player has started to speak, stop ongoing counters
             }
             // We DO NOT have a stop condition here. 
             // RealtimeGuideClient will detect silence, stop it, and trigger HandleAutoStop().
