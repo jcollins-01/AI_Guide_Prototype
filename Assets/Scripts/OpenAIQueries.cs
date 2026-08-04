@@ -1178,11 +1178,10 @@ public class RealtimeGuideClient : MonoBehaviour
                         // it grabs the one specific object without needing to review all of the spatial telemetry at once + crashing the system
                         triggeredTool = "Reviewing";
                         GameObject obj = _openAIQueriesScript.GetClosestObjectByName(targetName);
-                        float objectAngle = perceptionSensor.GetObjectRelativeAngle(obj);
                         string outputPayload;
                         if (obj != null)
                         {
-                            Debug.Log("Found an object in review");
+                            float objectAngle = perceptionSensor.GetObjectRelativeAngle(obj);
                             // Keep the payload strictly factual. No behavioral commands here.
                             outputPayload = JsonConvert.SerializeObject(new
                             {
@@ -1191,6 +1190,8 @@ public class RealtimeGuideClient : MonoBehaviour
                                 distance_meters = _openAIQueriesScript.distanceToClosestTarget,
                                 angle_degrees = objectAngle
                             });
+
+                            Debug.Log($"Found the object {obj.name} and it was {_openAIQueriesScript.distanceToClosestTarget} away at {objectAngle} degrees.");
                         }
                         else
                         {
@@ -1202,8 +1203,7 @@ public class RealtimeGuideClient : MonoBehaviour
                             });
                         }
 
-                        Debug.Log($"Found the object {obj.name} and it was {_openAIQueriesScript.distanceToClosestTarget} away at {objectAngle} degrees.");
-
+                        
                         // Send the factual function output
                         var memoryFunctionResult = new
                         {
@@ -1230,7 +1230,7 @@ public class RealtimeGuideClient : MonoBehaviour
                                     new
                                     {
                                         type = "input_text",
-                                        text = "System Instruction: You just retrieved the requested object from memory. Answer the user's question directly using this new spatial data. CRITICAL: Do NOT narrate that you checked your memory, readings, or telemetry. Speak directly as the guide in the scene."
+                                        text = "System Instruction: You just retrieved the requested object from memory. Answer the user's question directly using this new spatial data. CRITICAL: Do NOT narrate that you checked your memory, readings, or telemetry. Speak directly as the guide in the scene. If you didn't find an object, let the user know and suggest a follow-up action."
                                     }
                                 }
                             }
@@ -1870,7 +1870,6 @@ public class OpenAIQueries : MonoBehaviour
         Vector3 playerPos = m_SharedMovementScript.thePlayer.transform.position;
         GameObject closest = null;
         float minDistance = Mathf.Infinity;
-        float objAngle = Mathf.Infinity;
 
         // Try to resolve via existing alias first
         GameObject resolved = perceptionSensor.ResolveObjectByAlias(name);
