@@ -360,6 +360,22 @@ public class RealtimeGuideClient : MonoBehaviour
                             },
                             required = new[] { "target_object" }
                         }
+                    },
+                    new
+                    {
+                        type = "function",
+                        name = "label_object",
+                        description = "Call this when the user refers to a specific object by a colloquial name, nickname, or description that doesn't exactly match its Registry Name.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                target_object = new { type = "string", description = "The exact technical Registry Name from the spatial telemetry." },
+                                alias = new { type = "string", description = "The colloquial name or nickname the user just used (e.g., 'striped gazebo')." }
+                            },
+                            required = new[] { "target_object", "alias" } // Make sure alias is required!
+                        }
                     }
                 }
             }
@@ -1115,7 +1131,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     }
                     else if (functionName == "label_object")
                     {
-                        Debug.Log("labeling an object");
+                        Debug.Log($"labeling an object {targetName}");
                         triggeredTool = "Labeling"; // start as none, update if another function was called
                         string alias = (string)argsObj["alias"]; // "striped house"
 
@@ -1125,6 +1141,22 @@ public class RealtimeGuideClient : MonoBehaviour
                             // Call the sensor function to add the new alias
                             perceptionSensor.AddAliasToAnchor(obj, alias);
                         }
+
+                        var labelFunctionResult = new
+                        {
+                            type = "conversation.item.create",
+                            item = new
+                            {
+                                type = "function_call_output",
+                                call_id = callId,
+                                output = "{\"success\": true}" // Tell the AI the action was completed in Unity
+                            }
+                        };
+                        _ = SendJson(labelFunctionResult);
+
+                        // Force the AI to actually answer the user's question now that the tool is done
+                        _ = SendJson(new { type = "response.create" });
+                        break;
                     }
                     else if (functionName == "review_memory")
                     {
@@ -1610,13 +1642,12 @@ public class OpenAIQueries : MonoBehaviour
         "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. A user may ask about objects you have seen before, " +
         "but are no longer in your spatial telemetry. In this case, call the review_memory function to find the closest object to what they're looking for " +
         "and review your conversation history with the user to best answer their question. " +
-        "Pay close attention to how the user refers to objects. If the user uses a new name for an object already in the spatial telemetry (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
-        "call the label_object function to store this mapping for future conversations. Do this proactively so you remember their preferred terms." +
-        "CRITICAL INSTRUCTION: As you respond to the user you MUST NOT mention aspects of your internal architecture." +
-        "For instance, NEVER tell the user that you're saving an alias or mapping their preferred alias to an object. " +
-        "NEVER tell the user that you are checking your spatial data, the spatial telemetry, or visual context windows to address their questions. " +
-        "Do NOT talk about checking your readings to address their questions or use other robotic or machine-like language. " +
-        "You MUST speak as though you are a person accompanying them in the scene, and are answering based on what you see with your eyes in all responses.";
+        "Pay close attention to how the user refers to objects. If the user introduces a colloquial name or nickname for an object, (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
+        "you MUST proactively call the label_object function FIRST to store this mapping. Do this frequently so that you will reliably remember all aliases and nicknames a user introduces. " +
+        "After the label_object function completes, answer the user's original question directly. " +
+        "CRITICAL INSTRUCTION: You must maintain your persona as a person in the scene at all times. " +
+        "When you use these functions, do so silently in the background.In your audio responses, never narrate that you are checking telemetry, updating memory, or saving an alias. " +
+        "Simply use the user's preferred terms naturally as if you are observing the environment with your own eyes, and do not speak in robotic or machine-like language.";
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
