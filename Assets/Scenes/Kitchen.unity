@@ -1324,6 +1324,22 @@ MonoBehaviour:
   unlitMaskMaterialBase: {fileID: 2100000, guid: 89ff103c25f32094ca1fd902d47c9c15, type: 2}
   semanticCamera: {fileID: 829886869}
   unlitColorShader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
+--- !u!114 &495550502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495550494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a77beb2f1c798c247b28500e5a19082e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentSession:
+    sessionDate: 
+    conversationHistory: []
+    discoveredEnvironmentFeatures: []
 --- !u!1001 &505106870
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4623,6 +4639,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3444422896283970953, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       insertIndex: -1
       addedObject: {fileID: 495550496}
+    - targetCorrespondingSourceObject: {fileID: 3444422896283970953, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 495550502}
   m_SourcePrefab: {fileID: 100100000, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
 --- !u!4 &1217395408 stripped
 Transform:
