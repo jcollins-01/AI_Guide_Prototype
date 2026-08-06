@@ -154,6 +154,19 @@ public class AIGuide : MonoBehaviour
                 break;
         }
 
+        // Fetch the memory from the manager if we can find it - should be on the guide rig
+        MemoryManager memoryManager = FindObjectOfType<MemoryManager>();
+        if (memoryManager != null)
+        {
+            string pastMemoryContext = memoryManager.GetFormattedSessionHistory();
+            if (!string.IsNullOrEmpty(pastMemoryContext))
+            {
+                // Inject the past memory silently - don't make the AI say anything about it
+                realtimeClient.SendTextContext(pastMemoryContext);
+                Debug.Log("[AI Guide] Injected previous session memory into realtime client.");
+            }
+        }
+
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
         m_SwitchToolsScript.OnGuideConfigurationChanged += HandleGuideTypeChanged;
 
