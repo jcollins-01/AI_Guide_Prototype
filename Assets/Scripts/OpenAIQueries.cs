@@ -1142,7 +1142,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
                         // LOGGER HOOK: Guide completed speech response
                         InteractionLogger.Instance?.OnGuideFinishedSpeaking(remainingText, triggeredTool);
-                        memoryManager.LogConversationTurn("system", remainingText);
+                        memoryManager.LogConversationTurn("assistant", remainingText);
                     }
                     else
                     {
@@ -1380,7 +1380,7 @@ public class RealtimeGuideClient : MonoBehaviour
         Debug.Log("Sent the new response");
     }
 
-    public void SendTextContext(string text)
+    public void SendTextContext(string text, string messageRole = "system")
     {
         var eventData = new
         {
@@ -1388,7 +1388,7 @@ public class RealtimeGuideClient : MonoBehaviour
             item = new
             {
                 type = "message",
-                role = "user",
+                role = messageRole,
                 content = new[]
                 {
                 new { type = "input_text", text = text }

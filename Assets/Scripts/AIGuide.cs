@@ -162,8 +162,8 @@ public class AIGuide : MonoBehaviour
             if (!string.IsNullOrEmpty(pastMemoryContext))
             {
                 // Inject the past memory silently - don't make the AI say anything about it
-                realtimeClient.SendTextContext(pastMemoryContext);
-                Debug.Log("[AI Guide] Injected previous session memory into realtime client.");
+                realtimeClient.SendTextContext(pastMemoryContext, "system");
+                Debug.Log($"[AI Guide] Injected previous session memory into realtime client: {pastMemoryContext}");
             }
         }
 

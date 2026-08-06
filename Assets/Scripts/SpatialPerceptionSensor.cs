@@ -34,12 +34,12 @@ public class SpatialPerceptionSensor : MonoBehaviour
     private HashSet<string> currentlyVisibleAnchorIDs = new HashSet<string>();
     private int maxObjectsToReport = 10;
 
+    // For sharing what we learn with memory
+    private MemoryManager memoryManager;
+
     void Start()
     {
-        if (semanticCamera != null)
-        {
-            semanticCamera.enabled = false; // Prevents Unity from auto-rendering it every frame
-        }
+        SetUpSensor(); // get all external scripts + basic settings needed
 
         InitializeSemanticRegistry(); // find all the key items and assign them a special color
 
@@ -49,6 +49,14 @@ public class SpatialPerceptionSensor : MonoBehaviour
     private void Update()
     {
         getCameraSystem();
+    }
+
+    private void SetUpSensor()
+    {
+        if (semanticCamera != null)
+            semanticCamera.enabled = false; // Prevents Unity from auto-rendering it every frame
+
+        memoryManager = FindObjectOfType<MemoryManager>();
     }
 
     void SaveSnapshotToPNG()
@@ -313,6 +321,11 @@ public class SpatialPerceptionSensor : MonoBehaviour
 
             // Mark this object as actively visible in the current frame
             currentlyVisibleAnchorIDs.Add(id);
+            // Adds the object to our discovered environment features - any object we have ever seen will go here, but only one time each
+            // For objects with the same name, (e.g., Spruce Forest, Acacia Tree), we'll only get one mention of it to know we saw one at some point
+            // Unless we add IDs beside Color Masks (since those change every session), no getting around that - plus we want to keep tokens light
+            if (!memoryManager.currentSession.discoveredEnvironmentFeatures.Contains(obj.name))
+                memoryManager.currentSession.discoveredEnvironmentFeatures.Add(obj.name);
 
             if (!activeAnchors.ContainsKey(id))
             {

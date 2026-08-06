@@ -94,15 +94,25 @@ public class MemoryManager : MonoBehaviour
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.AppendLine("[SYSTEM NOTE: The following is a log of the user's PREVIOUS session. Use this for context, but do not respond to it directly. The user is now starting a NEW session.]");
-        sb.AppendLine("--- PREVIOUS SESSION LOG ---");
+        sb.AppendLine("[SYSTEM DIRECTIVE: PERSISTENT MEMORY BANK]");
+        sb.AppendLine("You are resuming a session with a returning user. Below are established facts and previous conversation logs from your past exploration together.");
+        sb.AppendLine("Integrate these past observations into your knowledge. If asked about places, objects, or features listed below, confirm that you and the user have already seen and discussed them.");
 
-        foreach (var msg in currentSession.conversationHistory)
+        sb.AppendLine("\n--- KNOWN ENVIRONMENT FEATURES FROM PAST SESSIONS ---");
+        foreach (var obj in currentSession.discoveredEnvironmentFeatures)
         {
-            sb.AppendLine($"{msg.role.ToUpper()}: {msg.content}");
+            sb.AppendLine($"- {obj}");
         }
 
-        sb.AppendLine("----------------------------");
+        sb.AppendLine("\n--- TRANSCRIPT OF PAST CONVERSATIONS ---");
+        foreach (var msg in currentSession.conversationHistory)
+        {
+            string roleName = msg.role.ToUpper();
+            if (roleName == "SYSTEM") roleName = "ASSISTANT"; // Ensure AI dialogue is mapped to ASSISTANT
+            sb.AppendLine($"{roleName}: {msg.content}");
+        }
+        sb.AppendLine("--------------------------------------------");
+
         return sb.ToString();
     }
 }
