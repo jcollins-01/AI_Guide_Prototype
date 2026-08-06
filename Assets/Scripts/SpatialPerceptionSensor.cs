@@ -30,6 +30,10 @@ public class SpatialPerceptionSensor : MonoBehaviour
     private Dictionary<GameObject, Material[]> originalMaterials = new Dictionary<GameObject, Material[]>();
     private Dictionary<GameObject, Material> semanticMaterials = new Dictionary<GameObject, Material>();
 
+    // For passing select items that we see with the color map
+    private HashSet<string> currentlyVisibleAnchorIDs = new HashSet<string>();
+    private int maxObjectsToReport = 10;
+
     void Start()
     {
         if (semanticCamera != null)
@@ -298,11 +302,17 @@ public class SpatialPerceptionSensor : MonoBehaviour
             }
         }
 
-        // Finally, we can generate the anchor for the object taht we're seeing in the CURRENT frame
+        // Finally, we can generate the anchor for the object that we're seeing in the CURRENT frame
         // This maintains the guide only learning about what it encounters with the user
+
+        currentlyVisibleAnchorIDs.Clear(); // Wipe the last frame's memory
+
         foreach (GameObject obj in visibleObjectsThisFrame)
         {
             string id = obj.GetInstanceID().ToString();
+
+            // Mark this object as actively visible in the current frame
+            currentlyVisibleAnchorIDs.Add(id);
 
             if (!activeAnchors.ContainsKey(id))
             {
@@ -311,8 +321,7 @@ public class SpatialPerceptionSensor : MonoBehaviour
                 newAnchor.uniqueColorID = assignedColor;
                 activeAnchors.Add(id, newAnchor);
 
-                Debug.Log($"[Perception Sensor] Guide saw {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(assignedColor)}");
-                //Debug.Log($"Number of objects we've seen is now {GetObjectAnchors()}");
+                Debug.Log($"[Perception Sensor] Guide saw #{GetObjectAnchors()}, {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(assignedColor)}");
             }
 
             activeAnchors[id].lastKnownPosition = obj.transform.position;
@@ -546,11 +555,22 @@ public class SpatialPerceptionSensor : MonoBehaviour
         foreach (string key in staleKeys)
         {
             activeAnchors.Remove(key);
+            currentlyVisibleAnchorIDs.Remove(key);
         }
 
         // Now get the spatial context with the cleaned list
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("CURRENT SPATIAL TELEMETRY (Hidden from user):");
+
+        // Our data triage pipeline to prevent overloading the LLM with everything we see: Filter - Sort - Limit
+        // This is necessary, since the color mapping sees EVERYTHING now, but the amount of info we pass per seen object
+        // would be definitely hit our token limits/cause context bloat/result in hallucinations, etc. 
+        var prioritizedAnchors = activeAnchors
+            .Where(kvp => currentlyVisibleAnchorIDs.Contains(kvp.Key)) // ONLY get objects in the camera view right now
+            .Select(kvp => kvp.Value)
+            .OrderBy(anchor => GetAnchorPlayerDistance(anchor))        // Rank them by proximity to the headset/player
+            .Take(maxObjectsToReport)                                  // Strictly limit the number sent to the LLM at one time
+            .ToList();
 
         int count = 0;
         foreach (var kvp in activeAnchors)
@@ -573,7 +593,12 @@ public class SpatialPerceptionSensor : MonoBehaviour
             }
         }
 
-        if (count == 0) sb.AppendLine("No recognized objects within immediate vicinity.");
+        if (count == 0) 
+            sb.AppendLine("No recognized objects within immediate vicinity.");
+        // We don't need to pass this to the user, but we can let the LLM know that there were a lot more objects the guide actually saw
+        // Maybe it will be useful for encouraging the user to ask probing questions?
+        else if (currentlyVisibleAnchorIDs.Count > maxObjectsToReport)
+            sb.AppendLine($"\n[System Note: {currentlyVisibleAnchorIDs.Count - maxObjectsToReport} additional background objects omitted for clarity]");
 
         return sb.ToString();
     }
