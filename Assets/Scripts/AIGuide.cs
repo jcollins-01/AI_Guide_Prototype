@@ -128,7 +128,7 @@ public class AIGuide : MonoBehaviour
         sfxAudioSource.spatialBlend = 0; // 2D sound for UI effects (clearer)
     }
 
-    private void SetupRealtimeClient()
+    private async void SetupRealtimeClient()
     {
         // Set up realtime client
         realtimeClient = gameObject.AddComponent<RealtimeGuideClient>();
@@ -154,6 +154,11 @@ public class AIGuide : MonoBehaviour
                 break;
         }
 
+        
+        // Add a tiny buffer. The Realtime API will drop 'conversation.item.create' 
+        // if it arrives in the exact same millisecond as the 'session.update'
+        await Task.Delay(500);
+
         // Fetch the memory from the manager if we can find it - should be on the guide rig
         MemoryManager memoryManager = FindObjectOfType<MemoryManager>();
         if (memoryManager != null)
@@ -161,7 +166,6 @@ public class AIGuide : MonoBehaviour
             string pastMemoryContext = memoryManager.GetFormattedSessionHistory();
             if (!string.IsNullOrEmpty(pastMemoryContext))
             {
-                // Inject the past memory silently - don't make the AI say anything about it
                 realtimeClient.SendTextContext(pastMemoryContext, "system");
                 Debug.Log($"[AI Guide] Injected previous session memory into realtime client: {pastMemoryContext}");
             }
