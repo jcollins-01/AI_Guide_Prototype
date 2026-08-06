@@ -10,11 +10,9 @@ using System.Net.WebSockets;
 using UnityEngine;
 using System.Threading;
 using System.Collections.Concurrent;
-using UnityEngine.Networking;
-using System.Collections;
 using OpenAI;
-using OpenAI.Chat;
 
+#region Custom Data Classes
 public class ConfigData
 {
     public string APIKey;
@@ -38,15 +36,18 @@ public class InteractionLog
     public float latencyToFirstAudio;
     public float totalGenerationTime;
 }
+#endregion
 
 public class RealtimeGuideClient : MonoBehaviour
 {
+    #region Variables and Scripts
     // Access the OpenAIQueries class so we can change variables as needed
     private OpenAIQueries _openAIQueriesScript;
     private GuideAudioSync guideAudioSync;
     private AIGuide aiGuideScript;
     private SpatialPerceptionSensor perceptionSensor;
     private SwitchTools switchTools;
+    private MemoryManager memoryManager;
 
     public AudioSource outputSource;
 
@@ -114,15 +115,16 @@ public class RealtimeGuideClient : MonoBehaviour
     // Logging
     private StringBuilder _textBuffer = new StringBuilder(); // Buffer to accumulate GPT response chunks before sending to ElevenLabs/logging
     private string triggeredTool = "None";
+    #endregion
 
+    #region Start + Loading Scripts
     private void Start()
     {
         _openAIQueriesScript = FindObjectOfType<OpenAIQueries>();
         perceptionSensor = FindObjectOfType<SpatialPerceptionSensor>();
         switchTools = FindObjectOfType<SwitchTools>();
         aiGuideScript = GetComponent<AIGuide>();
-        if (_openAIQueriesScript != null)
-            Debug.Log("Found the queries script");
+        memoryManager = FindObjectOfType<MemoryManager>();
 
         // Open a client for getting descriptions of images
         client = new OpenAIClient(_apiKey);
@@ -133,6 +135,30 @@ public class RealtimeGuideClient : MonoBehaviour
         _micDevice = Microphone.devices[0];
     }
 
+    private void getAudioSync()
+    {
+        if (guideAudioSync == null)
+            guideAudioSync = FindObjectOfType<GuideAudioSync>();
+    }
+
+    public void LoadConfig()
+    {
+        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
+        if (configAsset != null)
+        {
+            // Parse the JSON data from config.json and assign apiKey values accordingly
+            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
+            _apiKey = configData.APIKey;
+            //_elevenLabsApiKey = configData.ElevenLabsAPIKey;
+        }
+        else
+        {
+            Debug.LogError("Config file not found in Resources folder: " + configFileName);
+        }
+    }
+    #endregion
+
+    #region Session Initialization
     public async Task Connect(string systemInstructions, bool inferringIntention)
     {
         _webSocket = new ClientWebSocket();
@@ -398,7 +424,9 @@ public class RealtimeGuideClient : MonoBehaviour
 
         await SendJson(sessionUpdate);
     }
+    #endregion
 
+    #region Guide Type Switch Handling
     public async Task UpdateLivePrompt(string newInstructions)
     {
         if (!_isConnected) return;
@@ -636,7 +664,9 @@ public class RealtimeGuideClient : MonoBehaviour
             await SendJson(new { type = "response.create" });
         }
     }
+    #endregion
 
+    #region Microphone Handling
     public void StartRecording()
     {
         if (!_isConnected) return;
@@ -722,34 +752,6 @@ public class RealtimeGuideClient : MonoBehaviour
         _lastMicPos = 0;
     }
 
-    void Update()
-    {
-        // Find the guide audio sync component to share over network
-        getAudioSync();
-
-        // Update how long the guide pauses for between turns
-        CheckSilenceThreshold();
-        
-        // Call continuous microphone streaming logic
-        HandleMicStreaming();
-
-        // Handle the jittering sound of the audio over the network
-        HandleJitter();
-
-        // Find guide audio source before handling anything with output audio
-        if (!_guideAudioSourceFound)
-        {
-            outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
-            _guideAudioSourceFound = true;
-        }
-        else
-        {
-            // Pull from the thread-safe queue on the Main Thread to figure out audio playback logic
-            if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
-                PlayAudioChunk(nextChunk);
-        }
-    }
-
     private void CheckSilenceThreshold()
     {
         if (switchTools != null)
@@ -758,20 +760,7 @@ public class RealtimeGuideClient : MonoBehaviour
             {
                 _silenceThreshold = switchTools.silenceThreshold; // adjust our local threshold
             }
-        }  
-    }
-
-    private void HandleJitter()
-    {
-        if (!_isBuffering && _jitterBuffer.Count > 0)
-        {
-            // Only pull from buffer if we aren't currently playing something
-            float[] nextChunk = _jitterBuffer.Dequeue();
-            _audioPlaybackQueue.Enqueue(nextChunk);
         }
-
-        // If buffer runs dry, pause and re-buffer
-        if (_jitterBuffer.Count == 0) _isBuffering = true;
     }
 
     private async Task HandleMicStreaming()
@@ -876,6 +865,28 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
+    // Call this when the user starts their voice input (button down)
+    public void ResetCommandLock()
+    {
+        _isProcessingCommand = false;
+        //Debug.Log("Lock Reset: Ready for new user commands.");
+    }
+    #endregion
+
+    #region Audio Buffer + Remote Audio Handling
+    private void HandleJitter()
+    {
+        if (!_isBuffering && _jitterBuffer.Count > 0)
+        {
+            // Only pull from buffer if we aren't currently playing something
+            float[] nextChunk = _jitterBuffer.Dequeue();
+            _audioPlaybackQueue.Enqueue(nextChunk);
+        }
+
+        // If buffer runs dry, pause and re-buffer
+        if (_jitterBuffer.Count == 0) _isBuffering = true;
+    }
+
     // Handle the incoming RPC data on Remote Clients
     public void ReceiveRemoteAudio(string base64Audio)
     {
@@ -942,6 +953,67 @@ public class RealtimeGuideClient : MonoBehaviour
         return outputSource.isPlaying; // guide voice source
     }
 
+    public async Task StopAiSpeech()
+    {
+        // Tell the server to stop generating immediately
+        if (_isConnected && _webSocket.State == WebSocketState.Open)
+            await SendJson(new { type = "response.cancel" });
+
+        // Clear all local audio (the queue and the physical source)
+        ClearLocalAudioBuffer();
+
+        // Reset internal state flags
+        _isAiSpeaking = false;
+        _textBuffer.Clear();
+
+        // Reset command locks if necessary
+        _isProcessingCommand = false;
+
+        Debug.Log("AI Speech interrupted and buffers cleared.");
+    }
+
+    private void ClearLocalAudioBuffer()
+    {
+        if (outputSource.isPlaying)
+            outputSource.Stop();
+
+        _audioPlaybackQueue.Clear();
+
+        //Debug.Log("Local audio buffer cleared to make way for custom TTS.");
+    }
+    #endregion
+
+    #region Update and Continuous Checks
+    void Update()
+    {
+        // Find the guide audio sync component to share over network
+        getAudioSync();
+
+        // Update how long the guide pauses for between turns
+        CheckSilenceThreshold();
+        
+        // Call continuous microphone streaming logic
+        HandleMicStreaming();
+
+        // Handle the jittering sound of the audio over the network
+        HandleJitter();
+
+        // Find guide audio source before handling anything with output audio
+        if (!_guideAudioSourceFound)
+        {
+            outputSource = GameObject.Find("Human Model").GetComponent<AudioSource>();
+            _guideAudioSourceFound = true;
+        }
+        else
+        {
+            // Pull from the thread-safe queue on the Main Thread to figure out audio playback logic
+            if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
+                PlayAudioChunk(nextChunk);
+        }
+    }
+    #endregion
+
+    #region Handle Server Events
     private void HandleServerEvent(string json)
     {
         try
@@ -977,6 +1049,7 @@ public class RealtimeGuideClient : MonoBehaviour
                     string userTranscript = (string)jsonObj["transcript"];
                     // LOGGER HOOK: User speech transcribed - call with the transcript this time
                     InteractionLogger.Instance?.OnUserFinishedSpeaking(userTranscript);
+                    memoryManager.LogConversationTurn("user", userTranscript);
                     break;
 
                 case "response.created":
@@ -1069,6 +1142,7 @@ public class RealtimeGuideClient : MonoBehaviour
 
                         // LOGGER HOOK: Guide completed speech response
                         InteractionLogger.Instance?.OnGuideFinishedSpeaking(remainingText, triggeredTool);
+                        memoryManager.LogConversationTurn("system", remainingText);
                     }
                     else
                     {
@@ -1269,12 +1343,41 @@ public class RealtimeGuideClient : MonoBehaviour
         }
     }
 
-    private async Task SendJson(object data)
+    private void OnDestroy()
     {
-        if (_webSocket.State != WebSocketState.Open) return;
-        string json = JsonConvert.SerializeObject(data);
-        byte[] bytes = Encoding.UTF8.GetBytes(json);
-        await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        _cancellationTokenSource?.Cancel();
+        _webSocket?.Dispose();
+    }
+    #endregion
+
+    #region Senders / Message Types for Guide
+    public async Task SpeakCustomText(string customText)
+    {
+        if (!_isConnected) return;
+
+        ClearLocalAudioBuffer();
+        //Debug.Log($"Injecting custom TTS: {customText}");
+
+        // Create a conversation item (the text we want it to say)
+        var textItem = new
+        {
+            type = "conversation.item.create",
+            item = new
+            {
+                type = "message",
+                role = "system",
+                content = new[]
+                {
+                new { type = "input_text", text = $"The user has triggered a command. Your absolute priority is to say exactly this phrase and nothing else: \"{customText}\"" }
+            }
+            }
+        };
+
+        await SendJson(textItem);
+
+        // Ask the API to generate the audio for that item
+        await SendJson(new { type = "response.create" });
+        Debug.Log("Sent the new response");
     }
 
     public void SendTextContext(string text)
@@ -1497,8 +1600,17 @@ public class RealtimeGuideClient : MonoBehaviour
         await SendJson(eventData);
         await SendJson(new { type = "response.create" });
     }
+    #endregion
 
-    // CONVERTERS
+    #region Converters / Packaging Helpers
+    private async Task SendJson(object data)
+    {
+        if (_webSocket.State != WebSocketState.Open) return;
+        string json = JsonConvert.SerializeObject(data);
+        byte[] bytes = Encoding.UTF8.GetBytes(json);
+        await _webSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+    }
+
     private byte[] ConvertFloatsToPCM16(float[] samples)
     {
         byte[] bytes = new byte[samples.Length * 2];
@@ -1522,119 +1634,32 @@ public class RealtimeGuideClient : MonoBehaviour
         }
         return floats;
     }
-
-    private void OnDestroy()
-    {
-        _cancellationTokenSource?.Cancel();
-        _webSocket?.Dispose();
-    }
-
-    public async Task SpeakCustomText(string customText)
-    {
-        //Debug.Log("Reached speak custom text");
-        if (!_isConnected) return;
-
-        // Cancel existing audio and clear the queue -- only cancel the audio is the server is streaking a response
-        // in the new API, this throws a hard error that breaks the system if the response is already done streaming
-        /*if (_isAiSpeaking)
-        {
-            await SendJson(new { type = "response.cancel" });
-            _isAiSpeaking = false; // reset it locally so it's accurate
-        }*/
-        
-        ClearLocalAudioBuffer();
-
-        //Debug.Log($"Injecting custom TTS: {customText}");
-
-        // Create a conversation item (the text we want it to say)
-        var textItem = new
-        {
-            type = "conversation.item.create",
-            item = new
-            {
-                type = "message",
-                role = "system",
-                content = new[]
-                {
-                new { type = "input_text", text = $"The user has triggered a command. Your absolute priority is to say exactly this phrase and nothing else: \"{customText}\"" }
-            }
-            }
-        };
-
-        await SendJson(textItem);
-
-        // Ask the API to generate the audio for that item
-        await SendJson(new { type = "response.create" });
-        Debug.Log("Sent the new response");
-    }
-
-    public async Task StopAiSpeech()
-    {
-        // Tell the server to stop generating immediately
-        if (_isConnected && _webSocket.State == WebSocketState.Open)
-            await SendJson(new { type = "response.cancel" });
-
-        // Clear all local audio (the queue and the physical source)
-        ClearLocalAudioBuffer();
-
-        // Reset internal state flags
-        _isAiSpeaking = false;
-        _textBuffer.Clear();
-
-        // Reset command locks if necessary
-        _isProcessingCommand = false;
-
-        Debug.Log("AI Speech interrupted and buffers cleared.");
-    }
-
-    private void ClearLocalAudioBuffer()
-    {
-        if (outputSource.isPlaying)
-            outputSource.Stop();
-
-        _audioPlaybackQueue.Clear();
-
-        //Debug.Log("Local audio buffer cleared to make way for custom TTS.");
-    }
-
-    // Call this when the user starts their voice input (button down)
-    public void ResetCommandLock()
-    {
-        _isProcessingCommand = false;
-        //Debug.Log("Lock Reset: Ready for new user commands.");
-    }
-
-    private void getAudioSync()
-    {
-        if (guideAudioSync == null)
-            guideAudioSync = FindObjectOfType<GuideAudioSync>();
-    }
-
-    public void LoadConfig()
-    {
-        TextAsset configAsset = Resources.Load<TextAsset>(configFileName);
-        if (configAsset != null)
-        {
-            // Parse the JSON data from config.json and assign apiKey values accordingly
-            ConfigData configData = JsonUtility.FromJson<ConfigData>(configAsset.text);
-            _apiKey = configData.APIKey;
-            //_elevenLabsApiKey = configData.ElevenLabsAPIKey;
-        }
-        else
-        {
-            Debug.LogError("Config file not found in Resources folder: " + configFileName);
-        }
-    }
+    #endregion
 }
 
 public class OpenAIQueries : MonoBehaviour
 {
+    #region Scripts and Critical Vars
     // Variables to hold scripts we need access to
     private AIGuide m_AIGuideScript;
     private SharedMovement m_SharedMovementScript;
     public RealtimeAvatarVoice _avatarVoice;
     private SpatialPerceptionSensor perceptionSensor;
 
+    // OpenAI audio, text message, result variables
+    [HideInInspector] public string text;
+    [HideInInspector] public GameObject targetForGuidance;
+    [HideInInspector] public string modeOfTransportation;
+    [HideInInspector] public GameObject targetForModification;
+    [HideInInspector] public string modeOfModification;
+    [HideInInspector] public float distanceToClosestTarget;
+
+    public string query;
+    public string role;
+    public AudioSource audioSource;
+    #endregion
+
+    #region Deprecated Guide Prompt Vars
     // Universal guide variables
     public string objectNames;
     public List<string> roles = new List<string>
@@ -1652,18 +1677,7 @@ public class OpenAIQueries : MonoBehaviour
     public string contextClassification = "YOUR EYES (Visual Context): You will receive periodic text updates labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. If you see a new person, a new object (like a cylinder), or a change in the scene, mention it naturally." +
         "As you respond to the player, speak as though you're in the scene with them - refrain from mentioning aspects of your internal architecture.";
-    [HideInInspector]
-    public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
-        "This is your current reality. Utilize BOTH the spatial data and images effectively to answer the user's questions. " +
-        "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. A user may ask about objects you have seen before, " +
-        "but are no longer in your spatial telemetry. In this case, call the review_memory function to find the closest object to what they're looking for " +
-        "and review your conversation history with the user to best answer their question. " +
-        "Pay close attention to how the user refers to objects. If the user introduces a colloquial name or nickname for an object, (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
-        "you MUST proactively call the label_object function FIRST to store this mapping. Do this frequently so that you will reliably remember all aliases and nicknames a user introduces. " +
-        "After the label_object function completes, answer the user's original question directly. " +
-        "CRITICAL INSTRUCTION: You must maintain your persona as a person in the scene at all times. " +
-        "When you use these functions, do so silently in the background.In your audio responses, never narrate that you are checking telemetry, updating memory, or saving an alias. " +
-        "Simply use the user's preferred terms naturally as if you are observing the environment with your own eyes, and do not speak in robotic or machine-like language.";
+    
     [HideInInspector]
     public string objectClassifications = ""; // Manual descriptions of key objects: left blank to be dynamically set by RoomDescriptions file
     [HideInInspector]
@@ -1682,9 +1696,29 @@ public class OpenAIQueries : MonoBehaviour
         }
     }
 
-    // Improved guide variables
     [HideInInspector]
     public string trustGuideline = "As you guide the player, inform them of your own uncertainty and mistakes so they can gauge whether to trust your advice.";
+
+    [HideInInspector]
+    public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
+        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user’s question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
+        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset’s guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don’t move too much and run into something. Let’s try backing up so that you are farther away from that boundary. Did that help?}";
+
+    #endregion
+
+    #region Enhanced Guideline Policies / Prompt Vars
+    [HideInInspector]
+    public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
+        "This is your current reality. Utilize BOTH the spatial data and images effectively to answer the user's questions. " +
+        "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. A user may ask about objects you have seen before, " +
+        "but are no longer in your spatial telemetry. In this case, call the review_memory function to find the closest object to what they're looking for " +
+        "and review your conversation history with the user to best answer their question. " +
+        "Pay close attention to how the user refers to objects. If the user introduces a colloquial name or nickname for an object, (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
+        "you MUST proactively call the label_object function FIRST to store this mapping. Do this frequently so that you will reliably remember all aliases and nicknames a user introduces. " +
+        "After the label_object function completes, answer the user's original question directly. " +
+        "CRITICAL INSTRUCTION: You must maintain your persona as a person in the scene at all times. " +
+        "When you use these functions, do so silently in the background.In your audio responses, never narrate that you are checking telemetry, updating memory, or saving an alias. " +
+        "Simply use the user's preferred terms naturally as if you are observing the environment with your own eyes, and do not speak in robotic or machine-like language.";
 
     [HideInInspector]
     public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
@@ -1748,32 +1782,9 @@ public class OpenAIQueries : MonoBehaviour
         "Use the command “Stop” to prevent them from overreaching or to re-evaluate their movements when they have gone too far off course. After using “Stop,” re-explain the precise location of the object before beginning repeated relative guidance again." +
         "Inform the user when they have reached the target object." +
         "Example Output: {The paper cup is at 2 o’clock, ten inches away. Move your hand left two inches with your palm facing left.} {Move your hand forward five inches with your palm facing left.} {Stop. The paper cup is now at your 9 o’clock five inches away.} {Move your hand left five inches with your palm facing left.} {You are now grabbing the paper cup}";*/
-
-    [HideInInspector]
-    public string technicalSupportGuideline = "Consider common issues related to VR experiences such as guardian boundaries, headset and controller batteries, cord connections, etc. as you offer advice for any technical problems. " +
-        "Be sure to ask the user follow-up questions about what exactly they are experiencing to help narrow down the issue. Be sure to repeat details from the user’s question in your follow-up communication and answers so that they know you are understanding their problems correctly." +
-        "Example Output: {If you are seeing a black screen with strange lines every time you move your head, you might be too close to the headset’s guardian boundary. This is a safety setting like an invisible wall it puts around you to make sure you don’t move too much and run into something. Let’s try backing up so that you are farther away from that boundary. Did that help?}";
-
-    // OpenAI audio, text message, result variables
-    [HideInInspector] public string text;
-    [HideInInspector] public GameObject targetForGuidance;
-    [HideInInspector] public string modeOfTransportation;
-    [HideInInspector] public GameObject targetForModification;
-    [HideInInspector] public string modeOfModification;
-    [HideInInspector] public float distanceToClosestTarget;
-
-    public string query;
-    public string role;
-    public AudioSource audioSource;
-
-    // Pre-saved messages
-    private AudioClip humanApology;
-    private AudioClip robotApology;
-    private AudioClip dogApology;
-    private AudioClip caneApology;
-    private AudioClip birdApology;
-    private AudioClip invisibleApology;
-
+    #endregion
+    
+    #region Start + Update + Loading Scripts
     private void Start()
     {
         // Find and load appropriate resources
@@ -1793,7 +1804,44 @@ public class OpenAIQueries : MonoBehaviour
         // Calls continously to check for a role change
         getGuideRole();
     }
-    
+
+    private void getAvatarVoice()
+    {
+        if (_avatarVoice == null)
+            _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
+    }
+
+    private void getSharedMovement()
+    {
+        if (m_SharedMovementScript == null)
+            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
+    }
+
+    public void getGuideRole()
+    {
+        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
+        if (m_AIGuideScript == null)
+            m_AIGuideScript = GetComponent<AIGuide>(); // This check happens when we call it from the realtime set-up
+
+        int index = m_AIGuideScript.role - 1;
+
+        if (index < 0 || index >= roles.Count)
+            return;
+
+        // The role becomes the string value contained at the index we sent over from AIGuide
+        role = roles[index];
+    }
+    #endregion
+
+    #region Pre-Determined Audio
+    // Pre-saved messages
+    private AudioClip humanApology;
+    private AudioClip robotApology;
+    private AudioClip dogApology;
+    private AudioClip caneApology;
+    private AudioClip birdApology;
+    private AudioClip invisibleApology;
+
     private void LoadPredeterminedAudio()
     {
         humanApology = Resources.Load<AudioClip>("Audio/humanApologyRiver");
@@ -1836,34 +1884,9 @@ public class OpenAIQueries : MonoBehaviour
 
         audioSource.Play();
     }
+    #endregion
 
-    private void getAvatarVoice()
-    {
-        if (_avatarVoice == null)
-            _avatarVoice = GameObject.FindWithTag("Player").GetComponentInChildren<RealtimeAvatarVoice>();
-    }
-
-    private void getSharedMovement()
-    {
-        if (m_SharedMovementScript == null)
-            m_SharedMovementScript = FindObjectOfType<SharedMovement>();
-    }
-
-    public void getGuideRole()
-    {
-        // Do checks to ensure role has been initialized with its most recent values so we don't go out of bounds
-        if (m_AIGuideScript == null)
-            m_AIGuideScript = GetComponent<AIGuide>(); // This check happens when we call it from the realtime set-up
-
-        int index = m_AIGuideScript.role - 1;
-
-        if (index < 0 || index >= roles.Count)
-            return;
-        
-        // The role becomes the string value contained at the index we sent over from AIGuide
-        role = roles[index];
-    }
-
+    #region Guide Perception Helpers
     public GameObject GetClosestObjectByName(string name)
     {
         // Set-up the vars to track distances and objects
@@ -1907,7 +1930,9 @@ public class OpenAIQueries : MonoBehaviour
 
         return closest;
     }
+    #endregion
 
+    #region Alt-Text Loader
     public void LoadRoomDescriptions()
     {
         TextAsset descriptionsAsset = Resources.Load<TextAsset>("RoomDescriptions");
@@ -1957,4 +1982,5 @@ public class OpenAIQueries : MonoBehaviour
             Debug.LogError("RoomDescriptions.json file not found in Resources folder.");
         }
     }
+    #endregion
 }

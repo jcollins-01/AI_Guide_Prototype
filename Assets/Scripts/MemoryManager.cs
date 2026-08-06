@@ -27,20 +27,19 @@ public class MemoryManager : MonoBehaviour
     // Vars for handling saving the memory of sessions
     private string saveFilePath;
     public GuideSessionMemory currentSession = new GuideSessionMemory();
+    public bool statefulSession = false;
 
     void Awake()
     {
-        // This maps to AppData/LocalLow on Windows, or the app's document folder on mobile/headsets
         saveFilePath = Path.Combine(Application.persistentDataPath, "guide_memory.json");
-        LoadSession();
+
+        // Only load the session if we are in stateful mode
+        if (statefulSession)
+            LoadSession();
+        else
+            DeleteSession(); // otherwise, a stateless session will delete the last conversation history
     }
 
-    private void Start()
-    {
-        
-    }
-
-    // Call this whenever the user or guide speaks
     public void LogConversationTurn(string role, string content)
     {
         currentSession.conversationHistory.Add(new ChatMessage { role = role, content = content });
@@ -75,6 +74,15 @@ public class MemoryManager : MonoBehaviour
         {
             Debug.Log("[Memory Manager] No previous memory found. Starting a fresh session.");
             currentSession = new GuideSessionMemory();
+        }
+    }
+
+    public void DeleteSession()
+    {
+        if (File.Exists(saveFilePath))
+        {
+            File.Delete(saveFilePath);
+            Debug.Log("[Memory Manager] Stateless session active. Deleting past conversation history.");
         }
     }
 
