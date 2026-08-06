@@ -47,7 +47,8 @@ public class MemoryManager : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        SaveSession();
+        if (statefulSession)
+            SaveSession();
     }
 
     public void SaveSession()
