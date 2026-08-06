@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class SpatialPerceptionSensor : MonoBehaviour
 {
-    public float viewRadius = 1000.0f; // Represents the "edges of the world" distance, 150
+    public float viewRadius = 150.0f; // Represents the "edges of the world" distance, 150
     public float fieldOfViewAngle = 120.0f;  // Restricts vision to a forward cone (human-like peripheral vision)
-    public LayerMask obstacleLayer;
 
     public LayerMask interactableLayer;
     public Transform playerHeadset;
@@ -20,9 +21,25 @@ public class SpatialPerceptionSensor : MonoBehaviour
     CameraSystem camSystem;
     public Material unlitMaskMaterialBase;
 
+    // Color mapping system
+    public Camera semanticCamera;
+    public Shader unlitColorShader;
+
+    // Registries for mapping colors back to GameObjects
+    private Dictionary<Color32, GameObject> globalObjectRegistry = new Dictionary<Color32, GameObject>();
+    private Dictionary<GameObject, Material[]> originalMaterials = new Dictionary<GameObject, Material[]>();
+    private Dictionary<GameObject, Material> semanticMaterials = new Dictionary<GameObject, Material>();
+
     void Start()
     {
-        InvokeRepeating(nameof(PerformSpatialSweep), 0.2f, 0.5f);
+        if (semanticCamera != null)
+        {
+            semanticCamera.enabled = false; // Prevents Unity from auto-rendering it every frame
+        }
+
+        InitializeSemanticRegistry(); // find all the key items and assign them a special color
+
+        InvokeRepeating(nameof(PerformSpatialSweep), 0.5f, 0.5f); // lower repeat rate to prevent frame queuing 
     }
 
     private void Update()
@@ -30,9 +47,157 @@ public class SpatialPerceptionSensor : MonoBehaviour
         getCameraSystem();
     }
 
-    /*void PerformSpatialSweep()
+    void SaveSnapshotToPNG()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, viewRadius, interactableLayer);
+        if (semanticCamera.targetTexture == null) return;
+
+        RenderTexture rt = semanticCamera.targetTexture;
+        RenderTexture.active = rt;
+
+        // Create a new Texture2D and read the active Render Texture into it
+        Texture2D tex = new Texture2D(rt.width, rt.height, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
+        tex.Apply();
+        RenderTexture.active = null;
+
+        // Encode to PNG and save to your Assets folder
+        byte[] bytes = tex.EncodeToPNG();
+        string filepath = Application.dataPath + "/SemanticVisionDebug.png";
+        System.IO.File.WriteAllBytes(filepath, bytes);
+
+        Debug.Log($"[Perception Sensor] SAVED SNAPSHOT TO: {filepath}");
+    }
+
+    // Scan the environment and assign a secret color ID to every potential interactable
+    void InitializeSemanticRegistry()
+    {
+        Debug.Log("[Perception Sensor] Doing semantic sweep and Blackout pass");
+
+        // Create a universal blackout material to add to ANYTHING that's not on the interactable layer
+        Material blackoutMat = new Material(unlitColorShader);
+        blackoutMat.color = Color.black;
+
+        // Find all the renderers in the scene - literally anything with an appearance
+        Renderer[] allRenderers = FindObjectsOfType<Renderer>();
+        Collider[] allInteractables = Physics.OverlapSphere(Vector3.zero, 100000, interactableLayer, QueryTriggerInteraction.Ignore);
+        HashSet<GameObject> interactableObjects = new HashSet<GameObject>();
+
+        // Log our interactables for easy checking
+        foreach (Collider col in allInteractables)
+        {
+            interactableObjects.Add(col.gameObject);
+        }
+
+        // Assign the colors and the blackout materials to all the objects
+        foreach (Renderer r in allRenderers)
+        {
+            GameObject obj = r.gameObject;
+            if (obj.transform.root == playerHeadset.root) continue; // Skip player
+            if (semanticMaterials.ContainsKey(obj)) continue; // Skip if already processed
+
+            if (interactableObjects.Contains(obj))
+            {
+                // It's a target! Generate a spaced, Linear-corrected color (to fix the color mismatch errors)
+                Color expectedRenderColor;
+                Color originalColorFloat;
+                bool isColorSafe;
+
+                // Start the process to generate unique, distinct colors for all objects
+                do
+                {
+                    isColorSafe = true;
+                    // Generate a bright, float-based color
+                    originalColorFloat = new Color(
+                        UnityEngine.Random.Range(0.2f, 1.0f),
+                        UnityEngine.Random.Range(0.2f, 1.0f),
+                        UnityEngine.Random.Range(0.2f, 1.0f),
+                        1.0f);
+
+                    // Pre-calculate the gamma shift - this is the exact value the camera will see!
+                    // If we don't do this, then the color shifts upon camera render and they never line up
+                    expectedRenderColor = originalColorFloat.linear;
+
+                    // Ensure this color is safely distant (at least 40 units) from all other assigned colors
+                    foreach (Color32 existingColor in globalObjectRegistry.Keys)
+                    {
+                        Color32 newColor32 = expectedRenderColor;
+                        float dist = Mathf.Abs(newColor32.r - existingColor.r) +
+                                     Mathf.Abs(newColor32.g - existingColor.g) +
+                                     Mathf.Abs(newColor32.b - existingColor.b);
+
+                        if (dist < 40) // If it's too close, reject it and generate a new one
+                        {
+                            isColorSafe = false;
+                            break;
+                        }
+                    }
+                } while (!isColorSafe);
+
+                // Store the SHIFTED color in the registry
+                globalObjectRegistry.Add(expectedRenderColor, obj);
+
+                // Apply the ORIGINAL color to the material (Unity will shift it down to match the registry)
+                Material semanticMat = new Material(unlitColorShader);
+                semanticMat.color = originalColorFloat;
+
+                semanticMaterials.Add(obj, semanticMat);
+                originalMaterials.Add(obj, r.materials);
+            }
+            else
+            {
+                // It's a background/non-interactable, so we apply the blackout material
+                // This ensures it occludes objects behind it, but doesn't create random false-positive colors
+                // (like when it was seeing the city bank that was behind us in the colors of the kitchen in front)
+                semanticMaterials.Add(obj, blackoutMat);
+                originalMaterials.Add(obj, r.materials);
+            }
+        }
+    }
+
+    void PerformSpatialSweep()
+    {
+        if (semanticCamera == null || semanticCamera.targetTexture == null) return; // have to have the color mask cam set up
+        //Debug.Log("[Perception Sensor] Doing spatial sweep");
+
+        // Prepare the scene to take a color-mapped snapshot instead of a physics raycast
+        foreach (var kvp in semanticMaterials)
+        {
+            GameObject obj = kvp.Key;
+            if (obj == null) continue; // should have an object to apply our color map mat to
+            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                // Force all materials on the mesh to become the solid semantic color from our color mappings
+                Material[] solidMats = new Material[r.materials.Length];
+                Array.Fill(solidMats, kvp.Value);
+                r.materials = solidMats;
+            }
+        }
+
+        // Take the color-mapped snapshot
+        semanticCamera.Render();
+        //Debug.Log($"[Perception Sensor] Re-mapped colors and took snapshot");
+
+        // ONLY DO THIS TO DEBUG! (Saving files during a repeating invoke freezes everything)
+        //SaveSnapshotToPNG();
+
+        // Restore the scene immediately to original materials, so player never sees the color swap
+        foreach (var kvp in originalMaterials)
+        {
+            GameObject obj = kvp.Key;
+            if (obj == null) continue;
+            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                r.materials = kvp.Value;
+            }
+        }
+
+        // Ask the GPU to send the pixels to the CPU asynchronously - prevents freezing the game by taking lots of screenshots
+        // allows us to share the info in pieces when it's manageable
+        AsyncGPUReadback.Request(semanticCamera.targetTexture, 0, TextureFormat.RGBA32, OnCompleteReadback);
+
+        /*Collider[] hits = Physics.OverlapSphere(transform.position, viewRadius, interactableLayer);
 
         foreach (var hit in hits)
         {
@@ -67,83 +232,90 @@ public class SpatialPerceptionSensor : MonoBehaviour
             }
 
             activeAnchors[id].lastKnownPosition = obj.transform.position;
-        }
-    }*/
+        }*/
+    }
 
-    void PerformSpatialSweep()
+    // Process the pixels in our color-mapped screenshots to see what we see
+    void OnCompleteReadback(AsyncGPUReadbackRequest request)
     {
-        // 1. Get the mathematical planes of the headset's current field of view
-        Camera headsetCam = playerHeadset.GetComponent<Camera>();
-        if (headsetCam == null) return; // Ensure the headset has a camera attached
-
-        Plane[] frustumPlanes = GeometryUtility.CalculateFrustumPlanes(headsetCam);
-        LayerMask sightMask = interactableLayer | obstacleLayer;
-
-        // 2. Find all interactable objects in the scene (You can cache this list in Start() for better performance)
-        // Using FindObjectsOfType is fine for prototyping, but in production, maintain a List of all hazards/interactables
-        Collider[] allInteractables = Physics.OverlapSphere(playerHeadset.position, viewRadius, interactableLayer, QueryTriggerInteraction.Ignore);
-
-        foreach (Collider col in allInteractables)
+        //Debug.Log($"[Perception Sensor] RFinished the readback");
+        if (request.hasError)
         {
-            GameObject obj = col.gameObject;
-            if (obj.transform.root == playerHeadset.root) continue;
+            Debug.LogError("GPU Readback error.");
+            return;
+        }
 
-            // 3. Fast Culling: Is the object's bounding box even inside the camera view?
-            if (GeometryUtility.TestPlanesAABB(frustumPlanes, col.bounds))
+        NativeArray<Color32> pixels = request.GetData<Color32>();
+
+        // Pluck out only the unique, non-black colors in this specific snapshot
+        // Instead of running complex math on 65,000 pixels, this whittles it down to maybe 5 to 50 colors
+        HashSet<Color32> uniqueColorsInFrame = new HashSet<Color32>();
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            Color32 pixel = pixels[i];
+
+            // Skip pure black background / background objects
+            if (pixel.r == 0 && pixel.g == 0 && pixel.b == 0) continue;
+
+            uniqueColorsInFrame.Add(pixel);
+        }
+
+        HashSet<GameObject> visibleObjectsThisFrame = new HashSet<GameObject>();
+
+        // Do a fuzzy match to compare the few colors we saw against our global registry
+        foreach (Color32 cameraColor in uniqueColorsInFrame)
+        {
+            GameObject matchedObject = null;
+            float closestDistance = float.MaxValue;
+            int tolerance = 25; // How much the RGB values are allowed to shift combined (absorbs float errors, small shifts)
+
+            foreach (var kvp in globalObjectRegistry)
             {
-                // 4. It's in the camera view! Now test for occlusion.
-                // Instead of just the center, we define multiple test points on the object's bounds
-                Vector3 center = col.bounds.center;
-                Vector3 extents = col.bounds.extents;
+                Color32 registryColor = kvp.Key;
 
-                Vector3[] testPoints = new Vector3[]
+                // Calculate the "Manhattan Distance" between the color we saw and the color in the registry
+                // A known way to give it some tolerance instead of ONLY accepting identical color codes
+                float colorDistance = Mathf.Abs(cameraColor.r - registryColor.r) +
+                                      Mathf.Abs(cameraColor.g - registryColor.g) +
+                                      Mathf.Abs(cameraColor.b - registryColor.b);
+
+                if (colorDistance < closestDistance && colorDistance < tolerance)
                 {
-                    center, // Center
-                    center + new Vector3(0, extents.y, 0), // Top
-                    center + new Vector3(0, -extents.y, 0), // Bottom
-                    center + new Vector3(extents.x, 0, 0), // Right
-                    center + new Vector3(-extents.x, 0, 0), // Left
-                    center + new Vector3(0, extents.y, 0) + (playerHeadset.position - center).normalized * extents.z // Nearest Top Edge
-                };
-
-                bool isVisible = false;
-
-                // 5. Fire rays at all points. If even ONE hits the object, it is partially visible!
-                foreach (Vector3 point in testPoints)
-                {
-                    Vector3 directionToPoint = point - playerHeadset.position;
-                    float distanceToPoint = directionToPoint.magnitude;
-
-                    if (Physics.Raycast(playerHeadset.position, directionToPoint.normalized, out RaycastHit sightHit, viewRadius, sightMask, QueryTriggerInteraction.Ignore))
-                    {
-                        if (sightHit.collider.gameObject == obj || sightHit.transform.IsChildOf(obj.transform))
-                        {
-                            isVisible = true;
-                            Debug.DrawLine(playerHeadset.position, sightHit.point, Color.green, 1f);
-                            break; // Stop checking this object, we know we can see it
-                        }
-                    }
-                }
-
-                if (isVisible)
-                {
-                    string id = obj.GetInstanceID().ToString();
-
-                    if (!activeAnchors.ContainsKey(id))
-                    {
-                        Color uniqueColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-                        ObjectAnchor newAnchor = new ObjectAnchor(obj, obj.name)
-                        {
-                            uniqueColorID = uniqueColor
-                        };
-                        activeAnchors.Add(id, newAnchor);
-
-                        Debug.Log($"Guide saw {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(uniqueColor)}");
-                    }
-
-                    activeAnchors[id].lastKnownPosition = obj.transform.position;
+                    closestDistance = colorDistance;
+                    matchedObject = kvp.Value;
                 }
             }
+
+            if (matchedObject != null)
+            {
+                visibleObjectsThisFrame.Add(matchedObject);
+            }
+            else
+            {
+                // This line appears so often...since it's basically comparing every slight shift/pixel/shade in the whole photo
+                // Leave it commented unless you're debugging and having serious issues with the system not registering any objects
+                //Debug.LogWarning($"[Perception Sensor] COLOR MISMATCH! Saw RGB({cameraColor.r}, {cameraColor.g}, {cameraColor.b}) but couldn't find a match within tolerance.");
+            }
+        }
+
+        // Finally, we can generate the anchor for the object taht we're seeing in the CURRENT frame
+        // This maintains the guide only learning about what it encounters with the user
+        foreach (GameObject obj in visibleObjectsThisFrame)
+        {
+            string id = obj.GetInstanceID().ToString();
+
+            if (!activeAnchors.ContainsKey(id))
+            {
+                Color32 assignedColor = semanticMaterials[obj].color;
+                ObjectAnchor newAnchor = new ObjectAnchor(obj, obj.name);
+                newAnchor.uniqueColorID = assignedColor;
+                activeAnchors.Add(id, newAnchor);
+
+                Debug.Log($"[Perception Sensor] Guide saw {obj.name}. Assigned Mask Color: #{ColorUtility.ToHtmlStringRGBA(assignedColor)}");
+                //Debug.Log($"Number of objects we've seen is now {GetObjectAnchors()}");
+            }
+
+            activeAnchors[id].lastKnownPosition = obj.transform.position;
         }
     }
 
