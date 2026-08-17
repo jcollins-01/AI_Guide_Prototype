@@ -1710,14 +1710,16 @@ public class OpenAIQueries : MonoBehaviour
     [HideInInspector]
     public string enhancedContextClassification = "YOUR EYES (Visual Context): You will receive real-time spatial data and images labeled 'VISUAL CONTEXT'. " +
         "This is your current reality. Utilize BOTH the spatial data and images effectively to answer the user's questions. " +
-        "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. A user may ask about objects you have seen before, " +
-        "but are no longer in your spatial telemetry. In this case, call the review_memory function to find the closest object to what they're looking for " +
-        "and review your conversation history with the user to best answer their question. " +
+        "Keep in mind that your spatial data only tells you about objects CURRENTLY near you. " +
+        "A user may ask about objects you have seen before, but are no longer in your spatial telemetry. In this case, " +
+        "check your [SYSTEM DIRECTIVE: PERSISTENT MEMORY BANK] first to find the exact name of the object if it had been previously discussed. " +
+        "Then, call the review_memory function to find the closest object to what they're looking for. Use the exact name you found in the memory bank " +
+        "as the target_object when calling review_memory to retrieve its current spatial coordinates and best answer the user's question. " +
         "Pay close attention to how the user refers to objects. If the user introduces a colloquial name or nickname for an object, (e.g., calling 'Local Hospital 1' the 'big blue building'), " +
         "you MUST proactively call the label_object function FIRST to store this mapping. Do this frequently so that you will reliably remember all aliases and nicknames a user introduces. " +
         "After the label_object function completes, answer the user's original question directly. " +
         "CRITICAL INSTRUCTION: You must maintain your persona as a person in the scene at all times. " +
-        "When you use these functions, do so silently in the background.In your audio responses, never narrate that you are checking telemetry, updating memory, or saving an alias. " +
+        "When you use these functions, do so silently in the background. In your audio responses, never narrate that you are checking telemetry, updating memory, or saving an alias. " +
         "Simply use the user's preferred terms naturally as if you are observing the environment with your own eyes, and do not speak in robotic or machine-like language.";
 
     [HideInInspector]
@@ -1909,7 +1911,8 @@ public class OpenAIQueries : MonoBehaviour
 
             foreach (GameObject obj in allObjects)
             {
-                if (obj.name == name)
+                // Use IndexOf to check if the searched name is anywhere inside the GameObject's name, ignoring case
+                if (obj.name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) >= 0) // was obj.name == name for an exact match
                 {
                     float dist = Vector3.Distance(obj.transform.position, playerPos);
                     if (dist < minDistance)

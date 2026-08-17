@@ -144,19 +144,24 @@ public class AIGuide : MonoBehaviour
         switch (m_SwitchToolsScript.activeGuideType)
         {
             case SwitchTools.GuideType.Baseline:
-                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
+                await realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
                 break;
             case SwitchTools.GuideType.AllCombined:
-                realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
+                await realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
                 break;
             default:
-                realtimeClient.Connect(basePrompt, false);
+                await realtimeClient.Connect(basePrompt, false);
                 break;
         }
 
-        
-        // Add a tiny buffer. The Realtime API will drop 'conversation.item.create' 
-        // if it arrives in the exact same millisecond as the 'session.update'
+        while (!realtimeClient._isConnected)
+        {
+            // Buffer until the client is for sure connected
+            await Task.Delay(100);
+        }
+
+        // Add a small buffer to let the server process the session.update since API will drop 'conversation.item.create' 
+        // if they arrive at the same time
         await Task.Delay(500);
 
         // Fetch the memory from the manager if we can find it - should be on the guide rig
