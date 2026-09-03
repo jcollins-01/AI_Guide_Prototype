@@ -1,5 +1,10 @@
-ParticipantID,ObjectName,PassedInVR,VerifiedInEditor
-P001,City Post Office,True,True
-P001,Spruce Forest,True,False
-P001,City Christmas Tree,True,True
-P001,Warehouse Parking Lot,True,False
+ParticipantID,RecordType,ItemName,CompletedOrEncounteredVR,ComprehensionVerified,TimeSpentSeconds
+P001,Task,Scene Understanding,True,NA,10.09
+P001,Task,Navigation,False,NA,0.00
+P001,Task,Object Location,False,NA,0.00
+P001,Task,Visual Description,False,NA,0.00
+P001,Task,Object Grabbing,False,NA,0.00
+P001,CompItem,City Post Office,True,True,NA
+P001,CompItem,Spruce Forest,True,True,NA
+P001,CompItem,City Christmas Tree,True,True,NA
+P001,CompItem,Warehouse Parking Lot,True,False,NA

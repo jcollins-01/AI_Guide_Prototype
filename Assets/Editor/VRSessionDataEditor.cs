@@ -31,7 +31,7 @@ public class VRSessionDataEditor : Editor
         data.participantID = EditorGUILayout.TextField("Participant ID", data.participantID);
 
         GUILayout.Space(15);
-        GUILayout.Label("Live Session Tasks", EditorStyles.boldLabel);
+        GUILayout.Label("Task Speed and Completion Checks", EditorStyles.boldLabel);
 
         // Display each task with its own timer and success toggle
         foreach (var task in data.tasks)
@@ -70,7 +70,7 @@ public class VRSessionDataEditor : Editor
             GUILayout.Label($"{displayTime:F1}s", GUILayout.Width(45));
 
             // Success toggle
-            GUILayout.Label("Success?", GUILayout.Width(60));
+            GUILayout.Label("Completed?", GUILayout.Width(60));
             task.isSuccessful = EditorGUILayout.Toggle(task.isSuccessful, GUILayout.Width(20));
 
             GUILayout.EndHorizontal();
@@ -78,11 +78,11 @@ public class VRSessionDataEditor : Editor
         }
 
         GUILayout.Space(15);
-        GUILayout.Label("Post-Session Object Checklist (Events)", EditorStyles.boldLabel);
+        GUILayout.Label("Task Comprehension Checklists", EditorStyles.boldLabel);
 
         if (data.trialEvents.Count == 0)
         {
-            GUILayout.Label("No objects passed yet.", EditorStyles.miniLabel);
+            GUILayout.Label("No object zones entered yet.", EditorStyles.miniLabel);
         }
 
         for (int i = 0; i < data.trialEvents.Count; i++)
@@ -118,10 +118,10 @@ public class VRSessionDataEditor : Editor
 
         using (StreamWriter writer = new StreamWriter(filePath, true))
         {
-            // Create headers optimized for R filtering
+            // Create headers
             if (!fileExists)
             {
-                writer.WriteLine("ParticipantID,RecordType,ItemName,SuccessOrPassedVR,VerifiedEditor,TimeSpentSeconds");
+                writer.WriteLine("ParticipantID,RecordType,ItemName,CompletedOrEncounteredVR,ComprehensionVerified,TimeSpentSeconds");
             }
 
             // Write the Tasks first
@@ -130,10 +130,10 @@ public class VRSessionDataEditor : Editor
                 writer.WriteLine($"{data.participantID},Task,{task.taskName},{task.isSuccessful},NA,{task.timeSpentSeconds:F2}");
             }
 
-            // Write the VR Events (like what we walked nearby) second
+            // Write the CompItems (the comprehension checks that we do afterwards based on what the user encountered in VR) second
             foreach (var evt in data.trialEvents)
             {
-                writer.WriteLine($"{data.participantID},Event,{evt.objectName},{evt.passedInVR},{evt.verifiedInEditor},NA");
+                writer.WriteLine($"{data.participantID},CompItem,{evt.objectName},{evt.passedInVR},{evt.verifiedInEditor},NA");
             }
         }
 
