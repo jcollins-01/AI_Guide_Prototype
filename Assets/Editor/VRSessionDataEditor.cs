@@ -17,6 +17,12 @@ public class VRSessionDataEditor : Editor
         Debug.Log("Created CurrentSession.asset in your Assets folder!");
     }
 
+    // This forces the Unity Inspector to update every frame so you can see the timer tick visually
+    public override bool RequiresConstantRepaint()
+    {
+        return true;
+    }
+
     public override void OnInspectorGUI()
     {
         VRSessionData data = (VRSessionData)target;
@@ -24,10 +30,61 @@ public class VRSessionDataEditor : Editor
         GUILayout.Label("Participant Settings", EditorStyles.boldLabel);
         data.participantID = EditorGUILayout.TextField("Participant ID", data.participantID);
 
-        GUILayout.Space(10);
-        GUILayout.Label("Post-Session Verification Checklist", EditorStyles.boldLabel);
+        GUILayout.Space(15);
+        GUILayout.Label("Live Session Tasks", EditorStyles.boldLabel);
 
-        // Display a toggle for every object passed during the session
+        // Display each task with its own timer and success toggle
+        foreach (var task in data.tasks)
+        {
+            GUILayout.BeginVertical("box");
+            GUILayout.BeginHorizontal();
+
+            GUILayout.Label(task.taskName, GUILayout.Width(140));
+
+            // Timer controls
+            if (!task.isTimerRunning)
+            {
+                if (GUILayout.Button("Start", GUILayout.Width(50)))
+                {
+                    task.timerStartTime = EditorApplication.timeSinceStartup;
+                    task.isTimerRunning = true;
+                }
+            }
+            else
+            {
+                GUI.backgroundColor = Color.red; // Turns the stop button red
+                if (GUILayout.Button("Stop", GUILayout.Width(50)))
+                {
+                    task.timeSpentSeconds += (EditorApplication.timeSinceStartup - task.timerStartTime);
+                    task.isTimerRunning = false;
+                }
+                GUI.backgroundColor = Color.white;
+            }
+
+            // Calculate and display live time
+            double displayTime = task.timeSpentSeconds;
+            if (task.isTimerRunning)
+            {
+                displayTime += (EditorApplication.timeSinceStartup - task.timerStartTime);
+            }
+            GUILayout.Label($"{displayTime:F1}s", GUILayout.Width(45));
+
+            // Success toggle
+            GUILayout.Label("Success?", GUILayout.Width(60));
+            task.isSuccessful = EditorGUILayout.Toggle(task.isSuccessful, GUILayout.Width(20));
+
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+        }
+
+        GUILayout.Space(15);
+        GUILayout.Label("Post-Session Object Checklist (Events)", EditorStyles.boldLabel);
+
+        if (data.trialEvents.Count == 0)
+        {
+            GUILayout.Label("No objects passed yet.", EditorStyles.miniLabel);
+        }
+
         for (int i = 0; i < data.trialEvents.Count; i++)
         {
             GUILayout.BeginHorizontal();
@@ -38,12 +95,13 @@ public class VRSessionDataEditor : Editor
 
         GUILayout.Space(20);
 
+        GUI.backgroundColor = Color.green;
         if (GUILayout.Button("SAVE TO CSV", GUILayout.Height(40)))
         {
             SaveToCSV(data);
         }
+        GUI.backgroundColor = Color.white;
 
-        // Force Unity to save the ScriptableObject changes
         if (GUI.changed)
         {
             EditorUtility.SetDirty(data);
@@ -60,20 +118,26 @@ public class VRSessionDataEditor : Editor
 
         using (StreamWriter writer = new StreamWriter(filePath, true))
         {
-            // Write standard headers if creating a new file
+            // Create headers optimized for R filtering
             if (!fileExists)
             {
-                writer.WriteLine("ParticipantID,ObjectName,PassedInVR,VerifiedInEditor");
+                writer.WriteLine("ParticipantID,RecordType,ItemName,SuccessOrPassedVR,VerifiedEditor,TimeSpentSeconds");
             }
 
-            // Append each logged event
+            // Write the Tasks first
+            foreach (var task in data.tasks)
+            {
+                writer.WriteLine($"{data.participantID},Task,{task.taskName},{task.isSuccessful},NA,{task.timeSpentSeconds:F2}");
+            }
+
+            // Write the VR Events (like what we walked nearby) second
             foreach (var evt in data.trialEvents)
             {
-                writer.WriteLine($"{data.participantID},{evt.objectName},{evt.passedInVR},{evt.verifiedInEditor}");
+                writer.WriteLine($"{data.participantID},Event,{evt.objectName},{evt.passedInVR},{evt.verifiedInEditor},NA");
             }
         }
 
-        Debug.Log($"Data successfully appended for {data.participantID} at {filePath}");
-        data.ClearSession(); // Ready for the next trial
+        Debug.Log($"Data appended for {data.participantID} at {filePath}");
+        data.ClearSession();
     }
 }
