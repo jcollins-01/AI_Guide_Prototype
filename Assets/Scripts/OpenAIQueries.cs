@@ -54,15 +54,15 @@ public class RealtimeGuideClient : MonoBehaviour
 
     [Tooltip("OpenAI-compatible transcription endpoint, e.g. from Speaches or Kokoro-FastAPI.")]
     public string sttUrl = "http://localhost:8000/v1/audio/transcriptions";
-    [Tooltip("Model name your STT server expects -- check its docs, this is a placeholder.")]
-    public string sttModel = "whisper-1";
+    [Tooltip("Confirmed working: Systran/faster-whisper-small. whisper-1 also works but auto-maps to the much larger/slower faster-whisper-large-v3.")]
+    public string sttModel = "Systran/faster-whisper-small";
 
     [Tooltip("OpenAI-compatible speech endpoint, e.g. from Speaches or Kokoro-FastAPI.")]
     public string ttsUrl = "http://localhost:8000/v1/audio/speech";
-    [Tooltip("Model name your TTS server expects -- check its docs, this is a placeholder.")]
-    public string ttsModel = "tts-1";
-    [Tooltip("Voice name your TTS server expects.")]
-    public string ttsVoice = "alloy";
+    [Tooltip("Confirmed against Speaches' own docs.")]
+    public string ttsModel = "speaches-ai/Kokoro-82M-v1.0-ONNX";
+    [Tooltip("Confirmed against Speaches' own docs for the Kokoro model -- change if you use a different TTS model/server.")]
+    public string ttsVoice = "af_heart";
 
     private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -236,6 +236,7 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         HandleMicStreaming();
         HandleJitter();
+        HandleDebugHotkey();
 
         if (!_guideAudioSourceFound)
         {
@@ -600,6 +601,33 @@ public class RealtimeGuideClient : MonoBehaviour
     public void ResetCommandLock()
     {
         _isProcessingCommand = false;
+    }
+
+    // --- Quick manual test, no VR controller or microphone needed -------------
+    // Press T (while the Game window has focus) to fire a hardcoded question straight
+    // into the Ollama -> action-parsing -> TTS -> playback pipeline, skipping mic/STT
+    // entirely (STT was already verified independently via curl earlier).
+    [Header("Debug Test (Editor/Desktop only)")]
+    [Tooltip("Hardcoded text sent through the pipeline when the test hotkey is pressed.")]
+    public string debugTestQuery = "Hey, what is in front of me?";
+    [Tooltip("Set to None to disable the hotkey entirely.")]
+    public KeyCode debugTestHotkey = KeyCode.T;
+
+    private void HandleDebugHotkey()
+    {
+        if (debugTestHotkey == KeyCode.None) return;
+
+        if (Input.GetKeyDown(debugTestHotkey))
+        {
+            if (!_isConnected)
+            {
+                Debug.LogWarning("[DebugTest] Not connected to Ollama yet -- check the '[Ollama] Connected.' log fired earlier.");
+                return;
+            }
+
+            Debug.Log($"[DebugTest] Firing test query: \"{debugTestQuery}\"");
+            _ = SendUserMessageAndRespond(debugTestQuery);
+        }
     }
 
     // Queues a visual-context turn into conversation history so the model sees it on its next
