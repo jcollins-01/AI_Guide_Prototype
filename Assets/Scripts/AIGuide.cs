@@ -202,33 +202,29 @@ public class AIGuide : MonoBehaviour
                 break;
             case SwitchTools.GuideType.ObjectDescription:
                 Debug.Log("Using the object description guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification} {m_OpenAIQueriesScript.universalNotesGuideline}" +
                     $"The player is asking you about what an object looks like. {m_OpenAIQueriesScript.objectDescriptionGuideline}";
                 break;
             case SwitchTools.GuideType.ObjectLocation:
                 Debug.Log("Using the object location guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification} {m_OpenAIQueriesScript.universalNotesGuideline}" +
                     $"The player is asking you about where an object is. {m_OpenAIQueriesScript.objectLocationGuideline}";
                 break;
             case SwitchTools.GuideType.SceneUnderstanding:
                 Debug.Log("Using the scene understanding guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification} {m_OpenAIQueriesScript.universalNotesGuideline}" +
                     $"The player is asking you about what the scene around you both is like. {m_OpenAIQueriesScript.sceneUnderstandingGuideline}";
                 break;
             case SwitchTools.GuideType.Navigation:
                 Debug.Log("Using the navigation guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification} {m_OpenAIQueriesScript.universalNotesGuideline}" +
                     $"The player is asking you for information to help with navigating somewhere on their own. { m_OpenAIQueriesScript.spaceNavigationGuideline}";
                 break;
             case SwitchTools.GuideType.ObjectGrabbing:
                 Debug.Log("Using the object grabbing guide!");
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
+                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification} {m_OpenAIQueriesScript.universalNotesGuideline}" +
                     $"The player is asking you to help them grab an object."; // {m_OpenAIQueriesScript.grabbingObjectGuideline}";
                 break;
-            /*case SwitchTools.GuideType.SightedGuidance:
-                prompt = $"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player. {m_OpenAIQueriesScript.enhancedContextClassification}" +
-                $"The player wants help moving to a specific object."; //THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}";
-                break;*/
             case SwitchTools.GuideType.AllCombined:
                 Debug.Log("Using the all-guideline intention guide!");
                 StringBuilder sbPrompt = new StringBuilder();
@@ -236,6 +232,7 @@ public class AIGuide : MonoBehaviour
                 // Base Persona & Rules
                 sbPrompt.AppendLine($"You are Giddy, a warm, friendly, but still professional sighted guide for a blind player.");
                 sbPrompt.AppendLine(m_OpenAIQueriesScript.enhancedContextClassification);
+                sbPrompt.AppendLine(m_OpenAIQueriesScript.universalNotesGuideline);
                 //sbPrompt.AppendLine($"THE NAVIGATION REGISTRY: {m_OpenAIQueriesScript.objectClassifications}");
                 // New guideline on trust/revealing uncertainty
                 sbPrompt.Append(m_OpenAIQueriesScript.trustGuideline);

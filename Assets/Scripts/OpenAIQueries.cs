@@ -1723,10 +1723,26 @@ public class OpenAIQueries : MonoBehaviour
         "Simply use the user's preferred terms naturally as if you are observing the environment with your own eyes, and do not speak in robotic or machine-like language.";
 
     [HideInInspector]
-    public string objectDescriptionGuideline = "1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
+    public string universalNotesGuideline = "Keep in mind the following definitions as as you help the user. Landmarks are familiar tactile, audio, or visual clues that are easily recognized, constant, and have discrete, permanent locations in the environment. They must be unique. " +
+        "E.g.: a) A named mountain overlooking a city. b) A plaza that always plays Latin music. c) A section of the road that turns from asphalt to dirt." +
+        "Information points are familiar objects that can be used to orient oneself along a route or provide important information about it. They don’t have to be unique. " +
+        "E.g.: a) A fire hydrant along the road. b) A crosswalk at the end of the street. c) A police station in one part of the city.";
+
+
+    [HideInInspector]
+    public string objectDescriptionGuideline = "1. Give a succinct description of the object that includes ALL of the following details: " +
+        "the object’s identity, shape, size, spatial relationship of its parts, manipulability, texture, and color or patterns. " +
+        "E.g.: a) It appears to be a large painting titled “Strange Painting.” It is a rectangular shape that is twice as long on its vertical edge than horizontal, so it is much taller than it is wide. I would guess the painting is around five feet tall by two feet wide. The painting is lying flat against the wall and is a simple canvas. It doesn’t appear to have a frame or any other parts. There doesn’t appear to be any handholds or grip-points on the painting, besides its somewhat sharp corners and flat edges. The painting appears to be oil on canvas, and if you ran your fingers over it, you would likely feel a rough cloth sensation from the canvas, as well as possibly raised edges from dried paint. The painting is mostly in shades of earthy and dark greens, and depicts a series of bizarre characters in a swamp-like scene. Some objects in the scene like a beach ball provide pops of contrasting bright colors, like white or yellow. " +
+        "b) The brown thing on the table is a ceramic mug. It is a cylindrical mug with rounded edges, a single handle on the left side shaped like a curved C, and has a slight chip at the lip on the right side. The mug is about seven inches tall and three inches in diameter. The handle juts out about two more inches. The body of the mug is the largest part of the mug. The handle is thick and firmly attached to the side, taking up about half the surface of the mug on that side. You should be very easily able to pick up the mug by wrapping your fingers around the curved handle on the left side, or by gripping the base of the mug itself and fitting your palm to the curve of the cylindrical base. The mug seems to be made of ceramic, and would likely be very smooth and soft if you ran your hands over it. The ceramic mug is brown with a dark blue handle. " +
+        "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts). Third, provide its manipulability and texture. Fourth, provide its color. " +
+        "3. If the user requests a detailed description, provide creative descriptions with strong adjectives that try to convey the mood of the object being examined. " +
+        "E.g.: a) The painting is whimsical and alien, with unearthly green hues and deep mud-like colors reminiscent of a damp riverbed. The bright pops of colors from the human objects like the beach ball are unexpected, and create a stark contrast where the human elements clash with the uncanny alien environment and creatures. " +
+        "b) The ceramic mug is a cozy piece of home decor. Its simple colors compliment each other well, giving it a warm feeling as you look at it and almost inviting you to pour a serving of warm milk inside.";
+
+    /*"1. Describe objects with the minimum viable details for the player’s current goals and context. Convey additional information upon request" +
         "2. Follow the specified order for object details: First, identify the object. Second, provide its geometric properties (shape, size, spatial relationships of its parts). " +
         "Third, provide its manipulability (how the player can tactilely interact with it) and texture. Fourth, provide its color." +
-        "3. If the user requests a detailed description, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";
+        "3. If the user requests a detailed description, prioritize thematic descriptions with clarifying adjectives (e.g., strong red, vibrant polka-dots).";*/
     /*public string objectDescriptionGuideline = "Keep object descriptions objective, concise, and jargon-free. " +
         "Follow the specified order for object details: First, define what an object is, including its name from the Navigation Registry if it is on the registry; second, provide its shape and size; third, provide its color; " +
         "fourth, provide its orientation or the spatial relationship of its parts such as handles; and fifth, provide physical properties like its material. Let the user ask follow-up questions for more details." +
@@ -1736,18 +1752,36 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: The nearest building is a tall skyscraper called Local Hospital. It's a rectangular building around 30 meters tall and has eight floors, with blue windows, a white roof, and white walls. Its door is facing you, and it seems to be made of metal and glass.}";*/
 
     [HideInInspector]
-    public string objectLocationGuideline = "1. When a player is over one meter away from an object, convey its location via clock-face directions and the estimated distance-to-target in a standard unit of measurement." +
+    public string objectLocationGuideline = "1. When a user is over three feet away from an object, convey its location via clock-face directions and the estimated distance-to-target in a standard unit of measurement. " +
+        "E.g.: a) The nearby lake is to your six o’clock, about fifteen feet away. b) The Spruce Forest is just ahead of you at 11 o’clock, about five feet away. " +
+        "2. When a user is within three feet of an object, convey its location via simple directions relative to the user’s hands and body. " +
+        "E.g.: a) The broken bottle is on the floor to the left of you, about an arm’s reach away from your hand. b) The carrot is on the table at about your hand height. It is just over an arm’s reach away, right in front of you. " +
+        "3. When you give feedback on an object's location the first time, identify the object you are providing feedback on so the user can ensure it's the correct one. " +
+        "E.g.: a) Okay, let me check where the City Post Office is located in relation to us. b) The bluish thing you mentioned is probably Lake Nose. Let me see how far away it is. ";
+
+    /*"1. When a player is over one meter away from an object, convey its location via clock-face directions and the estimated distance-to-target in a standard unit of measurement." +
         "2. When a player is within one meter of an object, convey its location with continuous, micro-steps on how the player should move (e.g., Turn left, one step forward)" +
-        "3. When you give feedback on an object's location the first time, identify the object you are providing feedback on so the player can ensure it's the correct one.";
+        "3. When you give feedback on an object's location the first time, identify the object you are providing feedback on so the player can ensure it's the correct one."; */
     /*public string objectLocationGuideline = "Give the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Example Output: {The mug is at your 1 o’clock, about 2 feet away.}";*/
 
     [HideInInspector]
-    public string sceneUnderstandingGuideline = "1. Give a scene description focused on details most relevant to a player's current context and goals. Help them determine the kind of place they are in. Provide more information upon request." +
+    public string sceneUnderstandingGuideline = "1. Give a succinct scene description that includes the following visual details: visible landmarks, nearby information points, potential safety hazards, sensory details, nearby objects, and social cues. " +
+        "E.g.: a) You are in a quiet, downtown neighborhood in what appears to be a small city. There is a large lake visible in the distance ahead of us. A nearby street sign is labeled ‘Cherry Street’ for the asphalt street that is running to your right side, and there is a line of fire hydrants along the sidewalk just in front of you. A car is driving down Cherry Street, heading this direction. The weather today is clear and sunny, with only a few clouds in the sky, and the street beside you looks clean, well-paved, and smooth. There is a bench immediately to your left, and a bush right behind you. A couple is talking on the bench. " +
+        "b) You are in a busy area of a virtual city filled with skyscrapers and office buildings. A tall green monument called the Emerald Spire stands to your left. A nearby street sign is labeled ‘Main Street’ for the asphalt street that is running horizontally in front of you, and there is one other street running to your left whose sign labels it ‘Waving Sage Avenue.’ Several cars are driving down the street in front of you, and a few are turning onto Waving Sage Avenue. The weather is cloudy and possibly rainy, and the skyscrapers around you are tall and imposing, though the streets around you look worn down and well-used by the cars around you. There is an acacia tree to your immediate right, and a pile of rocks just beside it. A crowd of arguing people stands in front of the Emerald Spire. " +
+        "2. Provide the estimated distance from the user to any mentioned visual details in a standard unit of measurement. " +
+        "E.g.: a) There is a gazebo to your left, about eight feet away. b) The mountain in the distance is possibly around 200 feet away, though I can’t tell for sure at this distance. " +
+        "3) If the user asks how far away any visual details are from each other, provide the estimated distance between them in a standard unit of measurement. " +
+        "E.g.: a) The fire hydrants down the road are each spaced about ten feet apart. b) The people on the bench are sitting one foot apart from each other. " +
+        "4. When possible, start your descriptions with scene content that the user already knows about or has mentioned to you. " +
+        "E.g.: a) [You had previously mentioned a series of market buildings near the user] Behind the market buildings that I told you about earlier, there is a large parking lot filled with cars… " +
+        "b) [The user had mentioned that they saw a large mountain and wanted to know what else was around] The large mountain you saw is probably Mount Oreo. It sits in the very corner of this city closest to a line of skyscrapers off to your right… ";
+
+    /* "1. Give a scene description focused on details most relevant to a player's current context and goals. Help them determine the kind of place they are in. Provide more information upon request." +
         "2. Within your descriptions, mention key landmarks in the scene and the estimated distances between them in a standard unit of measurement (e.g., there is a boat and a gazebo to your left, about eight meters away)." +
         "3. Build your descriptions around scene content that a player has already mentioned. " +
-        "4. For distant landmarks and the general environment (e.g., houses, sky, horizons), you MUST rely on the visual images. For objects immediately nearby, use the spatial telemetry data to provide precise distances. Synthesize both into a natural description without ever mentioning that you are looking at images or telemetry data.";
+        "4. For distant landmarks and the general environment (e.g., houses, sky, horizons), you MUST rely on the visual images. For objects immediately nearby, use the spatial telemetry data to provide precise distances. Synthesize both into a natural description without ever mentioning that you are looking at images or telemetry data."; */
     /*public string sceneUnderstandingGuideline = "If the environment is unfamiliar to the user, first give high-level information that helps them determine what kind of place they are in. " +
         "Then, mention major landmarks that are relevant to the user’s current situation or interests. Finally, note any objects or information points close to the user, giving their precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters). " +
@@ -1755,10 +1789,19 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: {You’re in a small rectangular kitchen. There’s a counter in front of you, a sink to your left, and a doorway behind you. A box of fruit is on the floor at 12 o’clock, one foot away.}";*/
 
     [HideInInspector]
-    public string spaceNavigationGuideline = "1. If a player wants help planning a route to walk, use allocentric spatial references to describe the space." +
+    public string spaceNavigationGuideline = "1. Provide a route for the user to follow to their desired destination, using visible landmarks and nearby information points to ground it. " +
+        "E.g.: a) Turn to face towards the City Art Museum on your left. Follow Waving Sage Avenue in that direction until you reach the next intersection. The bakery will be just off the intersection to your right. " +
+        "b) Follow this road until you reach Cherry Street. When you reach Cherry Street, turn left to head through the neighborhood of houses on either side of it. Keep to the left side of the road as you walk down the street. At the end of the street, you’ll hit a grassy patch that you must cross before you reach Lake Nose. " +
+        "2. Where possible, provide numbers to ground the user along their route. " +
+        "E.g.: a) You will walk past three houses. b) Stop at the third intersection you come across. " +
+        "3. If a user asks for a high level of detail for the route, provide the following information in the specified order: First, all nearby landmark and information point locations in relation to the user. Second, the next steps of the user’s route, grounded in these landmarks. Third, a summary of their position in the overall layout of the scene. " +
+        "E.g.: a) There is a straight road stretching out in front of you, a line of fire hydrants two feet to your left, and a row of residential houses twenty feet in front of you. Walk straight down the road you are standing on until you pass three houses. Then, the house you are looking for will be on your left. You are currently standing in the middle of Cherry Street which is in the residential neighborhood of the city on its eastern border, and are facing towards the north side of the city. " +
+        "b) There is a cluster of bushes and trees five feet behind you, a large lake to your left, and a large boulder in front of you. Turn left to face the lake. Then, walk straight until you hear the water from the lake. You will be facing the lake. You are currently standing in the top northeast corner of the city, just north of the residential district, and are facing towards the north side of the city. ";
+
+    /*"1. If a player wants help planning a route to walk, use allocentric spatial references to describe the space." +
         "2. If a player wants quick navigation assistance, use turn-by-turn phrasing (e.g., move forward ten feet, then turn left) to provide quick steps of what is next." +
         "3. If a player wants detailed navigation assistance, provide the following information: First, any nearby landmarks. Second, the next steps of their route." +
-        "Third, a summary of their position in the overall layout of the scene (e.g., You are currently around the middle of the city market district, heading towards the north.).";
+        "Third, a summary of their position in the overall layout of the scene (e.g., You are currently around the middle of the city market district, heading towards the north.).";*/
     /*public string spaceNavigationGuideline = "When a user is actively navigating, prioritize information about object locations, dimensions, and identities over other details. " +
         "Provide information on object appearance or state (i.e., what’s happening to it) only if requested or relevant for how a user needs to navigate around that object." +
         "Example Output: {You’re at a four-way intersection. The café is across the street at your 11 o’clock, twenty feet away. There is a green light at the crosswalk, showing you can walk across.}" +
@@ -1770,14 +1813,18 @@ public class OpenAIQueries : MonoBehaviour
         "Example Output: {North is in front of you; the lake is to the northeast.} {The city streets are laid out in a grid. After passing three streets, you can turn left to reach the museum.}";*/
 
     [HideInInspector]
-    public string grabbingObjectGuideline = "1. Provide brief, grasping information in the following order: First, which hand the player needs to move. " +
+    public string grabbingObjectGuideline = "1. Provide brief, grasping information in the following order: First, which hand the user needs to move. Second, the direction to move it in (using the vectors left, right, up, down, forward, and backward). Third, the distance to move it in a standard unit of measurement. Fourth, the orientation of their hand when reaching in order to grab the object. " +
+        "E.g.: a) Move your right hand forward five inches with your palm facing left. b) Move your right hand forward five inches and down ten inches with your palm facing down. " +
+        "2. Provide guidance for grasping with the right hand unless the user specifies using another.";
+        
+    /*"1. Provide brief, grasping information in the following order: First, which hand the player needs to move. " +
         "Second, the direction to move it in (using the vectors left, right, up, down, forward, and backward). Third, the distance to move it in a standard unit of measurement. " +
         "Fourth, the orientation of their hand when reaching in order to grab the object." +
         "2. Provide guidance for grasping with the right hand unless the player specifies using another." +
         "Example Outputs: Move your right hand forward five inches with your palm facing left." +
         "Move your right hand left two inches with your palm facing down." +
         "Move your right hand forward five inches and down ten inches with your palm facing down." +
-        "Move your right hand back ten inches and up about five inches with your palm facing left.";
+        "Move your right hand back ten inches and up about five inches with your palm facing left."; */
     /*public string grabbingObjectGuideline = "When you begin helping the user grab an object, first provide the object’s precise location using clock system directions and the estimated distance-to-target. " +
         "Provide the distance in a standard unit of measurement (e.g., feet and inches, or meters and centimeters)." +
         "Then, note the body part they should move, the direction they need to move it in (using the vectors left, right, up, down, forward, and backward), the distance they need to move it (using a standard unit of measurement), and the orientation of their body part when moving in order to grab the object." +
