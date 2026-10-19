@@ -166,21 +166,58 @@ public class SharedMovement : MonoBehaviour
     // Finds necessary components from Guide scripts + assigns Guide game object
     void AssignGuide()
     {
-        // Assigns the guide as the Game Object with the AIGuide script
-        theGuide = FindObjectOfType<AIGuide>().transform.gameObject;
+        SwitchTools switchTools = FindObjectOfType<SwitchTools>();
 
-        // Finds the VR Handling script on the Guide game object
-        //m_VRHandlingScript = theGuide.GetComponentInChildren<VRHandling>();
+        // HUMAN GUIDE MODE
+        if (switchTools != null && switchTools.HumanGuideActive)
+        {
+            // The Human Guide Avatar will only exist after the second client
+            // joins and is assigned the Guide role.
+            GameObject humanGuide = GameObject.Find("Human Guide Avatar(Clone)");
+
+            if (humanGuide == null)
+            {
+                // No human guide has joined yet.
+                // AssignRoles() will try again on a later frame.
+                return;
+            }
+
+            theGuide = humanGuide;
+        }
+
+        // AI GUIDE MODE
+        else
+        {
+            AIGuide aiGuide = FindObjectOfType<AIGuide>();
+
+            if (aiGuide == null)
+            {
+                return;
+            }
+
+            theGuide = aiGuide.gameObject;
+        }
+
+        // Finds the VR Handling script
         m_VRHandlingScript = FindObjectOfType<VRHandling>();
 
-        // Grabs the necessary physics components for Shared Movement
+        // Grab the physics components needed for Shared Movement
         Rigidbody guideRigidbody = theGuide.GetComponentInChildren<Rigidbody>();
         guideCollider = theGuide.GetComponentInChildren<CapsuleCollider>();
 
-        // Sets the values appropriately for each component to perform Shared Movement
-        // theGuide needs a rigidbody, no gravity, kinematic, collider with trigger
+        // Make sure the required components exist before using them
+        if (guideRigidbody == null || guideCollider == null)
+        {
+            Debug.LogWarning(
+                "SharedMovement: Guide is missing a Rigidbody or CapsuleCollider."
+            );
+            return;
+        }
+
+        // Configure the guide for Shared Movement
         guideRigidbody.useGravity = false;
         guideRigidbody.isKinematic = true;
+
         guideCollider.isTrigger = true;
         guideCollider.radius = 50f;
         guideCollider.height = 0.5f;

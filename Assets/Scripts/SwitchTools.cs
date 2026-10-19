@@ -15,6 +15,10 @@ public class SwitchTools : MonoBehaviour
     public bool VRGuideActive = false;
     public bool VRScreenreaderActive = false;
 
+    [Header("Guide Control")]
+    [Tooltip("When enabled, the guide is controlled by a second human client instead of the AI system.")]
+    public bool HumanGuideActive = false;
+
     // Define all possible guide type
     public enum GuideType
     {
@@ -174,24 +178,53 @@ public class SwitchTools : MonoBehaviour
 
     // Default guide interaction is the newer push-to-talk flow unless a legacy mode is explicitly enabled.
     public bool UseDefaultPushToTalk => !continuousVoice && !legacyHoldToSpeak;
-    
+
     // Start is called before the first frame update
     void Start()
     {
-        // If the guide is meant to be active in the scene
-        if (VRGuideActive)
-            FindObjectOfType<VRScreenreader>().gameObject.SetActive(false); // disable screenreader
+        // Human guide mode:
+        // A second networked client will act as the guide,
+        // so the AI-controlled guide should not run.
+        if (HumanGuideActive)
+        {
+            Debug.Log("[SwitchTools] Human Guide mode active.");
 
-        // If the screenreader is meant to be active in the scene
+            FindObjectOfType<VRScreenreader>()?.gameObject.SetActive(false);
+
+            DisableAIGuideOnly();
+
+            return;
+        }
+
+        // Existing AI guide behavior
+        if (VRGuideActive)
+            FindObjectOfType<VRScreenreader>()?.gameObject.SetActive(false);
+
+        // Existing screenreader behavior
         if (VRScreenreaderActive)
             DisableGuide();
 
-        // If neither tool is active, apply confederate settings
+        // Existing confederate behavior
         if (!VRGuideActive && !VRScreenreaderActive)
         {
-            FindObjectOfType<VRScreenreader>().gameObject.SetActive(false); // disable screenreader
+            FindObjectOfType<VRScreenreader>()?.gameObject.SetActive(false);
             DisableGuide();
             ApplyRandomConfederateAvatar();
+        }
+    }
+
+    private void DisableAIGuideOnly()
+    {
+        AIGuide aiGuide = FindObjectOfType<AIGuide>();
+
+        if (aiGuide != null)
+        {
+            aiGuide.gameObject.SetActive(false);
+            Debug.Log("[SwitchTools] AI Guide disabled for Human Guide mode.");
+        }
+        else
+        {
+            Debug.Log("[SwitchTools] No active AI Guide object found.");
         }
     }
 
