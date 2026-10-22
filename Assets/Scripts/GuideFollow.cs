@@ -29,6 +29,7 @@ public class GuideFollow : MonoBehaviour
     private bool sharedMovementFound = false;
     private bool aiGuideFound = false;
     private bool animatorFound = false;
+    private bool humanGuideMode = false;
 
     // Animation variables
     private Vector3 lastPosition;
@@ -42,10 +43,18 @@ public class GuideFollow : MonoBehaviour
         gameObject.AddComponent<GuideModels>();
 
         lastPosition = transform.position;
+
+        SwitchTools switchTools = FindObjectOfType<SwitchTools>();
+        humanGuideMode = switchTools != null && switchTools.HumanGuideActive;
     }
     // Update is called once per frame
     void Update()
     {
+        // In Human Guide mode a person moves the guide avatar, so the AI follow logic must not
+        // move it or take network ownership of it (that would freeze it for everyone else)
+        if (humanGuideMode)
+            return;
+
         // Calls until the shared movement and AI Guide scripts are assigned (when we have a player and a guide)
         if (!sharedMovementFound)
             getSharedMovement();

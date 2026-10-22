@@ -80,6 +80,16 @@ public class AIGuide : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // In Human Guide mode a person controls this avatar, so none of the AI guide logic should run.
+        // The component stays on (but disabled) so scripts that read its role/animator still find it.
+        SwitchTools switchTools = FindObjectOfType<SwitchTools>();
+        if (switchTools != null && switchTools.HumanGuideActive)
+        {
+            Debug.Log("AIGuide: Human Guide mode active, AI guide logic disabled.");
+            enabled = false;
+            return;
+        }
+
         AddGuideComponents();
 
         SetupRealtimeClient();
