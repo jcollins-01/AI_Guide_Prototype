@@ -6,26 +6,20 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// Adds the Human Guide setup (as used in the Kitchen scene) to other scenes:
-// a RealtimeView + HumanGuideRoomSync and a disabled RealtimeAvatarManager for the
-// Human Guide Avatar on RoomManager, and turns on SwitchTools.HumanGuideActive.
+// Adds the Human Guide setup (as used in the Kitchen scene) to every scene under Assets/Scenes
+// (except Old Scenes) that has a RoomManager: a RealtimeView + HumanGuideRoomSync and a disabled
+// RealtimeAvatarManager for the Human Guide Avatar on RoomManager, and turns on SwitchTools.HumanGuideActive.
 // The human guide's avatar follows the same rig (root/head/hands) as the Player Avatar.
+// Scenes that are already set up are left untouched.
 public static class HumanGuideSceneSetup
 {
     private const string HumanGuideAvatarPath = "Assets/Resources/Human Guide Avatar.prefab";
+    private const string ScenesFolder = "Assets/Scenes";
+    private const string OldScenesFolder = "Assets/Scenes/Old Scenes/";
 
-    private static readonly string[] Scenes =
-    {
-        "Assets/Scenes/Alien Spaceship Repair Shop.unity",
-        "Assets/Scenes/Flower Shop.unity",
-        "Assets/Scenes/Guide Parks/GuidePark1_Networked.unity",
-        "Assets/Scenes/Guide Parks/GuidePark2_Networked.unity",
-        "Assets/Scenes/Guide Parks/GuidePark3_Networked.unity",
-        "Assets/Scenes/Monster Pet Shop.unity",
-        "Assets/Scenes/Pharmacy.unity",
-    };
+    private enum Result { SetUp, AlreadySetUp, NoRoomManager, Failed }
 
-    [MenuItem("Tools/Human Guide/Add Human Guide Setup To Scenes")]
+    [MenuItem("Tools/Human Guide/Add Human Guide Setup To All Scenes")]
     public static void SetUpScenes()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -50,38 +44,63 @@ public static class HumanGuideSceneSetup
         if (humanGuideAvatar == null)
         {
             Debug.LogError($"[HumanGuideSetup] Could not load {HumanGuideAvatarPath}");
-            return Scenes.Length;
+            return 1;
         }
 
-        int failures = 0;
-        foreach (string scenePath in Scenes)
+        var counts = new Dictionary<Result, int>();
+        foreach (string scenePath in FindScenes())
         {
+            Result result;
             try
             {
-                if (!SetUpScene(scenePath, humanGuideAvatar))
-                    failures++;
+                result = SetUpScene(scenePath, humanGuideAvatar);
             }
             catch (Exception e)
             {
                 Debug.LogError($"[HumanGuideSetup] {scenePath}: {e}");
-                failures++;
+                result = Result.Failed;
             }
+            counts.TryGetValue(result, out int count);
+            counts[result] = count + 1;
         }
 
-        Debug.Log($"[HumanGuideSetup] Done. {Scenes.Length - failures} of {Scenes.Length} scenes OK.");
+        counts.TryGetValue(Result.SetUp, out int setUp);
+        counts.TryGetValue(Result.AlreadySetUp, out int alreadySetUp);
+        counts.TryGetValue(Result.NoRoomManager, out int noRoomManager);
+        counts.TryGetValue(Result.Failed, out int failures);
+        Debug.Log($"[HumanGuideSetup] Done. Set up: {setUp}, already set up: {alreadySetUp}, " +
+                  $"no RoomManager (skipped): {noRoomManager}, failed: {failures}.");
         return failures;
     }
 
-    private static bool SetUpScene(string scenePath, GameObject humanGuideAvatar)
+    private static List<string> FindScenes()
+    {
+        var scenes = new List<string>();
+        foreach (string guid in AssetDatabase.FindAssets("t:Scene", new[] { ScenesFolder }))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            if (!path.StartsWith(OldScenesFolder))
+                scenes.Add(path);
+        }
+        scenes.Sort();
+        return scenes;
+    }
+
+    private static Result SetUpScene(string scenePath, GameObject humanGuideAvatar)
     {
         Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
 
         // RoomManager is the object with SwitchTools, Realtime and the avatar managers
         SwitchTools[] switchTools = UnityEngine.Object.FindObjectsOfType<SwitchTools>(true);
-        if (switchTools.Length != 1)
+        if (switchTools.Length == 0)
+        {
+            Debug.Log($"[HumanGuideSetup] {scenePath}: no RoomManager (SwitchTools), skipped.");
+            return Result.NoRoomManager;
+        }
+        if (switchTools.Length > 1)
         {
             Debug.LogError($"[HumanGuideSetup] {scenePath}: expected 1 SwitchTools, found {switchTools.Length}.");
-            return false;
+            return Result.Failed;
         }
 
         GameObject roomManager = switchTools[0].gameObject;
@@ -89,14 +108,21 @@ public static class HumanGuideSceneSetup
         if (realtime == null)
         {
             Debug.LogError($"[HumanGuideSetup] {scenePath}: {roomManager.name} has no Realtime component.");
-            return false;
+            return Result.Failed;
         }
 
         RealtimeAvatarManager playerManager = FindManager(roomManager, "Player Avatar");
         if (playerManager == null)
         {
             Debug.LogError($"[HumanGuideSetup] {scenePath}: no RealtimeAvatarManager with the Player Avatar prefab on {roomManager.name}.");
-            return false;
+            return Result.Failed;
+        }
+
+        // Don't re-save scenes that are already done (saving re-serializes unrelated scene data)
+        if (IsSetUp(switchTools[0], playerManager))
+        {
+            Debug.Log($"[HumanGuideSetup] {scenePath}: already set up, left unchanged.");
+            return Result.AlreadySetUp;
         }
 
         // Room-wide role sync (needs a RealtimeView on the same object)
@@ -128,13 +154,34 @@ public static class HumanGuideSceneSetup
         if (!EditorSceneManager.SaveScene(scene))
         {
             Debug.LogError($"[HumanGuideSetup] {scenePath}: failed to save.");
-            return false;
+            return Result.Failed;
         }
 
         SerializedProperty localPlayer = new SerializedObject(humanGuideManager).FindProperty("_localPlayer");
         Debug.Log($"[HumanGuideSetup] {scenePath}: set up on {roomManager.name}. Human guide avatar follows " +
                   $"root={NameOf(localPlayer, "root")}, head={NameOf(localPlayer, "head")}, " +
                   $"leftHand={NameOf(localPlayer, "leftHand")}, rightHand={NameOf(localPlayer, "rightHand")}.");
+        return Result.SetUp;
+    }
+
+    private static bool IsSetUp(SwitchTools switchTools, RealtimeAvatarManager playerManager)
+    {
+        GameObject roomManager = switchTools.gameObject;
+        RealtimeAvatarManager humanGuideManager = FindManager(roomManager, "Human Guide Avatar");
+        if (!switchTools.HumanGuideActive ||
+            roomManager.GetComponent<HumanGuideRoomSync>() == null ||
+            roomManager.GetComponent<RealtimeView>() == null ||
+            humanGuideManager == null ||
+            humanGuideManager.enabled)
+            return false;
+
+        SerializedProperty playerRig = new SerializedObject(playerManager).FindProperty("_localPlayer");
+        SerializedProperty humanGuideRig = new SerializedObject(humanGuideManager).FindProperty("_localPlayer");
+        foreach (string field in new[] { "root", "head", "leftHand", "rightHand" })
+        {
+            if (playerRig.FindPropertyRelative(field).objectReferenceValue != humanGuideRig.FindPropertyRelative(field).objectReferenceValue)
+                return false;
+        }
         return true;
     }
 
