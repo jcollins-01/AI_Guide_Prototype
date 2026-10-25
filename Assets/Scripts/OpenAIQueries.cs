@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Normal.Realtime;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -100,6 +101,10 @@ public class RealtimeGuideClient : MonoBehaviour
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
     private float _volumeThreshold = 0.05f; // Minimum volume to be considered talking
     private bool _hasSpoken = false;
+    private float _noSpeechTimeout = 8f; // Give up if nobody speaks, otherwise AIGuide stays locked in isRecording forever
+    private float _maxRecordingLength = 18f; // Must stay below the 20s looping mic clip or the ring buffer overwrites itself
+    private float _recordingTime = 0f;
+    private float _recordingPeak = 0f;
 
     // The Thread-Safe Queue
     private ConcurrentQueue<float[]> _audioPlaybackQueue = new ConcurrentQueue<float[]>();
@@ -131,7 +136,10 @@ public class RealtimeGuideClient : MonoBehaviour
         "[ACTION:{\"name\":\"trigger_teleportation\",\"target_object\":\"<exact object name>\"}] to teleport there instantly, or " +
         "[ACTION:{\"name\":\"trigger_modification\",\"target_object\":\"<exact object name>\"}] to add an audio beacon to it. " +
         "Only include this tag when the player has clearly asked for one of these three things, using the exact object name " +
-        "from the Navigation Registry. Do not mention or describe the tag -- it is silently removed before your words are spoken.";
+        "from the Navigation Registry. Do not mention or describe the tag -- it is silently removed before your words are spoken. " +
+        "If you offered to take the player somewhere and they answer yes, include the tag for that object in this reply. " +
+        "\n\nSPOKEN REPLIES: Everything you write is read aloud to a blind player, so answer in at most 2-3 short sentences " +
+        "(this overrides any longer word limit above). No lists, no markdown. Give the most useful information first.";
 
     private void Start()
     {
@@ -156,20 +164,48 @@ public class RealtimeGuideClient : MonoBehaviour
         catch (Exception e)
         {
             _isConnected = false;
-            Debug.LogError($"[Ollama] Could not reach server at {ollamaHealthUrl}: {e.Message}");
+            Debug.LogError($"[Ollama] Could not reach server at {ollamaHealthUrl}: {ErrorText(e)}");
         }
+        SetStatus(_isConnected ? "Ollama connected" : "Ollama NOT reachable");
+
+        // Speaches isn't needed to connect, but warn now instead of failing silently on the first question
+        string speachesHealthUrl = new Uri(ttsUrl).GetLeftPart(UriPartial.Authority) + "/health";
+        try
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(speachesHealthUrl);
+            Debug.Log($"[Speaches] Health check {speachesHealthUrl}: HTTP {(int)response.StatusCode}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[Speaches] Not reachable at {speachesHealthUrl}: {ErrorText(e)}. STT/TTS will fail -- is Docker Desktop running and the Speaches container up?");
+            SetStatus("Speaches NOT reachable (Docker running?)");
+        }
+
+        // Start() picks devices[0], so this list shows whether that's actually the headset mic
+        Debug.Log($"[Mic] Available devices (index 0 is used): {string.Join(" | ", Microphone.devices)}");
     }
 
     public void StartRecording()
     {
-        if (!_isConnected) return;
-        Debug.Log("Recording started");
+        if (!_isConnected)
+        {
+            Debug.LogWarning("[Mic] StartRecording ignored: not connected to Ollama (see the [Ollama] log at startup).");
+            SetStatus("Not recording: Ollama not connected");
+            return;
+        }
+        _turnTimer.Restart();
+        Debug.Log($"[Mic] Recording started on \"{_micDevice}\"");
+        SetStatus("Listening...");
 
         _hasSpoken = false;
         _silenceTimer = 0f;
+        _recordingTime = 0f;
+        _recordingPeak = 0f;
 
         outputSource.Stop();
         _audioPlaybackQueue = new ConcurrentQueue<float[]>();
+        _speechGeneration++; // stop any sentence chunks still being synthesized for the previous reply
+        _ttsInFlight = false;
         _isAiSpeaking = false;
 
         _pendingRecordingSamples.Clear();
@@ -182,8 +218,8 @@ public class RealtimeGuideClient : MonoBehaviour
 
     public async Task StopRecordingAndCommit(string screenshotUrl = null)
     {
-        Debug.Log("Recording stopped");
         HandleMicStreaming(); // flush the final bit of the mic buffer
+        Debug.Log($"[Mic] Recording stopped: {(float)_pendingRecordingSamples.Count / SAMPLE_RATE:F1}s of audio, peak volume {_recordingPeak:F3}");
 
         _isRecording = false;
         Microphone.End(_micDevice);
@@ -194,19 +230,26 @@ public class RealtimeGuideClient : MonoBehaviour
             byte[] wavBytes = EncodeWav(_pendingRecordingSamples.ToArray(), SAMPLE_RATE);
             _pendingRecordingSamples.Clear();
 
+            SetStatus("Transcribing...");
+            long sttStart = _turnTimer.ElapsedMilliseconds;
             string transcript = await TranscribeAudio(wavBytes);
+            Debug.Log($"[STT] Transcript ({_turnTimer.ElapsedMilliseconds - sttStart} ms): \"{transcript}\"");
 
             if (string.IsNullOrWhiteSpace(transcript))
             {
+                SetStatus("Heard nothing (empty transcript)");
                 _openAIQueriesScript.PlayPredeterminedAudio("emptyQuery");
             }
             else
             {
+                SetStatus($"You said: \"{transcript}\"");
                 await SendUserMessageAndRespond(transcript);
             }
         }
         else
         {
+            Debug.LogWarning("[Mic] Recording too short to transcribe (< 0.25s).");
+            SetStatus("Recording too short");
             _pendingRecordingSamples.Clear();
             _openAIQueriesScript.PlayPredeterminedAudio("emptyQuery");
         }
@@ -237,6 +280,7 @@ public class RealtimeGuideClient : MonoBehaviour
         HandleMicStreaming();
         HandleJitter();
         HandleDebugHotkey();
+        HandleDebugVisionHotkey();
 
         if (!_guideAudioSourceFound)
         {
@@ -247,9 +291,10 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             if (!outputSource.isPlaying && _audioPlaybackQueue.TryDequeue(out float[] nextChunk))
             {
+                Debug.Log($"[Playback] Playing {(float)nextChunk.Length / SAMPLE_RATE:F1}s on \"{outputSource.gameObject.name}\" (volume {outputSource.volume}, mute {outputSource.mute})");
                 PlayAudioChunk(nextChunk);
             }
-            else if (_isAiSpeaking && !outputSource.isPlaying && _audioPlaybackQueue.IsEmpty)
+            else if (_isAiSpeaking && !_ttsInFlight && !outputSource.isPlaying && _audioPlaybackQueue.IsEmpty)
             {
                 // Nothing left queued or playing -- the AI has finished speaking
                 _isAiSpeaking = false;
@@ -325,23 +370,50 @@ public class RealtimeGuideClient : MonoBehaviour
             if (Mathf.Abs(s) > maxVol) maxVol = Mathf.Abs(s);
         }
 
+        float chunkSeconds = (float)samples.Length / SAMPLE_RATE;
+        _recordingTime += chunkSeconds;
+        _recordingPeak = Mathf.Max(_recordingPeak, maxVol);
+
         if (maxVol > _volumeThreshold)
         {
+            if (!_hasSpoken)
+            {
+                Debug.Log($"[Mic] Speech detected after {_recordingTime:F1}s (volume {maxVol:F3})");
+                SetStatus("Hearing you...");
+            }
             _hasSpoken = true;
             _silenceTimer = 0f;
         }
         else if (_hasSpoken)
         {
-            _silenceTimer += (float)samples.Length / SAMPLE_RATE;
+            _silenceTimer += chunkSeconds;
 
             if (_silenceTimer > _silenceThreshold)
             {
                 _hasSpoken = false;
                 _silenceTimer = 0f;
 
+                Debug.Log($"[Mic] {_silenceThreshold}s of silence, auto-stopping");
                 OnAutoStopRecording?.Invoke();
                 _ = StopRecordingAndCommit();
+                return;
             }
+        }
+
+        if (!_hasSpoken && _recordingTime > _noSpeechTimeout)
+        {
+            Debug.LogWarning($"[Mic] No speech in {_noSpeechTimeout}s (peak volume {_recordingPeak:F3}, threshold {_volumeThreshold}). " +
+                             $"Wrong mic or too quiet? Device: \"{_micDevice}\"");
+            SetStatus($"No speech detected (peak {_recordingPeak:F3})");
+            OnAutoStopRecording?.Invoke(); // unlocks AIGuide.isRecording so the button works again
+            _ = StopRecordingSilently();
+        }
+        else if (_recordingTime > _maxRecordingLength)
+        {
+            Debug.LogWarning($"[Mic] Hit max recording length ({_maxRecordingLength}s), sending what we have");
+            _hasSpoken = false;
+            OnAutoStopRecording?.Invoke();
+            _ = StopRecordingAndCommit();
         }
     }
 
@@ -389,8 +461,16 @@ public class RealtimeGuideClient : MonoBehaviour
         {
             ["model"] = ollamaModel,
             ["messages"] = messages,
-            ["stream"] = false
+            ["stream"] = false,
+            // gemma4 thinks by default; turning it off roughly halves latency with no measured loss in action accuracy
+            ["think"] = false
         };
+
+        int imageCount = 0;
+        foreach (var turn in _conversationHistory) imageCount += turn.ImagesBase64?.Count ?? 0;
+        Debug.Log($"[Ollama] Sending \"{userText}\" ({_conversationHistory.Count} turns in history, {imageCount} images attached)");
+        SetStatus("Thinking (Ollama)...");
+        long llmStart = _turnTimer.ElapsedMilliseconds;
 
         string responseText;
         try
@@ -402,16 +482,20 @@ public class RealtimeGuideClient : MonoBehaviour
             if (!response.IsSuccessStatusCode)
             {
                 Debug.LogError($"[Ollama] HTTP {(int)response.StatusCode}: {raw}");
+                SetStatus($"Ollama error HTTP {(int)response.StatusCode}");
                 _isAiSpeaking = false;
                 return;
             }
 
             JObject parsed = JObject.Parse(raw);
             responseText = parsed["message"]?["content"]?.ToString() ?? "";
+            Debug.Log($"[Ollama] Response ({_turnTimer.ElapsedMilliseconds - llmStart} ms): \"{responseText}\"");
+            LogInteraction(requestBody, userText, responseText, _turnTimer.ElapsedMilliseconds - llmStart);
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Ollama] Chat request failed: {e.Message}");
+            Debug.LogError($"[Ollama] Chat request to {ollamaChatUrl} failed: {ErrorText(e)}");
+            SetStatus("Ollama request failed");
             _isAiSpeaking = false;
             return;
         }
@@ -438,7 +522,9 @@ public class RealtimeGuideClient : MonoBehaviour
         try
         {
             JObject action = JObject.Parse(match.Groups[1].Value);
-            HandleParsedAction(action);
+            // If the target object isn't in the scene no confirmation is spoken, so speak the model's own text instead of going silent
+            if (!HandleParsedAction(action))
+                return (spoken, false);
         }
         catch (Exception e)
         {
@@ -449,11 +535,14 @@ public class RealtimeGuideClient : MonoBehaviour
         return (spoken, true);
     }
 
-    private void HandleParsedAction(JObject action)
+    // Returns true if the action found its target and spoke a confirmation
+    private bool HandleParsedAction(JObject action)
     {
         string name = (string)action["name"];
         string targetName = (string)action["target_object"];
         _isProcessingCommand = true;
+        Debug.Log($"[Action] Model requested {name} -> \"{targetName}\"");
+        SetStatus($"Action: {name} -> {targetName}");
 
         if (name == "trigger_guidance")
         {
@@ -463,10 +552,11 @@ public class RealtimeGuideClient : MonoBehaviour
             if (_openAIQueriesScript.targetForGuidance != null)
             {
                 string[] options = {
-                    $"Of course. Press the grip button to confirm, and I will take you to the {targetName}.",
-                    $"Sure. Squeeze the grip button to confirm and I'll lead the way to the {targetName}."
+                    $"Of course. Reach out, take my arm and squeeze the grip button, and I will take you to the {targetName}.",
+                    $"Sure. Hold on to my arm with the grip button and I'll lead the way to the {targetName}."
                 };
                 _ = SpeakCustomText(options[UnityEngine.Random.Range(0, options.Length)]);
+                return true;
             }
         }
         else if (name == "trigger_teleportation")
@@ -477,10 +567,11 @@ public class RealtimeGuideClient : MonoBehaviour
             if (_openAIQueriesScript.targetForGuidance != null)
             {
                 string[] options = {
-                    $"Sure. If you'd like me to teleport us to the {targetName}, just press the grip button.",
-                    $"Of course. I'm ready to teleport us to the {targetName}. Just confirm with the grip button."
+                    $"Sure. If you'd like me to teleport us to the {targetName}, take my arm and squeeze the grip button.",
+                    $"Of course. I'm ready to teleport us to the {targetName}. Just hold on to my arm with the grip button."
                 };
                 _ = SpeakCustomText(options[UnityEngine.Random.Range(0, options.Length)]);
+                return true;
             }
         }
         else if (name == "trigger_modification")
@@ -491,8 +582,13 @@ public class RealtimeGuideClient : MonoBehaviour
             if (_openAIQueriesScript.targetForModification != null)
             {
                 _ = SpeakCustomText($"I have added an audio beacon to the {targetName}.");
+                return true;
             }
         }
+
+        Debug.LogWarning($"[Action] '{name}' target '{targetName}' not found in scene; speaking model text instead");
+        _isProcessingCommand = false;
+        return false;
     }
 
     public async Task SpeakCustomText(string customText)
@@ -515,13 +611,64 @@ public class RealtimeGuideClient : MonoBehaviour
         }
 
         _isAiSpeaking = true;
+        Debug.Log($"[TTS] Speaking: \"{text}\"");
+        SetStatus($"Guide: \"{text}\"");
+        if (outputSource == null)
+            Debug.LogError("[TTS] No outputSource (\"Human Model\" AudioSource) -- audio will be queued but can't play.");
 
+        // Synthesize one sentence at a time so playback starts after the first sentence instead of after the whole reply.
+        // The playback queue in Update() plays chunks back to back while later sentences are still being generated.
+        int generation = _speechGeneration;
+        _ttsInFlight = true;
+        try
+        {
+            foreach (string sentence in SplitIntoSentences(text))
+            {
+                long ttsStart = _turnTimer.ElapsedMilliseconds;
+                float[] samples = await SynthesizeSentence(sentence);
+                if (generation != _speechGeneration) return; // interrupted by StopAiSpeech / a new recording
+                if (samples == null) break;
+
+                Debug.Log($"[TTS] {(float)samples.Length / SAMPLE_RATE:F1}s chunk ({_turnTimer.ElapsedMilliseconds - ttsStart} ms, " +
+                          $"{_turnTimer.ElapsedMilliseconds} ms since button press): \"{sentence}\"");
+                if (samples.Length > 0)
+                    _audioPlaybackQueue.Enqueue(samples);
+            }
+        }
+        finally
+        {
+            if (generation == _speechGeneration) _ttsInFlight = false;
+        }
+    }
+
+    // Bumped whenever queued speech is thrown away, so an in-progress SpeakText loop knows to stop
+    private int _speechGeneration = 0;
+    // Keeps Update() from marking the AI as done speaking in the gap between two sentence chunks
+    private bool _ttsInFlight = false;
+
+    private static List<string> SplitIntoSentences(string text)
+    {
+        var sentences = new List<string>();
+        foreach (string part in Regex.Split(text.Trim(), @"(?<=[.!?])\s+"))
+        {
+            // Merge very short fragments ("Sure!") into the next sentence -- one request per word costs more than it saves
+            if (sentences.Count > 0 && sentences[sentences.Count - 1].Length < 25)
+                sentences[sentences.Count - 1] += " " + part;
+            else if (!string.IsNullOrWhiteSpace(part))
+                sentences.Add(part);
+        }
+        return sentences;
+    }
+
+    // Returns null on failure (already logged)
+    private async Task<float[]> SynthesizeSentence(string sentence)
+    {
         try
         {
             var ttsBody = new JObject
             {
                 ["model"] = ttsModel,
-                ["input"] = text,
+                ["input"] = sentence,
                 ["voice"] = ttsVoice,
                 ["response_format"] = "wav" // GuideAudioSync assumes 24kHz mono -- configure your TTS server to output that
             };
@@ -533,22 +680,18 @@ public class RealtimeGuideClient : MonoBehaviour
             {
                 string err = await response.Content.ReadAsStringAsync();
                 Debug.LogError($"[TTS] HTTP {(int)response.StatusCode}: {err}");
-                _isAiSpeaking = false;
-                return;
+                SetStatus($"TTS error HTTP {(int)response.StatusCode}");
+                return null;
             }
 
             byte[] wavBytes = await response.Content.ReadAsByteArrayAsync();
-            float[] samples = DecodeWav(wavBytes);
-
-            if (samples.Length > 0)
-                _audioPlaybackQueue.Enqueue(samples);
-            else
-                _isAiSpeaking = false;
+            return DecodeWav(wavBytes);
         }
         catch (Exception e)
         {
-            Debug.LogError($"[TTS] Request failed: {e.Message}");
-            _isAiSpeaking = false;
+            Debug.LogError($"[TTS] Request to {ttsUrl} failed: {ErrorText(e)} -- is Docker Desktop running and the Speaches container up?");
+            SetStatus("TTS failed: Speaches not reachable?");
+            return null;
         }
     }
 
@@ -576,7 +719,8 @@ public class RealtimeGuideClient : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"[STT] Request failed: {e.Message}");
+            Debug.LogError($"[STT] Request to {sttUrl} failed: {ErrorText(e)} -- is Docker Desktop running and the Speaches container up?");
+            SetStatus("STT failed: Speaches not reachable?");
             return null;
         }
     }
@@ -592,6 +736,9 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private void ClearLocalAudioBuffer()
     {
+        _speechGeneration++;
+        _ttsInFlight = false;
+
         if (outputSource.isPlaying)
             outputSource.Stop();
 
@@ -612,6 +759,138 @@ public class RealtimeGuideClient : MonoBehaviour
     public string debugTestQuery = "Hey, what is in front of me?";
     [Tooltip("Set to None to disable the hotkey entirely.")]
     public KeyCode debugTestHotkey = KeyCode.T;
+
+    [Tooltip("Screenshots the Game view, attaches it as visual context, then asks the test query. Tests vision without AIGuide.cs.")]
+    public KeyCode debugVisionHotkey = KeyCode.V;
+
+    [Tooltip("Shows the pipeline's current stage in the Game view (desktop monitor only, not inside the headset).")]
+    [SerializeField] private bool showDebugOverlay = true;
+
+    [Tooltip("Saves every Ollama request (with its images) to <project>/DebugCaptures/interactions so Benchmark/ can replay them against other models.")]
+    [SerializeField] private bool logInteractions = true;
+
+    // One folder per question: request.json (images replaced by file names), the images as .jpg, and meta.json.
+    // The request is saved exactly as sent, so the benchmark replays the real prompt, history and screenshots.
+    private void LogInteraction(JObject requestBody, string userText, string responseText, long ollamaMs)
+    {
+        if (!logInteractions) return;
+        try
+        {
+            string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "DebugCaptures", "interactions",
+                $"{DateTime.Now:yyyyMMdd_HHmmss}_{scene.Replace(' ', '_')}"));
+            Directory.CreateDirectory(dir);
+
+            var saved = (JObject)requestBody.DeepClone();
+            int imageIndex = 0;
+            foreach (var message in saved["messages"])
+            {
+                if (message["images"] is JArray images)
+                {
+                    var names = new JArray();
+                    foreach (var image in images)
+                    {
+                        string name = $"image_{imageIndex++}.jpg";
+                        File.WriteAllBytes(Path.Combine(dir, name), Convert.FromBase64String((string)image));
+                        names.Add(name);
+                    }
+                    message["images"] = names;
+                }
+            }
+
+            File.WriteAllText(Path.Combine(dir, "request.json"), saved.ToString());
+            File.WriteAllText(Path.Combine(dir, "meta.json"), new JObject
+            {
+                ["scene"] = scene,
+                ["model"] = ollamaModel,
+                ["question"] = userText,
+                ["response"] = responseText,
+                ["ollama_ms"] = ollamaMs
+            }.ToString());
+            Debug.Log($"[Benchmark] Logged interaction -> {dir}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Benchmark] Could not log interaction: {e.Message}");
+        }
+    }
+
+    private readonly System.Diagnostics.Stopwatch _turnTimer = new System.Diagnostics.Stopwatch();
+    private readonly List<string> _statusLines = new List<string>();
+    private GUIStyle _overlayStyle;
+
+    // Async HTTP code resumes on Unity's main thread (UnitySynchronizationContext), so touching the list here is safe
+    private void SetStatus(string status)
+    {
+        string time = _turnTimer.IsRunning ? $"+{_turnTimer.ElapsedMilliseconds / 1000f:F1}s " : "";
+        _statusLines.Add(time + status);
+        if (_statusLines.Count > 8) _statusLines.RemoveAt(0);
+    }
+
+    // HttpClient wraps the useful reason (e.g. "connection refused") in InnerException
+    private static string ErrorText(Exception e)
+    {
+        return e.InnerException != null ? $"{e.Message} ({e.InnerException.Message})" : e.Message;
+    }
+
+    private void OnGUI()
+    {
+        if (!showDebugOverlay || _statusLines.Count == 0) return;
+
+        if (_overlayStyle == null)
+        {
+            _overlayStyle = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.UpperLeft, fontSize = 16, wordWrap = true };
+            _overlayStyle.normal.textColor = Color.white;
+        }
+
+        string header = $"Guide  rec:{_isRecording}  speaking:{_isAiSpeaking}  ollama:{_isConnected}\n";
+        GUI.Box(new Rect(10, 10, 620, 40 + 22 * _statusLines.Count), header + string.Join("\n", _statusLines), _overlayStyle);
+    }
+
+    private void HandleDebugVisionHotkey()
+    {
+        if (debugVisionHotkey == KeyCode.None || !Input.GetKeyDown(debugVisionHotkey)) return;
+
+        if (!_isConnected)
+        {
+            Debug.LogWarning("[DebugVision] Not connected to Ollama yet.");
+            return;
+        }
+
+        StartCoroutine(DebugVisionRoutine());
+    }
+
+    private IEnumerator DebugVisionRoutine()
+    {
+        yield return new WaitForEndOfFrame(); // the frame must be fully rendered before it can be captured
+
+        Texture2D full = ScreenCapture.CaptureScreenshotAsTexture();
+
+        // Downscale to ~768px wide so the request stays small and fast
+        int targetW = 768;
+        int targetH = Mathf.Max(1, Mathf.RoundToInt(full.height * (targetW / (float)full.width)));
+        RenderTexture rt = RenderTexture.GetTemporary(targetW, targetH);
+        Graphics.Blit(full, rt);
+
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture.active = rt;
+        Texture2D small = new Texture2D(targetW, targetH, TextureFormat.RGB24, false);
+        small.ReadPixels(new Rect(0, 0, targetW, targetH), 0, 0);
+        small.Apply();
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(rt);
+
+        byte[] jpg = small.EncodeToJPG(75);
+        Destroy(full);
+        Destroy(small);
+
+        string base64 = Convert.ToBase64String(jpg);
+        Debug.Log($"[DebugVision] Captured screenshot ({jpg.Length / 1024} KB). Sending with query: \"{debugTestQuery}\"");
+
+        // The same image is used for both slots -- this is just a vision smoke test
+        SendVisualContext(base64, base64);
+        _ = SendUserMessageAndRespond(debugTestQuery);
+    }
 
     private void HandleDebugHotkey()
     {
@@ -638,12 +917,21 @@ public class RealtimeGuideClient : MonoBehaviour
     {
         if (!_isConnected) return;
 
+        // Only keep the newest screenshots: every request resends the full history, so stale
+        // images would pile up and make each response slower and slower.
+        _conversationHistory.RemoveAll(t => t.ImagesBase64 != null);
+        Debug.Log($"[Vision] Screenshots attached (viewpoint {(viewpointBase64?.Length ?? 0) / 1024} KB, bird's eye {(birdsEyeBase64?.Length ?? 0) / 1024} KB base64)");
+
         _conversationHistory.Add(new ChatTurn
         {
             Role = "user",
-            Content = "[Visual Context] You are looking at two views of the player's VR scene. Image 1 is the " +
-                      "player's view, Image 2 is a bird's eye of the scene. If you ever see a person's avatar " +
-                      "with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide.",
+            Content = "[Visual Context] Two silent reference images for your next answer. " +
+                      "Image 1 is exactly what the player is facing right now; use it for anything in front of them. " +
+                      "Image 2 is a top-down map taken from high above, centred on the player (the player stands roughly in the " +
+                      "middle of it); use it ONLY to work out where things are relative to the player. " +
+                      "Image 2 is NOT the player's view: never describe it as a view, never say the view " +
+                      "changed or shifted, and do not offer to go to things only visible in it unless they are in the Registry. " +
+                      "If you see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide.",
             ImagesBase64 = new List<string> { StripDataUriPrefix(viewpointBase64), StripDataUriPrefix(birdsEyeBase64) }
         });
     }

@@ -99,23 +99,27 @@ public class VRHandling : MonoBehaviour
 
     public void getControllers()
     {
+        // Re-grab if a controller went invalid (Quest controllers sleep/reconnect, or the headset connected after Play)
+        if (rightControllerGrabbed && !rightXRController.isValid) rightControllerGrabbed = false;
+        if (leftControllerGrabbed && !leftXRController.isValid) leftControllerGrabbed = false;
+
         if (!rightControllerGrabbed || !leftControllerGrabbed)
         {
             // Get the right and left controllers
             List<InputDevice> devices = new List<InputDevice>();
             InputDevices.GetDevicesAtXRNode(XRNode.RightHand, devices);
-            if (devices.Count > 0)
+            if (!rightControllerGrabbed && devices.Count > 0)
             {
                 rightXRController = devices[0];
-                Debug.Log("Grabbed right controller successfully");
+                Debug.Log($"[VR] Grabbed right controller: \"{rightXRController.name}\" (has primaryButton: {rightXRController.TryGetFeatureValue(CommonUsages.primaryButton, out bool _)})");
                 rightControllerGrabbed = true;
             }
 
             InputDevices.GetDevicesAtXRNode(XRNode.LeftHand, devices);
-            if (devices.Count > 0)
+            if (!leftControllerGrabbed && devices.Count > 0)
             {
                 leftXRController = devices[0];
-                Debug.Log("Grabbed left controller successfully");
+                Debug.Log($"[VR] Grabbed left controller: \"{leftXRController.name}\"");
                 leftControllerGrabbed = true;
             }
         }

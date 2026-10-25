@@ -159,6 +159,7 @@ public class AIGuide : MonoBehaviour
         // Start recording on press, but ONLY if we aren't already recording
         if ((spaceDown || vrButtonDown) && !isRecording)
         {
+            Debug.Log($"[Input] Ask button pressed ({(vrButtonDown ? "VR primary button" : "Space")}) -- capturing screenshot and starting recording");
             playEffect("listening");
             isRecording = true;
             StartCoroutine(CaptureAndSendContext());

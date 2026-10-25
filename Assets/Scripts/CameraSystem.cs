@@ -88,23 +88,53 @@ public class CameraSystem : MonoBehaviour
         birdEyeCamera.fieldOfView = fieldOfView;
     }
 
+    // Writes every capture to <project>/DebugCaptures so you can check what the vision model actually received
+    public bool saveCapturesToDisk = true;
+
+    // Plain (non-XR) camera that copies the head pose before each capture. Rendering the XR camera itself into a
+    // RenderTexture is unreliable because the XR system drives its pose and projection.
+    private Camera captureCam;
+
     public void CaptureScreenshot()
     {
         converted = false;
-        StartCoroutine(CaptureScreenshotCoroutine(viewpointCamera));
+
+        if (viewpointCamera == null || !viewpointCamera.isActiveAndEnabled)
+            viewpointCamera = Camera.main;
+
+        if (captureCam == null)
+        {
+            captureCam = new GameObject("Guide Viewpoint Capture Camera").AddComponent<Camera>();
+            captureCam.enabled = false; // only renders when we call Render()
+        }
+        captureCam.CopyFrom(viewpointCamera); // copies settings AND the current world position/rotation of the head
+        captureCam.stereoTargetEye = StereoTargetEyeMask.None;
+        captureCam.fieldOfView = fieldOfView; // a bit wider than the headset's mono FOV so the guide sees what's around
+
+        // Keep the map centred on where the player is now instead of where the scene started
+        Vector3 head = viewpointCamera.transform.position;
+        birdEyeCamera.transform.position = new Vector3(head.x, birdHeight, head.z + birdZOffset);
+
+        Debug.Log($"[Vision] Capturing from \"{viewpointCamera.name}\" at {head}, facing yaw {viewpointCamera.transform.eulerAngles.y:F0}°");
+
+        StartCoroutine(CaptureScreenshotCoroutine(captureCam));
         StartCoroutine(CaptureScreenshotCoroutine(birdEyeCamera));
     }
     private IEnumerator CaptureScreenshotCoroutine(Camera camera)
     {
         yield return new WaitForEndOfFrame();
 
-        RenderTexture renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        // Capped at 768px wide: the local vision model's time grows with image size and full-screen shots gain it nothing
+        int width = Mathf.Min(Screen.width, 768);
+        int height = Mathf.Max(1, Mathf.RoundToInt(Screen.height * (width / (float)Screen.width)));
+
+        RenderTexture renderTexture = new RenderTexture(width, height, 24);
         camera.targetTexture = renderTexture;
         camera.Render();
 
-        Texture2D texture = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        Texture2D texture = new Texture2D(width, height, TextureFormat.RGB24, false);
         RenderTexture.active = renderTexture;
-        texture.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         texture.Apply();
 
         byte[] bytes = texture.EncodeToJPG(75);
@@ -115,15 +145,17 @@ public class CameraSystem : MonoBehaviour
         Destroy(texture);
 
         // Convert images to base 64 string
-        if (camera == viewpointCamera)
+        if (camera == captureCam)
         {
             //Debug.Log("Converting viewpoint screenshot to base 64");
             viewpointImageBase64 = GetBase64FromBytes(bytes);
+            SaveCapture("viewpoint.jpg", bytes);
         }
         else if (camera == birdEyeCamera)
         {
             //Debug.Log("Converting birds eye screenshot to base 64");
             birdsEyeImageBase64 = GetBase64FromBytes(bytes);
+            SaveCapture("birdseye.jpg", bytes);
         }
 
         converted = true;
@@ -131,6 +163,18 @@ public class CameraSystem : MonoBehaviour
 
     [HideInInspector] public string viewpointImageBase64;
     [HideInInspector] public string birdsEyeImageBase64;
+
+    private void SaveCapture(string fileName, byte[] bytes)
+    {
+        if (!saveCapturesToDisk) return;
+
+        // Next to Assets/ (not inside it) so Unity doesn't import the images
+        string dir = Path.Combine(Application.dataPath, "..", "DebugCaptures");
+        Directory.CreateDirectory(dir);
+        string path = Path.GetFullPath(Path.Combine(dir, fileName));
+        File.WriteAllBytes(path, bytes);
+        Debug.Log($"[Vision] Saved {fileName} -> {path}");
+    }
 
     private string GetBase64FromBytes(byte[] imageBytes)
     {
