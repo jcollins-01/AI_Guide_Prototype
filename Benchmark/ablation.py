@@ -57,7 +57,7 @@ def variants(req, scene):
     def combined(m):
         no_birdseye(m); no_descriptions(m); look_first(m); images_on_question(m)
 
-    return {
+    out = {
         "as logged (baseline)": req,
         "no bird's-eye image": v(no_birdseye),
         "no registry descriptions": v(no_descriptions),
@@ -65,6 +65,12 @@ def variants(req, scene):
         "'look at the image' rule": v(look_first),
         "all of the above": v(combined),
     }
+
+    # Interactions logged after SceneContextBuilder was added carry engine-computed positions; test without them too
+    if any(str(m.get("content", "")).startswith("[Scene Context]") for m in msgs):
+        out["without scene context"] = v(lambda m: m.__setitem__(slice(None), [
+            x for x in m if not str(x.get("content", "")).startswith("[Scene Context]")]))
+    return out
 
 
 def main():

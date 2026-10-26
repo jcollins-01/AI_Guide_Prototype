@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using System;
@@ -114,6 +115,8 @@ public class CameraSystem : MonoBehaviour
         // Keep the map centred on where the player is now instead of where the scene started
         Vector3 head = viewpointCamera.transform.position;
         birdEyeCamera.transform.position = new Vector3(head.x, birdHeight, head.z + birdZOffset);
+        capturedHeadPos = head;
+        capturedHeadForward = Vector3.ProjectOnPlane(viewpointCamera.transform.forward, Vector3.up).normalized;
 
         Debug.Log($"[Vision] Capturing from \"{viewpointCamera.name}\" at {head}, facing yaw {viewpointCamera.transform.eulerAngles.y:F0}°");
 
@@ -124,17 +127,35 @@ public class CameraSystem : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
 
-        // Capped at 768px wide: the local vision model's time grows with image size and full-screen shots gain it nothing
-        int width = Mathf.Min(Screen.width, 768);
-        int height = Mathf.Max(1, Mathf.RoundToInt(Screen.height * (width / (float)Screen.width)));
+        // Fixed 4:3 size: independent of the Game window's shape (which gave thin 768x300 strips), and small enough
+        // that the local vision model stays fast
+        int width = 768;
+        int height = 576;
 
         RenderTexture renderTexture = new RenderTexture(width, height, 24);
         camera.targetTexture = renderTexture;
+        camera.ResetAspect(); // CopyFrom carries over the headset's aspect; use the render texture's
+
+        // Roofs are hidden only for the map render, so the player's own view is unchanged
+        List<Renderer> hidden = new List<Renderer>();
+        if (camera == birdEyeCamera)
+        {
+            foreach (string name in hideFromBirdsEye)
+            {
+                GameObject roof = GameObject.Find(name);
+                Renderer r = roof != null ? roof.GetComponent<Renderer>() : null;
+                if (r != null && r.enabled) { r.enabled = false; hidden.Add(r); }
+            }
+        }
+
         camera.Render();
+        foreach (Renderer r in hidden) r.enabled = true;
 
         Texture2D texture = new Texture2D(width, height, TextureFormat.RGB24, false);
         RenderTexture.active = renderTexture;
         texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        if (camera == birdEyeCamera)
+            DrawPlayerArrow(texture, camera);
         texture.Apply();
 
         byte[] bytes = texture.EncodeToJPG(75);
@@ -163,6 +184,40 @@ public class CameraSystem : MonoBehaviour
 
     [HideInInspector] public string viewpointImageBase64;
     [HideInInspector] public string birdsEyeImageBase64;
+
+    [Tooltip("Objects whose own renderer is hidden while the bird's-eye map is rendered (roofs), so the map shows inside buildings.")]
+    public List<string> hideFromBirdsEye = new List<string> { "Kitchen Ceiling", "Rosie's Kitchen" };
+
+    private Vector3 capturedHeadPos;
+    private Vector3 capturedHeadForward;
+
+    // Red dot at the player's position with a line pointing the way they face, so the model can read the map relative to them
+    private void DrawPlayerArrow(Texture2D texture, Camera cam)
+    {
+        Vector3 p = cam.WorldToViewportPoint(capturedHeadPos);
+        Vector3 tip = cam.WorldToViewportPoint(capturedHeadPos + capturedHeadForward * 3f);
+        if (p.z <= 0) return; // behind the camera
+
+        Vector2 center = new Vector2(p.x * texture.width, p.y * texture.height);
+        Vector2 dir = new Vector2(tip.x * texture.width, tip.y * texture.height) - center;
+        dir = dir.sqrMagnitude > 0.01f ? dir.normalized : Vector2.up;
+
+        for (int x = -10; x <= 10; x++)
+            for (int y = -10; y <= 10; y++)
+                if (x * x + y * y <= 100) SetPixelSafe(texture, (int)center.x + x, (int)center.y + y);
+
+        for (int i = 0; i < 40; i++)
+        {
+            Vector2 q = center + dir * i;
+            for (int t = -2; t <= 2; t++)
+                SetPixelSafe(texture, (int)(q.x - dir.y * t), (int)(q.y + dir.x * t));
+        }
+    }
+
+    private static void SetPixelSafe(Texture2D texture, int x, int y)
+    {
+        if (x >= 0 && y >= 0 && x < texture.width && y < texture.height) texture.SetPixel(x, y, Color.red);
+    }
 
     private void SaveCapture(string fileName, byte[] bytes)
     {

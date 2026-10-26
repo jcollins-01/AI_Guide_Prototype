@@ -97,6 +97,9 @@ public class RealtimeGuideClient : MonoBehaviour
     public bool _defaultPushToTalkOn = true;
     public bool _legacyHoldToSpeakOn = false;
     public Action OnAutoStopRecording; // Sent to AIGuide (to tell it when the voice has stopped)
+
+    // Optional: returns engine-computed scene facts for the player's question (set by AIGuide to SceneContextBuilder.Build)
+    public Func<string, string> SceneContextProvider;
     private float _silenceTimer = 0f;
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
     private float _volumeThreshold = 0.05f; // Minimum volume to be considered talking
@@ -455,6 +458,17 @@ public class RealtimeGuideClient : MonoBehaviour
             if (turn.ImagesBase64 != null && turn.ImagesBase64.Count > 0)
                 turnObj["images"] = new JArray(turn.ImagesBase64);
             messages.Add(turnObj);
+        }
+
+        // Fresh engine-computed positions go right before the question and are not kept in history,
+        // so the model always sees where things are NOW and old positions don't pile up
+        string sceneContext = null;
+        try { sceneContext = SceneContextProvider?.Invoke(userText); }
+        catch (Exception e) { Debug.LogWarning($"[SceneContext] Failed to build: {e.Message}"); }
+        if (!string.IsNullOrEmpty(sceneContext))
+        {
+            messages.Insert(messages.Count - 1, new JObject { ["role"] = "user", ["content"] = sceneContext });
+            Debug.Log($"[SceneContext]\n{sceneContext}");
         }
 
         var requestBody = new JObject
@@ -927,8 +941,8 @@ public class RealtimeGuideClient : MonoBehaviour
             Role = "user",
             Content = "[Visual Context] Two silent reference images for your next answer. " +
                       "Image 1 is exactly what the player is facing right now; use it for anything in front of them. " +
-                      "Image 2 is a top-down map taken from high above, centred on the player (the player stands roughly in the " +
-                      "middle of it); use it ONLY to work out where things are relative to the player. " +
+                      "Image 2 is a top-down map taken from high above with roofs hidden; the red arrow marks the player and " +
+                      "points the way they are facing. Use it ONLY to work out the layout around the player and which way to go. " +
                       "Image 2 is NOT the player's view: never describe it as a view, never say the view " +
                       "changed or shifted, and do not offer to go to things only visible in it unless they are in the Registry. " +
                       "If you see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide.",

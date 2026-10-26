@@ -95,6 +95,9 @@ public class AIGuide : MonoBehaviour
         realtimeClient.Connect(basePrompt, true); // tell the client which type of initial session update to pass
 
         realtimeClient.OnAutoStopRecording += HandleAutoStop; // Subscribe to the event of whenever the client auto-stops (detected a user stopped speaking)
+
+        // Give the guide exact object positions/routes from the engine with every question, so it doesn't have to guess them from screenshots
+        realtimeClient.SceneContextProvider = gameObject.AddComponent<SceneContextBuilder>().Build;
     }
 
     // For ensuring proper realtime data
