@@ -4574,6 +4574,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6738109898680949480, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
   m_PrefabInstance: {fileID: 1217395407}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &1217395412 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1676273059980170199, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+  m_PrefabInstance: {fileID: 1217395407}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1226469310
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6219,8 +6224,8 @@ MonoBehaviour:
   _localPlayer:
     root: {fileID: 1966064488}
     head: {fileID: 1972910042}
-    leftHand: {fileID: 1315253033}
-    rightHand: {fileID: 1747723169}
+    leftHand: {fileID: 1217395412}
+    rightHand: {fileID: 1217395411}
 --- !u!1001 &1713199595
 PrefabInstance:
   m_ObjectHideFlags: 0
