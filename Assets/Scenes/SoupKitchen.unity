@@ -1627,8 +1627,8 @@ Transform:
   m_GameObject: {fileID: 587802840}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -10.044292, y: 6.5029893, z: 2.800018}
-  m_LocalScale: {x: 0.26, y: 0.09, z: 0.26}
+  m_LocalPosition: {x: -9.937, y: 6.5029893, z: 2.800018}
+  m_LocalScale: {x: 0.561054, y: 0.19421102, z: 0.561054}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1325218882}
@@ -2176,7 +2176,11 @@ MonoBehaviour:
   crate: {fileID: 942054968}
   board: {fileID: 168962033}
   spiceJar: {fileID: 1408938571}
-  simmerSeconds: 15
+  quitWhenDone: 1
+  endingLine: Congratulations, chef! Everything is in the pot, and now the soup just
+    has to simmer. Our carrot soup is done! Thank you so much for taking part in
+    this research project. The game will close now. Goodbye!
+  teleport: 0
   proactiveGuide: 1
   enableDebugKeys: 1
   showOverlay: 1
@@ -2778,23 +2782,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2
+      value: 1.346
+      objectReference: {fileID: 0}
+    - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.485
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.367
+      value: 2.335
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.6679806
+      value: 0.50473434
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.7441787
+      value: -0.86327475
       objectReference: {fileID: 0}
     - target: {fileID: 2381187785762909811, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -96.177
+      value: -119.373
       objectReference: {fileID: 0}
     - target: {fileID: 2722401483757386458, guid: a8fb5a05a2458aa41b1ca1e87b949329, type: 3}
       propertyPath: m_Enabled
@@ -4227,8 +4235,8 @@ Transform:
   m_GameObject: {fileID: 1578170421}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -10.044292, y: 6.4029894, z: 3.2500184}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -9.901, y: 6.4029894, z: 3.519}
+  m_LocalScale: {x: 1.9532107, y: 1.9532107, z: 1.9532107}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 569274579}
@@ -4631,6 +4639,11 @@ MonoBehaviour:
   minorCheckRadius: 0.12
   useCharacterControllerRadius: 1
   characterControllerPadding: 0.05
+  teleportEnabled: 1
+  limitToArea: 0
+  allowedArea:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
   delayTimeCustom: 0.1
 --- !u!1 &2006778863
 GameObject:
