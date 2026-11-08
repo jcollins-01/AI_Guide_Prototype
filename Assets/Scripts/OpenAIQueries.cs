@@ -100,6 +100,12 @@ public class RealtimeGuideClient : MonoBehaviour
 
     // Optional: returns engine-computed scene facts for the player's question (set by AIGuide to SceneContextBuilder.Build)
     public Func<string, string> SceneContextProvider;
+
+    // Things that just happened in the game (e.g. "the pot is full") for the guide to react to without being asked.
+    // They wait until the guide is idle, and several waiting events are sent together as one message.
+    public void QueueGameEvent(string description) => _gameEvents.Enqueue(description);
+    private readonly Queue<string> _gameEvents = new Queue<string>();
+    private bool _turnInFlight = false; // a question or game event is between recording and the reply
     private float _silenceTimer = 0f;
     private float _silenceThreshold = 1.2f; // Seconds of silence before auto-stopping
     private float _volumeThreshold = 0.05f; // Minimum volume to be considered talking
@@ -163,6 +169,7 @@ public class RealtimeGuideClient : MonoBehaviour
             HttpResponseMessage response = await _httpClient.GetAsync(ollamaHealthUrl);
             _isConnected = response.IsSuccessStatusCode;
             Debug.Log(_isConnected ? "[Ollama] Connected." : $"[Ollama] Reachable but returned {(int)response.StatusCode}.");
+            if (_isConnected) _ = WarmUpModel();
         }
         catch (Exception e)
         {
@@ -186,6 +193,20 @@ public class RealtimeGuideClient : MonoBehaviour
 
         // Start() picks devices[0], so this list shows whether that's actually the headset mic
         Debug.Log($"[Mic] Available devices (index 0 is used): {string.Join(" | ", Microphone.devices)}");
+    }
+
+    // Loads the model into memory while the welcome plays (a chat request without messages only loads it), so the first
+    // real answer doesn't wait ~20 s for the model to load
+    private async Task WarmUpModel()
+    {
+        try
+        {
+            var body = new JObject { ["model"] = ollamaModel, ["keep_alive"] = "30m" };
+            var t = System.Diagnostics.Stopwatch.StartNew();
+            await _httpClient.PostAsync(ollamaChatUrl, new StringContent(body.ToString(), Encoding.UTF8, "application/json"));
+            Debug.Log($"[Ollama] Model {ollamaModel} loaded ({t.ElapsedMilliseconds} ms)");
+        }
+        catch (Exception e) { Debug.LogWarning($"[Ollama] Warm-up failed: {ErrorText(e)}"); }
     }
 
     public void StartRecording()
@@ -220,6 +241,13 @@ public class RealtimeGuideClient : MonoBehaviour
     }
 
     public async Task StopRecordingAndCommit(string screenshotUrl = null)
+    {
+        _turnInFlight = true;
+        try { await TranscribeAndRespond(); }
+        finally { _turnInFlight = false; }
+    }
+
+    private async Task TranscribeAndRespond()
     {
         HandleMicStreaming(); // flush the final bit of the mic buffer
         Debug.Log($"[Mic] Recording stopped: {(float)_pendingRecordingSamples.Count / SAMPLE_RATE:F1}s of audio, peak volume {_recordingPeak:F3}");
@@ -284,6 +312,7 @@ public class RealtimeGuideClient : MonoBehaviour
         HandleJitter();
         HandleDebugHotkey();
         HandleDebugVisionHotkey();
+        HandleGameEvents();
 
         if (!_guideAudioSourceFound)
         {
@@ -303,6 +332,24 @@ public class RealtimeGuideClient : MonoBehaviour
                 _isAiSpeaking = false;
             }
         }
+    }
+
+    private void HandleGameEvents()
+    {
+        if (_gameEvents.Count == 0 || !_isConnected || _isRecording || _isAiSpeaking || _turnInFlight) return;
+
+        string text = "[Game Event] " + string.Join(" ", _gameEvents);
+        _gameEvents.Clear();
+        _ = RespondToGameEvent(text);
+    }
+
+    private async Task RespondToGameEvent(string text)
+    {
+        _turnInFlight = true;
+        _turnTimer.Restart();
+        Debug.Log($"[GameEvent] {text}");
+        try { await SendUserMessageAndRespond(text); }
+        finally { _turnInFlight = false; }
     }
 
     private void HandleJitter()
@@ -477,7 +524,9 @@ public class RealtimeGuideClient : MonoBehaviour
             ["messages"] = messages,
             ["stream"] = false,
             // gemma4 thinks by default; turning it off roughly halves latency with no measured loss in action accuracy
-            ["think"] = false
+            ["think"] = false,
+            // Keep the model in GPU memory between questions; Ollama's default 5 minutes means a ~20 s reload after a pause
+            ["keep_alive"] = "30m"
         };
 
         int imageCount = 0;
@@ -527,6 +576,10 @@ public class RealtimeGuideClient : MonoBehaviour
 
     private (string spokenText, bool actionTriggered) ProcessResponseForActions(string responseText)
     {
+        // The small model sometimes starts a reply by quoting an input block ("[Task] Cooking carrot soup: 10 of 10 steps
+        // done."); that sentence must never be read aloud
+        responseText = Regex.Replace(responseText, @"\[(?:Task|Scene Context|Game Event|Visual Context)\][^\n.!?]*[.!?]?\s*", "");
+
         var match = Regex.Match(responseText, @"\[ACTION:(\{.*?\})\]");
         if (!match.Success)
             return (responseText.Trim(), false);
@@ -941,9 +994,10 @@ public class RealtimeGuideClient : MonoBehaviour
             Role = "user",
             Content = "[Visual Context] Two silent reference images for your next answer. " +
                       "Image 1 is exactly what the player is facing right now; use it for anything in front of them. " +
-                      "Image 2 is a top-down map taken from high above with roofs hidden; the red arrow marks the player and " +
+                      "Image 2 is a top-down map taken by a camera high above the building with the roof hidden; the red arrow marks the player and " +
                       "points the way they are facing. Use it ONLY to work out the layout around the player and which way to go. " +
-                      "Image 2 is NOT the player's view: never describe it as a view, never say the view " +
+                      "Image 2 is NOT the player's view and NOT where the player is: the player is down at the red arrow, never above or " +
+                      "outside the building because of this image (the [Scene Context] says where they are). Never describe it as a view, never say the view " +
                       "changed or shifted, and do not offer to go to things only visible in it unless they are in the Registry. " +
                       "If you see a person's avatar with a gray hoodie, black hair, and glasses, that is YOUR avatar, the guide.",
             ImagesBase64 = new List<string> { StripDataUriPrefix(viewpointBase64), StripDataUriPrefix(birdsEyeBase64) }

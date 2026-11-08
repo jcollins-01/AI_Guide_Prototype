@@ -101,7 +101,7 @@ public class CameraSystem : MonoBehaviour
         converted = false;
 
         if (viewpointCamera == null || !viewpointCamera.isActiveAndEnabled)
-            viewpointCamera = Camera.main;
+            viewpointCamera = PlayerHead.Camera;
 
         if (captureCam == null)
         {

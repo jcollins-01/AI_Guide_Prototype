@@ -98,6 +98,10 @@ public class AIGuide : MonoBehaviour
 
         // Give the guide exact object positions/routes from the engine with every question, so it doesn't have to guess them from screenshots
         realtimeClient.SceneContextProvider = gameObject.AddComponent<SceneContextBuilder>().Build;
+
+        // Spoken introduction: the project, the buttons, the vibration, and to wait for answers
+        gameObject.AddComponent<GuideWelcome>();
+        if (HandAssist.Instance == null) gameObject.AddComponent<HandAssist>(); // B/Y name button, proximity vibration, grab assist
     }
 
     // For ensuring proper realtime data
@@ -114,6 +118,10 @@ public class AIGuide : MonoBehaviour
         prompt = "You are Giddy, a " + m_OpenAIQueriesScript.role + ". You are a sighted guide for a blind player. " + m_OpenAIQueriesScript.contextClassification +
            " THE NAVIGATION REGISTRY: Names and descriptions of objects in the scene. When following navigation or modification commands, use ONLY these names: " + m_OpenAIQueriesScript.objectClassifications +
            m_OpenAIQueriesScript.queryClassifications + m_OpenAIQueriesScript.guideRules; // used to have + m_OpenAIQueriesScript.commandClassifications
+
+        // Scenes with the soup task: explain the recipe and how the stove, tap and crate are used
+        if (FindObjectOfType<SoupTask>() != null)
+            prompt += SoupTask.PromptRules;
 
         return prompt;
     }

@@ -36,6 +36,13 @@ public class CustomTeleportationProvider : TeleportationProvider
     [Tooltip("Extra clearance added to CharacterController radius when used for checks.")]
     public float characterControllerPadding = 0.05f;
 
+    [Header("Teleport Limits")]
+    [Tooltip("Off: teleport requests are ignored (e.g. the kitchen is small enough to walk).")]
+    public bool teleportEnabled = true;
+    [Tooltip("Only allow destinations inside allowedArea (e.g. the kitchen).")]
+    public bool limitToArea = false;
+    public Bounds allowedArea;
+
     private float maxSlope = 75f;
 
     public float delayTimeCustom = 0.1f; // if you need editable delay time, use this one
@@ -43,6 +50,7 @@ public class CustomTeleportationProvider : TeleportationProvider
     public override bool QueueTeleportRequest(TeleportRequest teleportRequest)
     {
         //Debug.Log($"[Provider] QueueTeleportRequest called. Destination = {teleportRequest.destinationPosition}");
+        if (!teleportEnabled) return false;
         currentRequest = teleportRequest;
         validRequest = true;
         return true;
@@ -129,6 +137,12 @@ public class CustomTeleportationProvider : TeleportationProvider
 
     bool IsTeleportDestinationValid(Vector3 pos)
     {
+        if (limitToArea && (pos.x < allowedArea.min.x || pos.x > allowedArea.max.x || pos.z < allowedArea.min.z || pos.z > allowedArea.max.z))
+        {
+            Debug.LogWarning("[Provider] Blocked teleport outside the allowed area");
+            return false;
+        }
+
         // 1) Floor or water check using raycast is more reliable than CheckSphere alone
         if (!Physics.Raycast(pos + Vector3.up * 1.0f, Vector3.down, out RaycastHit floorHit, 2.5f, teleportableLayers, QueryTriggerInteraction.Ignore))
         {

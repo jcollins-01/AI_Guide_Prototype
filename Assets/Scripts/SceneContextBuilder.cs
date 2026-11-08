@@ -23,8 +23,22 @@ public class SceneContextBuilder : MonoBehaviour
     // Words too common to identify an object when matching the player's question against registry names
     private static readonly HashSet<string> CommonWords = new HashSet<string> { "the", "kitchen", "city", "near", "area", "of", "by", "a" };
 
+    // What the last Build() described, with positions, so PresentationCapture can draw it on a map
+    public enum AnnotationKind { WithinReach, InView, NotInView, Guide }
+    public struct Annotation
+    {
+        public string label;
+        public Vector3 point;
+        public AnnotationKind kind;
+        public Vector3[] route; // walking route corners, when the context mentions one
+    }
+    public readonly List<Annotation> LastAnnotations = new List<Annotation>();
+    public Vector3 LastHeadPosition { get; private set; }
+    public Vector3 LastFacing { get; private set; }
+
     private OpenAIQueries m_OpenAIQueriesScript;
     private Dictionary<string, List<GameObject>> registryObjects;
+    private bool loggedRegistry = false;
 
     private struct Entry
     {
@@ -39,14 +53,17 @@ public class SceneContextBuilder : MonoBehaviour
     // Called by RealtimeGuideClient right before each question goes to Ollama
     public string Build(string playerQuestion)
     {
-        Camera head = Camera.main;
+        Camera head = PlayerHead.Camera;
         if (head == null) return null;
-        if (registryObjects == null) ResolveRegistry();
+        ResolveRegistry(); // every time: objects can appear during play (a carrot taken from the crate)
         if (registryObjects.Count == 0) return null;
 
         Vector3 headPos = head.transform.position;
         Vector3 facing = Vector3.ProjectOnPlane(head.transform.forward, Vector3.up).normalized;
         string question = (playerQuestion ?? "").ToLowerInvariant();
+        LastAnnotations.Clear();
+        LastHeadPosition = headPos;
+        LastFacing = facing;
 
         var entries = new List<Entry>();
         foreach (var pair in registryObjects)
@@ -76,13 +93,17 @@ public class SceneContextBuilder : MonoBehaviour
                       "Trust this over the images for what is where; use the images for anything not listed here.");
 
         string inside = ContainingObject(entries, headPos);
-        if (inside != null) sb.AppendLine($"Player is inside: {inside}");
+        // The cooking task never leaves the kitchen; the building's bounds can miss a player standing against its wall
+        if (inside == null && SoupTask.Instance != null && registryObjects.ContainsKey("Rosie's Kitchen")) inside = "Rosie's Kitchen";
+        if (inside != null) sb.AppendLine($"Player is inside: {inside}" + (SoupTask.Instance != null ? " (the player is always inside the kitchen, never outside)" : ""));
+        sb.AppendLine(RoomPosition(head.transform));
 
         GuideFollow guide = FindObjectOfType<GuideFollow>();
         if (guide != null)
         {
             Vector3 toGuide = Vector3.ProjectOnPlane(guide.transform.position - headPos, Vector3.up);
             sb.AppendLine($"You (the guide) are standing: {Direction(Vector3.SignedAngle(facing, toGuide, Vector3.up))}, {Meters(toGuide.magnitude)}");
+            Annotate("Guide", guide.transform.position, Vector3.SignedAngle(facing, toGuide, Vector3.up), toGuide.magnitude, AnnotationKind.Guide);
         }
 
         // Within arm's reach, in any direction: replaces static labels like "Near kitchen prepping table" with
@@ -93,14 +114,20 @@ public class SceneContextBuilder : MonoBehaviour
         {
             sb.AppendLine("Right next to the player (within reach):");
             foreach (var e in nextTo)
+            {
                 sb.AppendLine($"- {e.name}: {Beside(e.nearAngle)}, {Meters(e.distance)}");
+                Annotate(e.name, GetBounds(e.obj).ClosestPoint(headPos), e.nearAngle, e.distance, AnnotationKind.WithinReach);
+            }
         }
 
         var visible = entries.Where(e => e.visible && e.name != inside && !nextTo.Contains(e)).OrderBy(e => e.distance).Take(maxVisible).ToList();
         sb.AppendLine("In view, nearest first:");
         if (visible.Count == 0) sb.AppendLine("- nothing from the Registry");
         foreach (var e in visible)
+        {
             sb.AppendLine($"- {e.name}: {Direction(e.angle)}, {Meters(e.distance)}");
+            Annotate(e.name, GetBounds(e.obj).center, e.angle, e.distance, AnnotationKind.InView);
+        }
 
         // Out of view: the nearest ones, plus anything the player mentioned no matter how far (with a walking route)
         var mentioned = entries.Where(e => Mentions(question, e.name)).ToList();
@@ -112,10 +139,27 @@ public class SceneContextBuilder : MonoBehaviour
         {
             sb.AppendLine("Not in view:");
             foreach (var e in notVisible)
+            {
+                lastRoute = null;
                 sb.AppendLine($"- {e.name}: {Direction(e.angle)}, {Meters(e.distance)}{Route(e, headPos, facing)}");
+                Annotate(e.name, GetBounds(e.obj).center, e.angle, e.distance, AnnotationKind.NotInView, lastRoute);
+            }
         }
 
+        // Cooking task progress and hand directions, in scenes that have the soup task
+        if (SoupTask.Instance != null)
+            sb.AppendLine(SoupTask.Instance.ContextText(head.transform));
+
         return sb.ToString().TrimEnd();
+    }
+
+    // Every registry object with its name and bounds (for the hand's name button)
+    public IEnumerable<(string name, GameObject obj, Bounds bounds)> RegistryObjects()
+    {
+        ResolveRegistry();
+        foreach (var pair in registryObjects)
+            foreach (GameObject obj in pair.Value)
+                if (obj != null && obj.activeInHierarchy) yield return (pair.Key, obj, GetBounds(obj));
     }
 
     // Registry names come from the scene's entry in RoomDescriptions.json; names with no matching GameObject
@@ -140,6 +184,8 @@ public class SceneContextBuilder : MonoBehaviour
             list.Add(obj);
         }
 
+        if (loggedRegistry) return;
+        loggedRegistry = true;
         var missing = names.Where(n => !registryObjects.ContainsKey(n)).ToList();
         Debug.Log($"[SceneContext] {registryObjects.Count} registry objects found in the scene" +
                   (missing.Count > 0 ? $"; no GameObject for: {string.Join(", ", missing)}" : ""));
@@ -195,6 +241,35 @@ public class SceneContextBuilder : MonoBehaviour
         return best;
     }
 
+    // Where in the room the player stands: the nearest wall or furniture straight ahead, right, behind and left, at waist
+    // height (counters) and chest height (walls, fridge), so the guide can say "you're in the middle" or "the wall is
+    // right behind you"
+    private string RoomPosition(Transform head)
+    {
+        Vector3 facing = Vector3.ProjectOnPlane(head.forward, Vector3.up).normalized;
+        Vector3 right = Vector3.Cross(Vector3.up, facing);
+        var sides = new[] { ("ahead", facing), ("on the right", right), ("behind", -facing), ("on the left", -right) };
+        const float range = 8f;
+
+        var parts = new List<string>();
+        string closestSide = null;
+        float nearest = range;
+        foreach (var (word, dir) in sides)
+        {
+            float d = range;
+            foreach (float drop in new[] { 0.8f, 0.3f }) // waist and chest, below a standing player's eyes
+                if (Physics.Raycast(head.position - Vector3.up * drop, dir, out RaycastHit hit, range, LineOfSightMask, QueryTriggerInteraction.Ignore))
+                    d = Mathf.Min(d, hit.distance);
+            parts.Add(d >= range ? $"{word} open" : $"{word} {(d < 1f ? $"{d:0.0} m" : Meters(d))}");
+            if (d < nearest) { nearest = d; closestSide = word; }
+        }
+
+        string summary = nearest < 0.6f ? $"the player is at the edge of the room, right against something {closestSide}"
+                       : nearest < 1.5f ? $"the player is near the side of the room, closest {closestSide}"
+                       : "the player is in the open middle of the room";
+        return $"Position in the room: {summary}. Nearest wall or furniture: {string.Join(", ", parts)}.";
+    }
+
     // Walking route along the NavMesh, only mentioned when it is noticeably longer than the straight line
     // (walls in the way) -- then the first leg tells the guide which way to start walking.
     private string Route(Entry e, Vector3 headPos, Vector3 facing)
@@ -210,9 +285,19 @@ public class SceneContextBuilder : MonoBehaviour
         for (int i = 1; i < path.corners.Length; i++) length += Vector3.Distance(path.corners[i - 1], path.corners[i]);
         if (length < e.distance * 1.3f + 1f) return "";
 
+        lastRoute = path.corners;
         Vector3 firstLeg = Vector3.ProjectOnPlane(path.corners[1] - path.corners[0], Vector3.up);
         return $"; walking route {Meters(length)}, start by heading {Direction(Vector3.SignedAngle(facing, firstLeg, Vector3.up))}" +
                (path.status == NavMeshPathStatus.PathPartial ? " (route incomplete)" : "");
+    }
+
+    private Vector3[] lastRoute;
+
+    private void Annotate(string name, Vector3 point, float angle, float distance, AnnotationKind kind, Vector3[] route = null)
+    {
+        string clock = Direction(angle);
+        clock = clock.Substring(clock.IndexOf('(') + 1).TrimEnd(')');
+        LastAnnotations.Add(new Annotation { label = name + "\n" + $"{Meters(distance)}, {clock}", point = point, kind = kind, route = route });
     }
 
     private static bool Mentions(string question, string name)
